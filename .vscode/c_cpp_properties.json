@@ -32,7 +32,10 @@
 				"${workspaceFolder}/src",
 				"${workspaceFolder}/lib",
 				"${workspaceFolder}/test",
-				"/usr/local/include/**"
+				"/usr/local/include/**",
+				"/Users/dane/repositories/imgui",
+				"/Users/dane/repositories/imgui-sfml/build/include",
+				"/Users/dane/repositories/box2d/include"
 			],
 			"defines": [
 				"_DEBUG"
