@@ -11,9 +11,14 @@ void CreateGround(b2World& world, float x, float y);
 /** Create the boxes */
 void CreateBox(b2World& world, int mouseX, int mouseY);
 
+/** Hello world simulation */
+void helloWorld();
+
 int main(int argc, char** argv)
 {
 	util::Platform platform;
+
+	helloWorld();
 
 #if defined(_DEBUG)
 	std::cout << "Hello World!" << std::endl;
@@ -135,4 +140,75 @@ void CreateGround(b2World& world, float x, float y)
 	fixtureDef.density = 0.f;
 	fixtureDef.shape = &shape;
 	body->CreateFixture(&fixtureDef);
+}
+
+void helloWorld()
+{
+	/** Creating a b2World
+	*/
+
+	// First define a gravity vector
+	b2Vec2 gravity(0.f, -10.f);
+
+	// Create the world object (on stack in this case)
+	b2World world(gravity);
+
+
+	/** Creating a Ground Box
+	*/
+
+	// Body definition defines initial position (static body by default)
+	b2BodyDef groundBodyDef;
+	groundBodyDef.position.Set(0.f, -10.f);
+
+	// Create the ground body
+	b2Body* groundBody = world.CreateBody(&groundBodyDef);
+
+	// Create a ground polygon (box(hx, hy))
+	b2PolygonShape groundBox;
+	groundBox.SetAsBox(50.f, 10.f);
+
+	// Create a shape fixture using shortcut (shape density kg p/meter squared, 0 for static bodies)
+	groundBody->CreateFixture(&groundBox, 0.0f);
+
+
+	/** Creating a Dynamic Body
+	*/
+
+	// Create the body
+	b2BodyDef bodyDef;
+	bodyDef.type = b2_dynamicBody;
+	bodyDef.position.Set(0.f, 4.f);
+	b2Body* body = world.CreateBody(&bodyDef);
+
+	// Create and attach polgon shape using a fixture definition
+	b2PolygonShape dynamicBox;
+	dynamicBox.SetAsBox(1.f, 1.f);
+
+	b2FixtureDef fixtureDef;
+	fixtureDef.shape = &dynamicBox;
+	fixtureDef.density = 1.f;
+	fixtureDef.friction = .3f;
+
+	// Create fixture using definition
+	body->CreateFixture(&fixtureDef);
+
+
+	/** Simulating the world
+	*/
+
+	// Create a time step
+	float timeStep = 1.f/60.f;
+
+	int32 velocityIterations = 6;		// 8 default
+	int32 positionInterations = 2;		// 3 default
+
+	// Call b2World::Step to process the simulation loop; one call usually enough per frame
+	for (int32 i = 0; i < 60; ++i)
+	{
+		world.Step(timeStep, velocityIterations, positionInterations);
+		b2Vec2 position = body->GetPosition();
+		float angle = body->GetAngle();
+		std::cout << "position: (" << position.x << "," << position.y << ")\tangle: " << angle << "radians\n";
+	}
 }
