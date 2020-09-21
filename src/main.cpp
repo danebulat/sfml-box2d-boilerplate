@@ -4,26 +4,23 @@
 
 /** Easily convert between pixel and real-world coordinates */
 static const float SCALE = 30.f;
+const float CIRCLE_RADIUS = 18.f;
+const float SQUARE_SIZE = 32.f;
 
-/** Create the base for the boxes to land */
 void CreateGround(b2World& world, float x, float y);
-
-/** Create boxes */
 void CreateBox(b2World& world, int mouseX, int mouseY);
-
-/** Create circles */
 void CreateCircle(b2World& world, int mouseX, int mouseY);
 
 /** Hello world simulation */
 void helloWorld();
 
-const float CIRCLE_RADIUS = 18.f;
-const float SQUARE_SIZE = 32.f;
-
 int main(int argc, char** argv)
 {
 	util::Platform platform;
 	//helloWorld();
+
+	// Mouse data
+	bool holdingRMB = false;
 
 	// Circle data for clicking
 	sf::Vector2f circlePos;
@@ -32,6 +29,15 @@ int main(int argc, char** argv)
 	circle.setRadius(5.f);
 	circle.setFillColor(sf::Color::Red);
 	circle.setOrigin(sf::Vector2(5.f, 5.f));
+
+	// Line data for ray cast
+	bool rayCastDemo = false;
+	sf::Vector2f rayEndPoint;
+	sf::VertexArray line(sf::LinesStrip, 2);
+	line[0].position = sf::Vector2f(0.f, 600.f);
+	line[0].color = sf::Color::Red;
+	line[1].position = sf::Vector2f(0.f, 600.f);
+	line[1].color = sf::Color::Red;
 
 #if defined(_DEBUG)
 	std::cout << "Hello World!" << std::endl;
@@ -65,6 +71,11 @@ int main(int argc, char** argv)
 				{
                     window.close();
                 }
+
+				if (event.key.code == sf::Keyboard::Enter)
+				{
+					rayCastDemo = !rayCastDemo;
+				}
 			}
 
 			// Left and right button release
@@ -90,28 +101,45 @@ int main(int argc, char** argv)
 
 					CreateCircle(world, mouseX, mouseY);
 				}
+				else if (event.mouseButton.button == sf::Mouse::Right)
+				{
+					holdingRMB = false;
+				}
 			}
 
 			if (event.type == sf::Event::MouseButtonPressed)
 			{
 				if (event.mouseButton.button == sf::Mouse::Right)
 				{
-					drawCircle = true;
-
-					sf::Vector2f mousePosition = window.mapPixelToCoords(sf::Mouse::getPosition(), window.getView());
-					sf::Vector2i mouseOffset = window.getPosition();
-
-					circlePos.x = (float)mousePosition.x - (float)mouseOffset.x;
-					circlePos.y = (float)mousePosition.y - (float)mouseOffset.y;
-
-					circle.setPosition(circlePos);
-					//std::cout << "right mouse button pressed\n";
+					holdingRMB = true;
 				}
 			}
 			else
 			{
 				drawCircle = false;
 			}
+		}
+
+		if (holdingRMB && rayCastDemo)
+		{
+			sf::Vector2f mousePosition = window.mapPixelToCoords(sf::Mouse::getPosition(), window.getView());
+			sf::Vector2i mouseOffset = window.getPosition();
+
+			line[1].position.x = mousePosition.x - (float)mouseOffset.x;
+			line[1].position.y = mousePosition.y - (float)mouseOffset.y;
+
+			rayEndPoint.x = mousePosition.x - (float)mouseOffset.x;
+			rayEndPoint.y = mousePosition.y - (float)mouseOffset.y;
+		}
+		else if (holdingRMB && !rayCastDemo)
+		{
+			sf::Vector2f mousePosition = window.mapPixelToCoords(sf::Mouse::getPosition(), window.getView());
+			sf::Vector2i mouseOffset = window.getPosition();
+
+			drawCircle = true;
+			circlePos.x = mousePosition.x - (float)mouseOffset.x;
+			circlePos.y = mousePosition.y - (float)mouseOffset.y;
+			circle.setPosition(circlePos);
 		}
 
 		/** Update */
@@ -125,10 +153,11 @@ int main(int argc, char** argv)
 		{
 			if (body->GetType() == b2_dynamicBody)
 			{
-				// Check if point collides with shape
-				// https://stackoverflow.com/questions/5873309/box2d-get-shape-of-my-bodies
+				// Get fixture to perform point and ray cast checks
 				b2Fixture* fixture = body->GetFixtureList();
 
+				// Check if point collides with shape
+				// https://stackoverflow.com/questions/5873309/box2d-get-shape-of-my-bodies
 				while (fixture != NULL)
 				{
 					switch (fixture->GetType())
@@ -191,8 +220,47 @@ int main(int argc, char** argv)
 						}
 					}
 
+					// if drawRayCast...
+					if (rayCastDemo)
+					{
+						b2Shape* shape;
+
+						if (fixture->GetType() == b2Shape::e_polygon)
+						{
+							shape = dynamic_cast<b2PolygonShape*>(fixture->GetShape());
+						}
+						else
+						{
+							shape = dynamic_cast<b2CircleShape*>(fixture->GetShape());
+						}
+
+						b2Transform transform = body->GetTransform();
+						b2RayCastInput input;
+						input.p1.Set(0.f/SCALE, 600.f/SCALE);
+						input.p2.Set(rayEndPoint.x/SCALE, rayEndPoint.y/SCALE);
+						input.maxFraction = 1.f;
+						int32 childIndex = 0;
+
+						b2RayCastOutput output;
+
+						bool hit = shape->RayCast(&output, input, transform, childIndex);
+
+						if (hit)
+						{
+							b2Vec2 hitPoint = input.p1 + output.fraction * (input.p2 - input.p1);
+
+							sf::CircleShape point;
+							point.setRadius(5.f);
+							point.setFillColor(sf::Color::Red);
+							point.setOrigin(sf::Vector2(5.f, 5.f));
+							point.setPosition(hitPoint.x * SCALE, hitPoint.y * SCALE);
+
+							window.draw(point);
+						}
+					}// if (rayCastDemo)
+
 					fixture = fixture->GetNext();
-				}
+				}// while (fixture != NULL)
 			}
 			else
 			{
@@ -212,6 +280,11 @@ int main(int argc, char** argv)
 		{
 			window.draw(circle);
 			//std::cout << "draw circle at (" << circle.getPosition().x << "," << circle.getPosition().y << ")\n";
+		}
+
+		if (rayCastDemo)
+		{
+			window.draw(line);
 		}
 
 		window.display();
