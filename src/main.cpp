@@ -1,30 +1,18 @@
 #include "Platform/Platform.hpp"
 #include <SFML/Graphics.hpp>
 #include "box2d/box2d.h"
-
-/** Easily convert between pixel and real-world coordinates */
-static const float SCALE = 30.f;
-const float CIRCLE_RADIUS = 18.f;
-const float SQUARE_SIZE = 32.f;
-
-void CreateGround(b2World& world, float x, float y);
-void CreateBox(b2World& world, int mouseX, int mouseY);
-void CreateCircle(b2World& world, int mouseX, int mouseY);
-
-/** Hello world simulation */
-void helloWorld();
+#include "utils/box2d_utils.hpp"
 
 int main(int argc, char** argv)
 {
 	util::Platform platform;
-	//helloWorld();
 
 	// Mouse data
 	bool holdingRMB = false;
 
 	// Circle data for clicking
-	sf::Vector2f circlePos;
-	bool drawCircle = false;
+	sf::Vector2f clickPos;
+	bool drawClickPoint = false;
 	sf::CircleShape circle;
 	circle.setRadius(5.f);
 	circle.setFillColor(sf::Color::Red);
@@ -38,10 +26,6 @@ int main(int argc, char** argv)
 	line[0].color = sf::Color::Red;
 	line[1].position = sf::Vector2f(0.f, 600.f);
 	line[1].color = sf::Color::Red;
-
-#if defined(_DEBUG)
-	std::cout << "Hello World!" << std::endl;
-#endif
 
 	/** Prepare the window */
 	sf::RenderWindow window(sf::VideoMode(800.f, 600.f, 32), "SFML - Box2D Boilerplate", sf::Style::Default);
@@ -60,22 +44,17 @@ int main(int argc, char** argv)
 		{
 			// Close window: exit
             if (event.type == sf::Event::Closed)
-			{
                 window.close();
-            }
 
-			// Escape key: exit
 			if (event.type == sf::Event::KeyReleased)
             {
+				// Escape key: exit
                 if (event.key.code == sf::Keyboard::Escape)
-				{
                     window.close();
-                }
 
+				// Enter key: toggle demo
 				if (event.key.code == sf::Keyboard::Enter)
-				{
 					rayCastDemo = !rayCastDemo;
-				}
 			}
 
 			// Left and right button release
@@ -83,63 +62,45 @@ int main(int argc, char** argv)
 			{
 				if (event.mouseButton.button == sf::Mouse::Left)
 				{
-					sf::Vector2f mousePosition = window.mapPixelToCoords(sf::Mouse::getPosition(), window.getView());
-					sf::Vector2i mouseOffset = window.getPosition();
-
-					int mouseX = (int)mousePosition.x - mouseOffset.x;
-					int mouseY = (int)mousePosition.y - mouseOffset.y;
+					sf::Vector2f mousePos = GetMousePosition(window);
+					float mouseX = mousePos.x;
+					float mouseY = mousePos.y;
 
 					CreateBox(world, mouseX, mouseY);
 				}
 				else if (event.mouseButton.button == sf::Mouse::Middle)
 				{
-					sf::Vector2f mousePosition = window.mapPixelToCoords(sf::Mouse::getPosition(), window.getView());
-					sf::Vector2i mouseOffset = window.getPosition();
-
-					int mouseX = (int)mousePosition.x - mouseOffset.x;
-					int mouseY = (int)mousePosition.y - mouseOffset.y;
+					sf::Vector2f mousePos = GetMousePosition(window);
+					float mouseX = mousePos.x;
+					float mouseY = mousePos.y;
 
 					CreateCircle(world, mouseX, mouseY);
 				}
 				else if (event.mouseButton.button == sf::Mouse::Right)
-				{
 					holdingRMB = false;
-				}
 			}
 
 			if (event.type == sf::Event::MouseButtonPressed)
 			{
 				if (event.mouseButton.button == sf::Mouse::Right)
-				{
 					holdingRMB = true;
-				}
 			}
 			else
-			{
-				drawCircle = false;
-			}
+				drawClickPoint = false;
 		}
 
 		if (holdingRMB && rayCastDemo)
 		{
-			sf::Vector2f mousePosition = window.mapPixelToCoords(sf::Mouse::getPosition(), window.getView());
-			sf::Vector2i mouseOffset = window.getPosition();
+			rayEndPoint = GetMousePosition(window);
 
-			line[1].position.x = mousePosition.x - (float)mouseOffset.x;
-			line[1].position.y = mousePosition.y - (float)mouseOffset.y;
-
-			rayEndPoint.x = mousePosition.x - (float)mouseOffset.x;
-			rayEndPoint.y = mousePosition.y - (float)mouseOffset.y;
+			line[1].position.x = rayEndPoint.x;
+			line[1].position.y = rayEndPoint.y;
 		}
 		else if (holdingRMB && !rayCastDemo)
 		{
-			sf::Vector2f mousePosition = window.mapPixelToCoords(sf::Mouse::getPosition(), window.getView());
-			sf::Vector2i mouseOffset = window.getPosition();
-
-			drawCircle = true;
-			circlePos.x = mousePosition.x - (float)mouseOffset.x;
-			circlePos.y = mousePosition.y - (float)mouseOffset.y;
-			circle.setPosition(circlePos);
+			drawClickPoint = true;
+			clickPos = GetMousePosition(window);
+			circle.setPosition(clickPos);
 		}
 
 		/** Update */
@@ -171,21 +132,12 @@ int main(int argc, char** argv)
 							sprite.setOrigin(16.f, 16.f);
 							sprite.setOutlineColor(sf::Color::Black);
 							sprite.setOutlineThickness(2.f);
+							sprite.setFillColor(sf::Color::White);
 							++bodyCount;
 
-							if (drawCircle)
-							{
-								b2Vec2 mousePoint(circlePos.x/SCALE, circlePos.y/SCALE);
-
-								if (fixture->TestPoint(mousePoint))
-								{
-									sprite.setFillColor(sf::Color::Green);
-								}
-							}
-							else
-							{
-								sprite.setFillColor(sf::Color::White);
-							}
+							// Check if shape is clicked on
+							if (drawClickPoint)
+								DoTestPoint(fixture, clickPos, sprite);
 
 							window.draw(sprite);
 							break;
@@ -199,65 +151,21 @@ int main(int argc, char** argv)
 							sprite.setOrigin(CIRCLE_RADIUS, CIRCLE_RADIUS);
 							sprite.setOutlineColor(sf::Color::Black);
 							sprite.setOutlineThickness(2.f);
+							sprite.setFillColor(sf::Color::White);
 							++bodyCount;
 
-							if (drawCircle)
-							{
-								b2Vec2 mousePoint(circlePos.x/SCALE, circlePos.y/SCALE);
-
-								if (fixture->TestPoint(mousePoint))
-								{
-									sprite.setFillColor(sf::Color::Blue);
-								}
-							}
-							else
-							{
-								sprite.setFillColor(sf::Color::White);
-							}
+							// Check if shape is clicked on
+							if (drawClickPoint)
+								DoTestPoint(fixture, clickPos, sprite);
 
 							window.draw(sprite);
 							break;
 						}
 					}
 
-					// if drawRayCast...
+					// Draw raycast
 					if (rayCastDemo)
-					{
-						b2Shape* shape;
-
-						if (fixture->GetType() == b2Shape::e_polygon)
-						{
-							shape = dynamic_cast<b2PolygonShape*>(fixture->GetShape());
-						}
-						else
-						{
-							shape = dynamic_cast<b2CircleShape*>(fixture->GetShape());
-						}
-
-						b2Transform transform = body->GetTransform();
-						b2RayCastInput input;
-						input.p1.Set(0.f/SCALE, 600.f/SCALE);
-						input.p2.Set(rayEndPoint.x/SCALE, rayEndPoint.y/SCALE);
-						input.maxFraction = 1.f;
-						int32 childIndex = 0;
-
-						b2RayCastOutput output;
-
-						bool hit = shape->RayCast(&output, input, transform, childIndex);
-
-						if (hit)
-						{
-							b2Vec2 hitPoint = input.p1 + output.fraction * (input.p2 - input.p1);
-
-							sf::CircleShape point;
-							point.setRadius(5.f);
-							point.setFillColor(sf::Color::Red);
-							point.setOrigin(sf::Vector2(5.f, 5.f));
-							point.setPosition(hitPoint.x * SCALE, hitPoint.y * SCALE);
-
-							window.draw(point);
-						}
-					}// if (rayCastDemo)
+						DoRayCast(fixture, rayEndPoint, window);
 
 					fixture = fixture->GetNext();
 				}// while (fixture != NULL)
@@ -276,229 +184,14 @@ int main(int argc, char** argv)
 			}
 		}
 
-		if (drawCircle)
-		{
+		if (drawClickPoint)
 			window.draw(circle);
-			//std::cout << "draw circle at (" << circle.getPosition().x << "," << circle.getPosition().y << ")\n";
-		}
 
 		if (rayCastDemo)
-		{
 			window.draw(line);
-		}
 
 		window.display();
 	}
 
 	return 0;
-}
-
-void CreateBox(b2World& world, int mouseX, int mouseY)
-{
-	/** create a b2Body via a b2BodyDef */
-	b2BodyDef bodyDef;
-	bodyDef.position = b2Vec2(mouseX/SCALE, mouseY/SCALE);
-	bodyDef.type = b2_dynamicBody;
-	b2Body* body = world.CreateBody(&bodyDef);
-
-	/** define shape and body physical properties with b2FixtureDef */
-	b2PolygonShape shape;
-	shape.SetAsBox((SQUARE_SIZE/2)/SCALE, (SQUARE_SIZE/2)/SCALE);	// pass half of width and height
-
-	b2FixtureDef fixtureDef;
-	fixtureDef.density = 1.f;
-	fixtureDef.friction = .7f;
-	fixtureDef.shape = &shape;
-	body->CreateFixture(&fixtureDef);
-}
-
-void CreateCircle(b2World& world, int mouseX, int mouseY)
-{
-	b2BodyDef bodyDef;
-	bodyDef.position = b2Vec2(mouseX/SCALE, mouseY/SCALE);
-	bodyDef.type = b2_dynamicBody;
-	b2Body* body = world.CreateBody(&bodyDef);
-
-	b2CircleShape shape;
-	shape.m_radius = CIRCLE_RADIUS/SCALE;
-
-	b2FixtureDef fixtureDef;
-	fixtureDef.density = .4f;
-	fixtureDef.friction = .3f;
-	fixtureDef.shape = &shape;
-	body->CreateFixture(&fixtureDef);
-}
-
-void CreateGround(b2World& world, float x, float y)
-{
-	/** create a b2Body via a b2BodyDef */
-	b2BodyDef bodyDef;
-	bodyDef.position = b2Vec2(x/SCALE, y/SCALE);
-	bodyDef.type = b2_staticBody;
-	b2Body* body = world.CreateBody(&bodyDef);
-
-	/** define shape and body physical properties with b2FixtureDef */
-	b2PolygonShape shape;
-	shape.SetAsBox((800.f/2)/SCALE, (16.f/2)/SCALE); // pass half of width and height
-	b2FixtureDef fixtureDef;
-	fixtureDef.density = 0.f;
-	fixtureDef.shape = &shape;
-	body->CreateFixture(&fixtureDef);
-}
-
-void helloWorld()
-{
-	/** Creating a b2World
-	*/
-
-	// First define a gravity vector
-	b2Vec2 gravity(0.f, -10.f);
-
-	// Create the world object (on stack in this case)
-	b2World world(gravity);
-
-
-	/** Creating a Ground Box
-	*/
-
-	// Body definition defines initial position (static body by default)
-	b2BodyDef groundBodyDef;
-	groundBodyDef.position.Set(0.f, -10.f);
-
-	// Create the ground body
-	b2Body* groundBody = world.CreateBody(&groundBodyDef);
-
-	// Create a ground polygon (box(hx, hy))
-	b2PolygonShape groundBox;
-	groundBox.SetAsBox(50.f, 10.f);
-
-	// Create a shape fixture using shortcut (shape density kg p/meter squared, 0 for static bodies)
-	groundBody->CreateFixture(&groundBox, 0.0f);
-
-
-	/** Creating a Dynamic Body
-	*/
-
-	// Create the body
-	b2BodyDef bodyDef;
-	bodyDef.type = b2_dynamicBody;
-	bodyDef.position.Set(0.f, 4.f);
-	b2Body* body = world.CreateBody(&bodyDef);
-
-	// Create and attach polgon shape using a fixture definition
-	b2PolygonShape dynamicBox;
-	dynamicBox.SetAsBox(1.f, 1.f);
-
-
-	/** TMP **/
-
-	/** Circle shapes
-	*/
-	b2CircleShape circle;
-	circle.m_p.Set(2.f, 3.f);
-	circle.m_radius = .5f;
-
-	/** Convex polygons
-	*/
-
-	// Define a triangle in CCW order
-	b2Vec2 vertices[3];
-	vertices[0].Set(0.f, 0.f);
-	vertices[1].Set(1.f, 0.f);
-	vertices[2].Set(0.f, 1.f);
-
-	int32 count = 3;
-	b2PolygonShape polygon;
-	polygon.Set(vertices, count);
-
-	/** Edge shapes
-	*/
-
-	// Define an edge with ghost vertices on either side of edge
-	b2Vec2 v0(1.7f, 0.f);
-	b2Vec2 v1(1.f, .25f);
-	b2Vec2 v2(0.f, 0.f);
-	b2Vec2 v3(-1.7f, .4f);
-	b2EdgeShape edge;
-	edge.SetOneSided(v0, v1, v2, v3);
-
-	/** Chain shapes
-	*/
-
-	// Chain shapes - loop (CCW = outward normal, CW = inward normal)
-	b2Vec2 vs[4];
-	vs[0].Set(1.7f, 0.f);
-	vs[1].Set(1.f, .25f);
-	vs[2].Set(0.f, 0.f);
-	vs[2].Set(-1.7f, .4f);
-	b2ChainShape chain;
-	chain.CreateLoop(vs, 4);
-
-	// To connect several chains together using ghost vertices (I.e., in scrolling game worlds)
-	b2ChainShape chain2;
-	b2Vec2 prev(1.9f, 0.f);
-	b2Vec2 next(-1.8f, .4f);
-	chain2.CreateChain(vs, 4, prev, next);
-
-	// Visit each child edge in chain
-	for (int32 i = 0; i < chain.GetChildCount(); ++i) {
-		b2EdgeShape edge;
-		chain.GetChildEdge(&edge, i);
-	}
-
-	/** Shape point test
-	*/
-	b2Transform transform;
-	transform.SetIdentity();
-	b2Vec2 point(5.f, 2.f);
-	bool hit = polygon.TestPoint(transform, point);
-
-	/** Shape Ray Cast
-	*/
-	b2Transform transform2;
-	transform2.SetIdentity();
-
-	b2RayCastInput input;
-	input.p1.Set(0.f, 0.f);
-	input.p2.Set(1.f, 0.f);
-	input.maxFraction = 1.f;
-
-	int32 childIndex; // for chain shapes
-	b2RayCastOutput output;
-
-	bool hit2 = chain.RayCast(&output, input, transform2, childIndex);
-	if (hit2) {
-		b2Vec2 hitPoint = input.p1 + output.fraction * (input.p2 - input.p1);
-		std::cout << "hit (" << hitPoint.x << "," << hitPoint.y << ")\n";
-	}
-
-	/** END TMP **/
-
-
-	b2FixtureDef fixtureDef;
-	fixtureDef.shape = &dynamicBox;
-	fixtureDef.density = 1.f;
-	fixtureDef.friction = .3f;
-
-	// Create fixture using definition
-	body->CreateFixture(&fixtureDef);
-
-
-	/** Simulating the world
-	*/
-
-	// Create a time step
-	float timeStep = 1.f/60.f;
-
-	int32 velocityIterations = 6;		// 8 default
-	int32 positionInterations = 2;		// 3 default
-
-	// Call b2World::Step to process the simulation loop; one call usually enough per frame
-	for (int32 i = 0; i < 60; ++i)
-	{
-		world.Step(timeStep, velocityIterations, positionInterations);
-		b2Vec2 position = body->GetPosition();
-		float angle = body->GetAngle();
-		std::cout << "position: (" << position.x << "," << position.y << ")\tangle: " << angle << "radians\n";
-	}
 }
