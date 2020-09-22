@@ -1,5 +1,6 @@
 #include "Platform/Platform.hpp"
 #include <SFML/Graphics.hpp>
+#include <string>
 #include "box2d/box2d.h"
 #include "utils/box2d_utils.hpp"
 
@@ -9,6 +10,13 @@ int main(int argc, char** argv)
 
 	// Mouse data
 	bool holdingRMB = false;
+	sf::Font font;
+	font.loadFromFile("content/DroidSansMono.ttf");
+	sf::Text mouseLabel;
+	mouseLabel.setFont(font);
+	mouseLabel.setColor(sf::Color::Black);
+	mouseLabel.setString("(X,Y)");
+	mouseLabel.setCharacterSize(12);
 
 	// Circle data for clicking
 	sf::Vector2f clickPos;
@@ -57,6 +65,21 @@ int main(int argc, char** argv)
 					rayCastDemo = !rayCastDemo;
 			}
 
+			// Mouse move
+			if (event.type == sf::Event::MouseMoved)
+			{
+				sf::Vector2f position = (GetMousePosition(window) + sf::Vector2f(10.f, -15.f));
+				std::string xPos = std::to_string(position.x);
+				std::string yPos = std::to_string(position.y);
+
+				xPos = xPos.substr(0, 5);
+				yPos = yPos.substr(0, 5);
+				std::string label = "(" + xPos + "," + yPos + ")";
+
+				mouseLabel.setPosition(position);
+				mouseLabel.setString(label);
+			}
+
 			// Left and right button release
 			if (event.type == sf::Event::MouseButtonReleased)
 			{
@@ -87,7 +110,7 @@ int main(int argc, char** argv)
 			}
 			else
 				drawClickPoint = false;
-		}
+		}// end window.poll(event)
 
 		if (holdingRMB && rayCastDemo)
 		{
@@ -189,6 +212,8 @@ int main(int argc, char** argv)
 
 		if (rayCastDemo)
 			window.draw(line);
+
+		window.draw(mouseLabel);
 
 		window.display();
 	}
