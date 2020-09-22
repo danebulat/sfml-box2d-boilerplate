@@ -3,6 +3,7 @@
 
 #include <box2d/box2d.h>
 #include <iostream>
+#include "utils/constants.hpp"
 
 void helloWorld()
 {

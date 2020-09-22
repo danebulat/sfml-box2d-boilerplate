@@ -3,6 +3,7 @@
 #include <string>
 #include "box2d/box2d.h"
 #include "utils/box2d_utils.hpp"
+#include "utils/static_edge_chain.hpp"
 
 int main(int argc, char** argv)
 {
@@ -45,7 +46,7 @@ int main(int argc, char** argv)
 	CreateGround(world, 400.f, 575.f);
 
 	/* Create edge chain */
-	std::vector<sf::Vector2f> chainCoords =  {
+	std::vector<sf::Vector2f> coords =  {
 		sf::Vector2f(20.f,  540.f),
 		sf::Vector2f(150.f, 470.f),
 		sf::Vector2f(360.f, 507.f),
@@ -53,38 +54,9 @@ int main(int argc, char** argv)
 		sf::Vector2f(750.f, 540.f)
 	};
 
-	sf::VertexArray chainVa(sf::LinesStrip, 5);
-	chainVa[0].position = chainCoords[0];
-	chainVa[1].position = chainCoords[1];
-	chainVa[2].position = chainCoords[2];
-	chainVa[3].position = chainCoords[3];
-	chainVa[4].position = chainCoords[4];
-
-	for (std::size_t i = 0; i < 5; ++i)
-		chainVa[i].color = sf::Color::Blue;
-
-	b2Vec2 vs[5];
-	vs[0].Set(chainCoords[0].x / SCALE, chainCoords[0].y / SCALE);
-	vs[1].Set(chainCoords[1].x / SCALE, chainCoords[1].y /SCALE);
-	vs[2].Set(chainCoords[2].x / SCALE, chainCoords[2].y /SCALE);
-	vs[3].Set(chainCoords[3].x / SCALE, chainCoords[3].y /SCALE);
-	vs[4].Set(chainCoords[4].x / SCALE, chainCoords[4].y /SCALE);
-
-	b2ChainShape chain;
-	chain.CreateChain(vs, 5,
-		b2Vec2(chainCoords[0].x - 10.f / SCALE, chainCoords[0].y / SCALE),
-		b2Vec2(chainCoords[4].x + 10.f / SCALE, chainCoords[4].y / SCALE));
-
-	b2FixtureDef f;
-	f.density = 0.f;
-	f.shape = &chain;
-
-	b2BodyDef d;
-	d.position.Set(0,0);
-	d.type = b2_staticBody;
-	b2Body* b = world.CreateBody(&d);
-
-	b->CreateFixture(&f);
+	/* Create static edge chain */
+	StaticEdgeChain edgeChain;
+	edgeChain.Init(coords, &world);
 
 	while (window.isOpen())
 	{
@@ -105,6 +77,10 @@ int main(int argc, char** argv)
 				// Enter key: toggle demo
 				if (event.key.code == sf::Keyboard::Enter)
 					rayCastDemo = !rayCastDemo;
+
+				// E key: toggle static edge shape
+				if (event.key.code == sf::Keyboard::E)
+					edgeChain.SetEnabled(!edgeChain.IsEnabled());
 			}
 
 			// Mouse move
@@ -256,7 +232,7 @@ int main(int argc, char** argv)
 			window.draw(line);
 
 		window.draw(mouseLabel);
-		window.draw(chainVa);
+		edgeChain.Draw(window);
 
 		window.display();
 	}

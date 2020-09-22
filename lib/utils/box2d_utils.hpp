@@ -3,10 +3,7 @@
 
 #include <SFML/Graphics.hpp>
 #include "box2d/box2d.h"
-
-static const float SCALE = 30.f;
-static const float SQUARE_SIZE = 32.f;
-static const float CIRCLE_RADIUS = 18.f;
+#include "utils/constants.hpp"
 
 /** GetMousePosition
  *      sf::RenderWindow& - Window to test mouse position
