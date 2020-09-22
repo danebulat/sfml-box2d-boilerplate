@@ -185,4 +185,39 @@ void CreateGround(b2World& world, float x, float y)
 	body->CreateFixture(&fixtureDef);
 }
 
+namespace demo_data
+{
+	// edge chain central
+	std::vector<sf::Vector2f> coords =  {
+		sf::Vector2f(20.f,  540.f),
+		sf::Vector2f(150.f, 470.f),
+		sf::Vector2f(360.f, 507.f),
+		sf::Vector2f(617.f, 435.f),
+		sf::Vector2f(750.f, 540.f)
+	};
+
+	// edge chain left
+	std::vector<sf::Vector2f> coordsLeft = {
+		sf::Vector2f(22.f,  35.f),
+		sf::Vector2f(55.f, 230.f),
+		sf::Vector2f(20.f, 540.f)
+	};
+
+	// edge chain right
+	std::vector<sf::Vector2f> coordsRight = {
+		sf::Vector2f(750.f, 540.f),
+		sf::Vector2f(722.f, 230.f),
+		sf::Vector2f(778.f,  35.f)
+	};
+
+	// custom polygon
+	std::vector<sf::Vector2f> customPolygonCoords = {
+		sf::Vector2f(10.f, 10.f),
+		sf::Vector2f(10.f, 0.f),
+		sf::Vector2f(0.f, -30.f),
+		sf::Vector2f(-10.f, 0.f),
+		sf::Vector2f(-10.f, 20.f)
+	};
+}
+
 #endif

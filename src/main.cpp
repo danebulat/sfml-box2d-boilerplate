@@ -4,6 +4,7 @@
 #include "box2d/box2d.h"
 #include "utils/box2d_utils.hpp"
 #include "utils/static_edge_chain.hpp"
+#include "utils/custom_polygon.hpp"
 
 int main(int argc, char** argv)
 {
@@ -45,68 +46,25 @@ int main(int argc, char** argv)
 	b2World world(gravity);
 	CreateGround(world, 400.f, 575.f);
 
-	/* Create edge chain */
-	std::vector<sf::Vector2f> coords =  {
-		sf::Vector2f(20.f,  540.f),
-		sf::Vector2f(150.f, 470.f),
-		sf::Vector2f(360.f, 507.f),
-		sf::Vector2f(617.f, 435.f),
-		sf::Vector2f(750.f, 540.f)
-	};
-
-	/* Polygon shape demo data */
-	// std::vector<sf::Vector2f> customPolygonCoords = {
-	// 	sf::Vector2f(  -10.f,  10.f),
-	// 	sf::Vector2f( 10.f,  -10.f),
-	// 	sf::Vector2f( 10.f,  10.f),
-	// 	sf::Vector2f(  -10.f,  10.f),
-	// 	sf::Vector2f(  -10.f,  10.f)
-	// };
-
-
-	sf::VertexArray customPolygon;
-	customPolygon.setPrimitiveType(sf::LineStrip);
-	customPolygon.resize(6);
-
-	customPolygon[0].color = sf::Color::Magenta;
-	customPolygon[1].color = sf::Color::Magenta;
-	customPolygon[2].color = sf::Color::Magenta;
-	customPolygon[3].color = sf::Color::Magenta;
-	customPolygon[4].color = sf::Color::Magenta;
-	customPolygon[5].color = sf::Color::Magenta;
-
-	std::string* p_tag = new std::string("custom_polygon");
-	uintptr_t vptr = reinterpret_cast<uintptr_t>(p_tag);
-
-	b2BodyUserData ud;
-	ud.pointer = vptr;
-
-	const float OFFSET = 150.f;
-
-	b2Vec2 vertices[5];
-	vertices[4].Set(-10/SCALE,  20/SCALE);
-	vertices[3].Set(-10/SCALE,  0/SCALE);
-	vertices[2].Set( 0/SCALE, -30/SCALE);
-	vertices[1].Set( 10/SCALE,  0/SCALE);
-	vertices[0].Set( 10/SCALE,  10/SCALE);
-
-	b2PolygonShape polygonShape;
-	polygonShape.Set(vertices, 5); //pass array to the shape
-
-	b2FixtureDef myFixtureDef;
-	myFixtureDef.density = 1.f;
-	myFixtureDef.shape = &polygonShape; //change the shape of the fixture
-
-	b2BodyDef myBodyDef;
-    myBodyDef.type = b2_dynamicBody; //this will be a dynamic body
-	myBodyDef.position.Set(OFFSET/SCALE, OFFSET/SCALE); //in the middle
-	myBodyDef.userData.pointer = vptr;
-	b2Body* dynamicBody2 = world.CreateBody(&myBodyDef);
-	dynamicBody2->CreateFixture(&myFixtureDef); //add a fixture to the body
-
 	/* Create static edge chain */
 	StaticEdgeChain edgeChain;
-	edgeChain.Init(coords, &world);
+	edgeChain.Init(demo_data::coords, &world);
+
+	StaticEdgeChain edgeChainLeft;
+	edgeChainLeft.Init(demo_data::coordsLeft, &world);
+
+	StaticEdgeChain edgeChainRight;
+	edgeChainRight.Init(demo_data::coordsRight, &world);
+
+	/* Create a custom polygon */
+	std::vector<CustomPolygon> customPolygons;
+	sf::Vector2f startPos(400.f, 100.f);
+	CustomPolygon custom;
+	custom.SetTag("custom");
+	custom.Init(demo_data::customPolygonCoords, startPos, &world);
+	customPolygons.push_back(custom);
+
+	bool wireframe = false;
 
 	while (window.isOpen())
 	{
@@ -130,7 +88,29 @@ int main(int argc, char** argv)
 
 				// E key: toggle static edge shape
 				if (event.key.code == sf::Keyboard::E)
+				{
 					edgeChain.SetEnabled(!edgeChain.IsEnabled());
+					edgeChainLeft.SetEnabled(!edgeChainLeft.IsEnabled());
+					edgeChainRight.SetEnabled(!edgeChainRight.IsEnabled());
+				}
+
+				// W key: toggle custom polygon wireframe
+				if (event.key.code == sf::Keyboard::W)
+				{
+					wireframe = !wireframe;
+					for (auto& polygon : customPolygons)
+						polygon.SetWireframe(wireframe);
+				}
+
+				// Space key: add new custom polygon
+				if (event.key.code == sf::Keyboard::Space)
+				{
+					sf::Vector2f mousePos = GetMousePosition(window);
+					CustomPolygon custom;
+					custom.SetTag("custom");
+					custom.Init(demo_data::customPolygonCoords, mousePos, &world);
+					customPolygons.push_back(custom);
+				}
 			}
 
 			// Mouse move
@@ -205,50 +185,10 @@ int main(int argc, char** argv)
 		{
 			if (body->GetType() == b2_dynamicBody)
 			{
-
 				b2BodyUserData ud = body->GetUserData();
-				if (ud.pointer != NULL)
+				if (ud.pointer != 0)
 				{
-					//std::string* data = reinterpret_cast<std::string*>(ud.pointer);
-					//std::cout << "data: " << data->c_str() << std::endl;
-
-					b2Fixture* fixture = body->GetFixtureList();
-
-					b2Shape::Type shapeType = fixture->GetType();
-
-					if (shapeType == b2Shape::e_polygon)
-					{
-						b2PolygonShape* shape = (b2PolygonShape*)fixture->GetShape();
-
-						//b2Vec2 worldPos = body->GetWorldPoint(shape->m_vertices[0]);
-
-						customPolygon[0].position.x = body->GetWorldPoint(shape->m_vertices[4]).x * SCALE;
-						customPolygon[0].position.y = body->GetWorldPoint(shape->m_vertices[4]).y * SCALE;
-
-						customPolygon[1].position.x = body->GetWorldPoint(shape->m_vertices[3]).x * SCALE;
-						customPolygon[1].position.y = body->GetWorldPoint(shape->m_vertices[3]).y * SCALE;
-
-						customPolygon[2].position.x = body->GetWorldPoint(shape->m_vertices[2]).x * SCALE;
-						customPolygon[2].position.y = body->GetWorldPoint(shape->m_vertices[2]).y * SCALE;
-
-						customPolygon[3].position.x = body->GetWorldPoint(shape->m_vertices[1]).x * SCALE;
-						customPolygon[3].position.y = body->GetWorldPoint(shape->m_vertices[1]).y * SCALE;
-
-						customPolygon[4].position.x = body->GetWorldPoint(shape->m_vertices[0]).x * SCALE;
-						customPolygon[4].position.y = body->GetWorldPoint(shape->m_vertices[0]).y * SCALE;
-
-						customPolygon[5].position.x = body->GetWorldPoint(shape->m_vertices[4]).x * SCALE;
-						customPolygon[5].position.y = body->GetWorldPoint(shape->m_vertices[4]).y * SCALE;
-
-						std::cout << "(" << shape->m_vertices[0].x << ","
-								  << shape->m_vertices[0].y << ")\t";
-
-						std::cout << "(" << customPolygon[0].position.x << ","
-								  << customPolygon[0].position.y << ")\n";
-
-					}
-
-					continue;
+					continue;	// draws independently
 				}
 
 				// Get fixture to perform point and ray cast checks
@@ -298,6 +238,8 @@ int main(int argc, char** argv)
 							window.draw(sprite);
 							break;
 						}
+						default:
+							continue;
 					}
 
 					// Draw raycast
@@ -327,15 +269,17 @@ int main(int argc, char** argv)
 		if (rayCastDemo)
 			window.draw(line);
 
-		window.draw(customPolygon);
-
 		window.draw(mouseLabel);
+
+		for (auto& polygon : customPolygons)
+			polygon.Draw(window);
+
 		edgeChain.Draw(window);
+		edgeChainLeft.Draw(window);
+		edgeChainRight.Draw(window);
 
 		window.display();
 	}
-
-	delete p_tag;
 
 	return 0;
 }
