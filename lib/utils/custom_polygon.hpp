@@ -111,6 +111,9 @@ public:
 
 	void Draw(sf::RenderWindow& window)
 	{
+		if (m_expired)
+			return;
+
 		b2Fixture* fixture = m_body->GetFixtureList();
 
 		if (fixture->GetType() == b2Shape::e_polygon)

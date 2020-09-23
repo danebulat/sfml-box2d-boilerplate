@@ -210,6 +210,94 @@ static void RemoveExpiredCustomPolygons(
 	polygons.erase(newEnd, polygons.end());
 }
 
+/** RemoveDynamicBodies
+ *
+ * 	Destroys all dynamic bodies in the b2World, including
+ *  CustomPolygon objects.
+ */
+
+static void RemoveDynamicBodies(
+		b2World* world,
+		unsigned int& counter,
+		std::vector<CustomPolygon>& customPolygons)
+{
+	std::vector<b2Body*> bodiesToDelete;
+
+	// Get pointers to all dynamic bodies that contain no user data
+	for (b2Body* body = world->GetBodyList(); body != 0; body = body->GetNext())
+	{
+		if (body->GetType() == b2_dynamicBody && body->GetUserData().pointer == 0)
+		{
+			bodiesToDelete.push_back(body);
+		}
+	}
+
+	// Delete bodies
+	if (bodiesToDelete.size() > 0)
+	{
+		for (auto iter = bodiesToDelete.begin(); iter != bodiesToDelete.end(); ++iter)
+		{
+			b2Body* body = *iter;
+			world->DestroyBody(body);
+			*iter = nullptr;
+		}
+	}
+
+	// Delete custom polygons
+	if (customPolygons.size() > 0)
+	{
+		for (auto& polygon : customPolygons)
+			polygon.Delete(world);
+
+		customPolygons.clear();
+	}
+
+	// Reset dynamic body count
+	counter = 0;
+}
+
+/** RemoveOffScreenDynamicBodies
+ *
+ * 	Destroys all dynamic bodies in the b2World, including
+ *  CustomPolygon objects.
+ */
+
+static void RemoveOffScreenDynamicBodies(b2World* world, unsigned int& counter)
+{
+	std::vector<b2Body*> bodiesToDelete;
+
+	for (b2Body* body = world->GetBodyList(); body != 0; body = body->GetNext())
+	{
+		// Skip bodies with user data
+		if (body->GetUserData().pointer != 0)
+			continue;
+
+		// Get body world position
+		b2Vec2 scaledWorldPosition = body->GetWorldCenter();
+		sf::Vector2f worldPosition;
+		worldPosition.x = scaledWorldPosition.x * SCALE;
+		worldPosition.y = scaledWorldPosition.y * SCALE;
+
+		// Add body pointer to vector if world position out of bounds
+		if (worldPosition.x < -50.f || worldPosition.x > 1250.f ||
+			worldPosition.y < -50.f || worldPosition.y > 650.f)
+		{
+			bodiesToDelete.push_back(body);
+		}
+	}
+
+	// Delete bodies that are off screen
+	for (auto iter = bodiesToDelete.begin(); iter != bodiesToDelete.end(); ++iter)
+	{
+		b2Body* body = *iter;
+		world->DestroyBody(body);
+		*iter = nullptr;
+
+		// Decrement counter
+		--counter;
+	}
+}
+
 namespace demo_data
 {
 	// edge chain central

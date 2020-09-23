@@ -16,6 +16,7 @@
 static int e = 1;
 bool edgeChainsEnabled = true;
 bool clearAllBodies = false;
+bool renderMouseCoords = true;
 
 enum class RMBMode
 {
@@ -252,6 +253,8 @@ int main(int argc, char** argv)
 				for (auto& polygon : customPolygons)
 					polygon.SetWireframe(wireframe);
 			}
+
+			ImGui::Checkbox(" Mouse Coordinates", &renderMouseCoords);
 		}
 
 		if (ImGui::CollapsingHeader("Box2D Bodies", ImGuiTreeNodeFlags_DefaultOpen))
@@ -290,8 +293,7 @@ int main(int argc, char** argv)
 			std::make_pair("E", 	"Toggle edge chain active state"),
 			std::make_pair("W", 	"Toggle wireframe rendering mode"),
 			std::make_pair("Esc", 	"Close window"),
-			std::make_pair("\nLMB", "\nSpawn box rigid body"),
-			std::make_pair("MMB", 	"Spawn circle rigid body"),
+			std::make_pair("\nMMB", "\nSpawn circle rigid body"),
 			std::make_pair("RMB", 	"Perform selected RMB mode"),
 		};
 
@@ -313,8 +315,6 @@ int main(int argc, char** argv)
 		/* Draw */
 		window.clear(sf::Color::White);
 
-		std::vector<b2Body*> bodiesToDelete;
-
 		int bodyCount = 0;
 		for (b2Body* body = world.GetBodyList(); body != 0; body = body->GetNext())
 		{
@@ -327,23 +327,10 @@ int main(int argc, char** argv)
 					continue; // draws independently
 				}
 
-				// Delete body if it's off screen
-				b2Vec2 scaledWorldPosition = body->GetWorldCenter();
-				sf::Vector2f worldPosition;
-				worldPosition.x = scaledWorldPosition.x * SCALE;
-				worldPosition.y = scaledWorldPosition.y * SCALE;
-
-				if (worldPosition.x < -50.f || worldPosition.x > 1250.f ||
-					worldPosition.y < -50.f || worldPosition.y > 650.f)
-				{
-					bodiesToDelete.push_back(body);
-					continue;
-				}
-
 				// Get fixture to perform point and ray cast checks
 				b2Fixture* fixture = body->GetFixtureList();
 
-				// Check if point collides with shape
+				// Get fixture type
 				// https://stackoverflow.com/questions/5873309/box2d-get-shape-of-my-bodies
 				while (fixture != NULL)
 				{
@@ -412,71 +399,24 @@ int main(int argc, char** argv)
 			}
 		}
 
-		if (drawClickPoint)
-			window.draw(circle);
-
-		if (rmbMode == RMBMode::RayCastMode)
-			window.draw(line);
-
-		// Draw mouse label
-		window.draw(mouseLabel);
-
 		// Delete bodies that are off screen
-		for (auto iter = bodiesToDelete.begin(); iter != bodiesToDelete.end(); ++iter)
-		{
-			b2Body* body = *iter;
-			world.DestroyBody(body);
-			*iter = nullptr;
-			--count_dynamicBodies;
-		}
-		bodiesToDelete.clear();
+		RemoveOffScreenDynamicBodies(&world, count_dynamicBodies);
 
 		// Update polygons and draw if not marked as expired
 		for (auto& polygon : customPolygons)
 		{
 			polygon.Update(&world);
-			if (!polygon.IsExpired())
-				polygon.Draw(window);
+			polygon.Draw(window);
 		}
 
-		// Remove polygons and resize vector
+		// Remove marked expired polygons and resize vector
 		RemoveExpiredCustomPolygons(customPolygons, &world, count_dynamicBodies);
 
 		// Remove all bodies if flag set
 		if (clearAllBodies && count_dynamicBodies > 0)
 		{
 			clearAllBodies = false;
-
-			// Get pointers to all dynamic bodies that contain no user data
-			for (b2Body* body = world.GetBodyList(); body != 0; body = body->GetNext())
-			{
-				if (body->GetType() == b2_dynamicBody && body->GetUserData().pointer == 0)
-				{
-					bodiesToDelete.push_back(body);
-				}
-			}
-
-			// Delete bodies
-			if (bodiesToDelete.size() > 0)
-			{
-				for (auto iter = bodiesToDelete.begin(); iter != bodiesToDelete.end(); ++iter)
-				{
-					b2Body* body = *iter;
-					world.DestroyBody(body);
-					*iter = nullptr;
-				}
-			}
-
-			// Delete custom polygons
-			if (customPolygons.size() > 0)
-			{
-				for (auto& polygon : customPolygons)
-					polygon.Delete(&world);
-				customPolygons.clear();
-			}
-
-			// Reset dynamic body count
-			count_dynamicBodies = 0;
+			RemoveDynamicBodies(&world, count_dynamicBodies, customPolygons);
 		}
 		else if (clearAllBodies && count_dynamicBodies == 0)
 		{
@@ -486,6 +426,15 @@ int main(int argc, char** argv)
 		edgeChain.Draw(window);
 		edgeChainLeft.Draw(window);
 		edgeChainRight.Draw(window);
+
+		if (drawClickPoint)
+			window.draw(circle);
+
+		if (rmbMode == RMBMode::RayCastMode)
+			window.draw(line);
+
+		if (renderMouseCoords)
+			window.draw(mouseLabel);
 
 		// Render ImGui windows
 		ImGui::SFML::Render(window);
