@@ -70,6 +70,13 @@ public:
 		b2BodyDef bodyDef;
 		bodyDef.type = b2_dynamicBody;
 		bodyDef.position.Set(m_startPos.x / SCALE, m_startPos.y / SCALE);
+		bodyDef.angularDamping = 0.1f;
+		bodyDef.linearDamping = 0.f;
+		bodyDef.allowSleep = true;
+		bodyDef.awake = true;
+		//bodyDef.fixedRotation = true;
+		//bodyDef.bullet = true;
+		bodyDef.enabled = true;
 
 		if (!m_tag.empty())
 			bodyDef.userData.pointer = reinterpret_cast<uintptr_t>(&m_tag);

@@ -119,6 +119,12 @@ void CreateBox(b2World& world, float mouseX, float mouseY)
 	b2BodyDef bodyDef;
 	bodyDef.position = b2Vec2(mouseX/SCALE, mouseY/SCALE);
 	bodyDef.type = b2_dynamicBody;
+	bodyDef.angularDamping = 0.1f;
+	bodyDef.linearDamping = 0.f;
+	bodyDef.allowSleep = true;
+	bodyDef.awake = true;
+	bodyDef.fixedRotation = false;
+	bodyDef.enabled = true;
 	b2Body* body = world.CreateBody(&bodyDef);
 
 	// Define shape and body physical properties with b2FixtureDef
@@ -147,6 +153,12 @@ void CreateCircle(b2World& world, float mouseX, float mouseY)
 	b2BodyDef bodyDef;
 	bodyDef.position = b2Vec2(mouseX/SCALE, mouseY/SCALE);
 	bodyDef.type = b2_dynamicBody;
+	bodyDef.angularDamping = 0.1f;
+	bodyDef.linearDamping = 0.f;
+	bodyDef.allowSleep = true;
+	bodyDef.awake = true;
+	bodyDef.fixedRotation = false;
+	bodyDef.enabled = true;
 	b2Body* body = world.CreateBody(&bodyDef);
 
 	b2CircleShape shape;

@@ -71,6 +71,7 @@ int main(int argc, char** argv)
 	/* Create static edge chain */
 	StaticEdgeChain edgeChain;
 	edgeChain.Init(demo_data::coords, &world);
+	edgeChain.SetEditable(true);
 
 	StaticEdgeChain edgeChainLeft;
 	edgeChainLeft.Init(demo_data::coordsLeft, &world);
@@ -206,6 +207,12 @@ int main(int argc, char** argv)
 			}
 			else
 				drawClickPoint = false;
+
+			// Handle edge chain input
+			edgeChain.HandleInput(event, window);
+			edgeChainLeft.HandleInput(event, window);
+			edgeChainRight.HandleInput(event, window);
+
 		}// end window.poll(event)
 
 		if (holdingRMB && rmbMode == RMBMode::RayCastMode)
