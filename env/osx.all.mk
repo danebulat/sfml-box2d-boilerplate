@@ -9,7 +9,9 @@ INCLUDE_DIRS := \
 	/usr/local/include \
 	/Users/dane/repositories/imgui \
 	/Users/dane/repositories/imgui-sfml/build/include \
-	/Users/dane/repositories/box2d/include
+	/Users/dane/repositories/box2d/include \
+	/Users/dane/repositories/imgui \
+	/Users/dane/repositories/imgui-sfml/build/include
 
 BUILD_FLAGS :=
 

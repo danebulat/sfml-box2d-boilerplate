@@ -6,9 +6,21 @@
 #include "utils/static_edge_chain.hpp"
 #include "utils/custom_polygon.hpp"
 
+#include "imgui.h"
+#include "imgui-SFML.h"
+#include "imgui/imgui_utils.hpp"
+#include "imgui/imgui_demos.hpp"
+
 int main(int argc, char** argv)
 {
 	util::Platform platform;
+
+	/** Prepare the window */
+	sf::RenderWindow window(sf::VideoMode(1024.f, 640.f, 32), "SFML - Box2D Boilerplate", sf::Style::Default);
+	window.setFramerateLimit(60);
+
+	// Initialise ImGui
+	ImGui::SFML::Init(window);
 
 	// Mouse data
 	bool holdingRMB = false;
@@ -37,10 +49,6 @@ int main(int argc, char** argv)
 	line[1].position = sf::Vector2f(0.f, 600.f);
 	line[1].color = sf::Color::Red;
 
-	/** Prepare the window */
-	sf::RenderWindow window(sf::VideoMode(800.f, 600.f, 32), "SFML - Box2D Boilerplate", sf::Style::Default);
-	window.setFramerateLimit(60);
-
 	/** Prepare the world */
 	b2Vec2 gravity(0.f, 9.8f);
 	b2World world(gravity);
@@ -65,13 +73,18 @@ int main(int argc, char** argv)
 	customPolygons.push_back(custom);
 
 	bool wireframe = false;
+	sf::Clock clock;
 
 	while (window.isOpen())
 	{
-		sf::Event event;
+		sf::Time dt = clock.restart();
 
+		sf::Event event;
 		while (window.pollEvent(event))
 		{
+			// Process ImGui events
+			ImGui::SFML::ProcessEvent(event);
+
 			// Close window: exit
             if (event.type == sf::Event::Closed)
                 window.close();
@@ -175,8 +188,11 @@ int main(int argc, char** argv)
 			circle.setPosition(clickPos);
 		}
 
-		/** Update */
+		/** Update Box2D */
 		world.Step(1/60.f, 8, 3);
+
+		/* Update ImGui */
+		ImGui::SFML::Update(window, dt);
 
 		/* Draw */
 		window.clear(sf::Color::White);
@@ -279,8 +295,14 @@ int main(int argc, char** argv)
 		edgeChainLeft.Draw(window);
 		edgeChainRight.Draw(window);
 
+		// Render ImGui windows
+		ImGui::SFML::Render(window);
+
 		window.display();
 	}
+
+	// clean up ImGui, such as deleting the internal font atlas
+    ImGui::SFML::Shutdown();
 
 	return 0;
 }
