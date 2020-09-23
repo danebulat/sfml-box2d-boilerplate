@@ -38,9 +38,12 @@ public:
 		m_startPos = startPos;
 
 		// Resize SFML vertex array and set color
-		m_vertexArray.setPrimitiveType(sf::TriangleFan);
-		m_vertexArray.resize(m_vertexCount + 1);
+		if (!m_wireframe)
+			m_vertexArray.setPrimitiveType(sf::TriangleFan);
+		else
+			m_vertexArray.setPrimitiveType(sf::LineStrip);
 
+		m_vertexArray.resize(m_vertexCount + 1);
 		for (std::size_t i = 0; i < m_vertexCount + 1; ++i)
 			m_vertexArray[i].color = m_color;
 

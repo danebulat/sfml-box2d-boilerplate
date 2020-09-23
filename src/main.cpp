@@ -108,6 +108,7 @@ int main(int argc, char** argv)
 					sf::Vector2f mousePos = GetMousePosition(window);
 					CustomPolygon custom;
 					custom.SetTag("custom");
+					custom.SetWireframe(wireframe);
 					custom.Init(demo_data::customPolygonCoords, mousePos, &world);
 					customPolygons.push_back(custom);
 				}
