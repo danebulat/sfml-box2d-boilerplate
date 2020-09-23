@@ -10,4 +10,5 @@ Thumbs.db
 .vscode/ipch
 
 # Project specific
-#
+imgui.ini
+*/imgui.ini

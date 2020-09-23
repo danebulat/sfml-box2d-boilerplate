@@ -16,7 +16,7 @@ int main(int argc, char** argv)
 	util::Platform platform;
 
 	/** Prepare the window */
-	sf::RenderWindow window(sf::VideoMode(1024.f, 640.f, 32), "SFML - Box2D Boilerplate", sf::Style::Default);
+	sf::RenderWindow window(sf::VideoMode(1150.f, 600.f, 32), "SFML - Box2D Boilerplate", sf::Style::Default);
 	window.setFramerateLimit(60);
 
 	// Initialise ImGui
@@ -193,6 +193,38 @@ int main(int argc, char** argv)
 
 		/* Update ImGui */
 		ImGui::SFML::Update(window, dt);
+
+		/*----------------------------------------------------------------------
+         Start ImGui
+         ----------------------------------------------------------------------*/
+		ImGui::Begin("Box2D Boilerplate");
+
+		std::vector<std::pair<std::string, std::string>> controls = {
+			std::make_pair("Space", "Spawn custom polygon"),
+			std::make_pair("Enter", "Toggle test point & raycast mode"),
+			std::make_pair("E", 	"Toggle edge chain active state"),
+			std::make_pair("W", 	"Toggle wireframe rendering mode"),
+			std::make_pair("Esc", 	"Close window"),
+			std::make_pair("\nLMB", "\nSpawn box rigid body"),
+			std::make_pair("MMB", 	"Spawn circle rigid body"),
+			std::make_pair("RMB", 	"Test point of ray cast"),
+
+		};
+
+		if (ImGui::CollapsingHeader("Controls", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			for (auto& control : controls)
+			{
+				ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), control.first.data());
+				ImGui::SameLine(80);
+				ImGui::Text(control.second.data());
+			}
+        }
+
+		ImGui::End();
+		/*----------------------------------------------------------------------
+         End ImGui
+         ----------------------------------------------------------------------*/
 
 		/* Draw */
 		window.clear(sf::Color::White);
