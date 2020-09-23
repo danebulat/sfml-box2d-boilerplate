@@ -11,9 +11,21 @@
 #include "imgui/imgui_utils.hpp"
 #include "imgui/imgui_demos.hpp"
 
+// ImGui variabless
+static int e = 1;
+bool edgeChainsEnabled = true;
+
+enum class RMBMode
+{
+	BoxSpawnMode = 1,
+	TestPointMode,
+	RayCastMode
+};
+
 int main(int argc, char** argv)
 {
 	util::Platform platform;
+	RMBMode rmbMode = RMBMode::BoxSpawnMode;
 
 	/** Prepare the window */
 	sf::RenderWindow window(sf::VideoMode(1150.f, 600.f, 32), "SFML - Box2D Boilerplate", sf::Style::Default);
@@ -41,7 +53,6 @@ int main(int argc, char** argv)
 	circle.setOrigin(sf::Vector2(5.f, 5.f));
 
 	// Line data for ray cast
-	bool rayCastDemo = false;
 	sf::Vector2f rayEndPoint;
 	sf::VertexArray line(sf::LinesStrip, 2);
 	line[0].position = sf::Vector2f(0.f, 600.f);
@@ -97,14 +108,28 @@ int main(int argc, char** argv)
 
 				// Enter key: toggle demo
 				if (event.key.code == sf::Keyboard::Enter)
-					rayCastDemo = !rayCastDemo;
+				{
+					int mode = (static_cast<int>(rmbMode) + 1);
+					if (mode > 3)
+					{
+						rmbMode = RMBMode::BoxSpawnMode;
+						e = 1;
+					}
+					else
+					{
+						rmbMode = static_cast<RMBMode>(mode);
+						e = mode;
+					}
+				}
 
 				// E key: toggle static edge shape
 				if (event.key.code == sf::Keyboard::E)
 				{
-					edgeChain.SetEnabled(!edgeChain.IsEnabled());
-					edgeChainLeft.SetEnabled(!edgeChainLeft.IsEnabled());
-					edgeChainRight.SetEnabled(!edgeChainRight.IsEnabled());
+					edgeChainsEnabled = !edgeChainsEnabled;
+
+					edgeChain.SetEnabled(edgeChainsEnabled);
+					edgeChainLeft.SetEnabled(edgeChainsEnabled);
+					edgeChainRight.SetEnabled(edgeChainsEnabled);
 				}
 
 				// W key: toggle custom polygon wireframe
@@ -145,15 +170,7 @@ int main(int argc, char** argv)
 			// Left and right button release
 			if (event.type == sf::Event::MouseButtonReleased)
 			{
-				if (event.mouseButton.button == sf::Mouse::Left)
-				{
-					sf::Vector2f mousePos = GetMousePosition(window);
-					float mouseX = mousePos.x;
-					float mouseY = mousePos.y;
-
-					CreateBox(world, mouseX, mouseY);
-				}
-				else if (event.mouseButton.button == sf::Mouse::Middle)
+				if (event.mouseButton.button == sf::Mouse::Middle)
 				{
 					sf::Vector2f mousePos = GetMousePosition(window);
 					float mouseX = mousePos.x;
@@ -162,26 +179,40 @@ int main(int argc, char** argv)
 					CreateCircle(world, mouseX, mouseY);
 				}
 				else if (event.mouseButton.button == sf::Mouse::Right)
+				{
 					holdingRMB = false;
+
+					if (rmbMode == RMBMode::BoxSpawnMode)
+					{
+						// Spawn a box
+						sf::Vector2f mousePos = GetMousePosition(window);
+						float mouseX = mousePos.x;
+						float mouseY = mousePos.y;
+
+						CreateBox(world, mouseX, mouseY);
+					}
+				}
 			}
 
 			if (event.type == sf::Event::MouseButtonPressed)
 			{
 				if (event.mouseButton.button == sf::Mouse::Right)
+				{
 					holdingRMB = true;
+				}
 			}
 			else
 				drawClickPoint = false;
 		}// end window.poll(event)
 
-		if (holdingRMB && rayCastDemo)
+		if (holdingRMB && rmbMode == RMBMode::RayCastMode)
 		{
 			rayEndPoint = GetMousePosition(window);
 
 			line[1].position.x = rayEndPoint.x;
 			line[1].position.y = rayEndPoint.y;
 		}
-		else if (holdingRMB && !rayCastDemo)
+		else if (holdingRMB && rmbMode == RMBMode::TestPointMode)
 		{
 			drawClickPoint = true;
 			clickPos = GetMousePosition(window);
@@ -199,16 +230,49 @@ int main(int argc, char** argv)
          ----------------------------------------------------------------------*/
 		ImGui::Begin("Box2D Boilerplate");
 
-		std::vector<std::pair<std::string, std::string>> controls = {
+		if (ImGui::CollapsingHeader("Demo Settings", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			ImGui::Text("RMB Mode:");
+			if (ImGui::RadioButton("Spawn Box", &e, 1))
+				rmbMode = RMBMode::BoxSpawnMode;
+
+			ImGui::SameLine();
+			if (ImGui::RadioButton("Test Point", &e, 2))
+				rmbMode = RMBMode::TestPointMode;
+
+			ImGui::SameLine();
+			if (ImGui::RadioButton("Ray Cast", &e, 3))
+				rmbMode = RMBMode::RayCastMode;
+
+			ImGui::Text("Rendering:");
+			if (ImGui::Checkbox(" Wireframe", &wireframe))
+			{
+				for (auto& polygon : customPolygons)
+					polygon.SetWireframe(wireframe);
+			}
+		}
+
+		if (ImGui::CollapsingHeader("Box2D Bodies", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			ImGui::Text("Enable:");
+			if (ImGui::Checkbox(" Edge Chains", &edgeChainsEnabled))
+			{
+				edgeChain.SetEnabled(edgeChainsEnabled);
+				edgeChainLeft.SetEnabled(edgeChainsEnabled);
+				edgeChainRight.SetEnabled(edgeChainsEnabled);
+			}
+		}
+
+		std::vector<std::pair<std::string, std::string>> controls =
+		{
 			std::make_pair("Space", "Spawn custom polygon"),
-			std::make_pair("Enter", "Toggle test point & raycast mode"),
+			std::make_pair("Enter", "Cycle RMB modes"),
 			std::make_pair("E", 	"Toggle edge chain active state"),
 			std::make_pair("W", 	"Toggle wireframe rendering mode"),
 			std::make_pair("Esc", 	"Close window"),
 			std::make_pair("\nLMB", "\nSpawn box rigid body"),
 			std::make_pair("MMB", 	"Spawn circle rigid body"),
-			std::make_pair("RMB", 	"Test point of ray cast"),
-
+			std::make_pair("RMB", 	"Perform selected RMB mode"),
 		};
 
 		if (ImGui::CollapsingHeader("Controls", ImGuiTreeNodeFlags_DefaultOpen))
@@ -292,7 +356,7 @@ int main(int argc, char** argv)
 					}
 
 					// Draw raycast
-					if (rayCastDemo)
+					if (rmbMode == RMBMode::RayCastMode)
 						DoRayCast(fixture, rayEndPoint, window);
 
 					fixture = fixture->GetNext();
@@ -315,7 +379,7 @@ int main(int argc, char** argv)
 		if (drawClickPoint)
 			window.draw(circle);
 
-		if (rayCastDemo)
+		if (rmbMode == RMBMode::RayCastMode)
 			window.draw(line);
 
 		window.draw(mouseLabel);
