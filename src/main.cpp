@@ -1,6 +1,7 @@
 #include "Platform/Platform.hpp"
 #include <SFML/Graphics.hpp>
 #include <string>
+#include <algorithm>
 #include "box2d/box2d.h"
 #include "utils/box2d_utils.hpp"
 #include "utils/static_edge_chain.hpp"
@@ -14,6 +15,7 @@
 // ImGui variabless
 static int e = 1;
 bool edgeChainsEnabled = true;
+bool clearAllBodies = false;
 
 enum class RMBMode
 {
@@ -75,16 +77,13 @@ int main(int argc, char** argv)
 	StaticEdgeChain edgeChainRight;
 	edgeChainRight.Init(demo_data::coordsRight, &world);
 
-	/* Create a custom polygon */
+	/* Vector for custom polygon objects */
 	std::vector<CustomPolygon> customPolygons;
-	sf::Vector2f startPos(400.f, 100.f);
-	CustomPolygon custom;
-	custom.SetTag("custom");
-	custom.Init(demo_data::customPolygonCoords, startPos, &world);
-	customPolygons.push_back(custom);
 
 	bool wireframe = false;
 	sf::Clock clock;
+
+	unsigned int count_dynamicBodies = 0;
 
 	while (window.isOpen())
 	{
@@ -149,6 +148,7 @@ int main(int argc, char** argv)
 					custom.SetWireframe(wireframe);
 					custom.Init(demo_data::customPolygonCoords, mousePos, &world);
 					customPolygons.push_back(custom);
+					++count_dynamicBodies;
 				}
 			}
 
@@ -177,6 +177,7 @@ int main(int argc, char** argv)
 					float mouseY = mousePos.y;
 
 					CreateCircle(world, mouseX, mouseY);
+					++count_dynamicBodies;
 				}
 				else if (event.mouseButton.button == sf::Mouse::Right)
 				{
@@ -190,6 +191,7 @@ int main(int argc, char** argv)
 						float mouseY = mousePos.y;
 
 						CreateBox(world, mouseX, mouseY);
+						++count_dynamicBodies;
 					}
 				}
 			}
@@ -254,6 +256,8 @@ int main(int argc, char** argv)
 
 		if (ImGui::CollapsingHeader("Box2D Bodies", ImGuiTreeNodeFlags_DefaultOpen))
 		{
+			ImGui::Text("Dynamic Bodies: %d\n\n", count_dynamicBodies);
+
 			ImGui::Text("Enable:");
 			if (ImGui::Checkbox(" Edge Chains", &edgeChainsEnabled))
 			{
@@ -261,6 +265,22 @@ int main(int argc, char** argv)
 				edgeChainLeft.SetEnabled(edgeChainsEnabled);
 				edgeChainRight.SetEnabled(edgeChainsEnabled);
 			}
+
+			float windowWidth = ImGui::GetWindowContentRegionWidth();
+            int i = 0;
+            ImGui::PushID(i);
+
+			ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, 0.7f, 0.7f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));
+
+			if (ImGui::Button("Clear All Dynamic Bodies", ImVec2(windowWidth, 45)))
+			{
+				clearAllBodies = true;
+			}
+
+			ImGui::PopStyleColor(3);
+            ImGui::PopID();
 		}
 
 		std::vector<std::pair<std::string, std::string>> controls =
@@ -293,15 +313,31 @@ int main(int argc, char** argv)
 		/* Draw */
 		window.clear(sf::Color::White);
 
+		std::vector<b2Body*> bodiesToDelete;
+
 		int bodyCount = 0;
 		for (b2Body* body = world.GetBodyList(); body != 0; body = body->GetNext())
 		{
 			if (body->GetType() == b2_dynamicBody)
 			{
+				// Skip rendering body if it has custom data
 				b2BodyUserData ud = body->GetUserData();
 				if (ud.pointer != 0)
 				{
-					continue;	// draws independently
+					continue; // draws independently
+				}
+
+				// Delete body if it's off screen
+				b2Vec2 scaledWorldPosition = body->GetWorldCenter();
+				sf::Vector2f worldPosition;
+				worldPosition.x = scaledWorldPosition.x * SCALE;
+				worldPosition.y = scaledWorldPosition.y * SCALE;
+
+				if (worldPosition.x < -50.f || worldPosition.x > 1250.f ||
+					worldPosition.y < -50.f || worldPosition.y > 650.f)
+				{
+					bodiesToDelete.push_back(body);
+					continue;
 				}
 
 				// Get fixture to perform point and ray cast checks
@@ -382,10 +418,70 @@ int main(int argc, char** argv)
 		if (rmbMode == RMBMode::RayCastMode)
 			window.draw(line);
 
+		// Draw mouse label
 		window.draw(mouseLabel);
 
+		// Delete bodies that are off screen
+		for (auto iter = bodiesToDelete.begin(); iter != bodiesToDelete.end(); ++iter)
+		{
+			b2Body* body = *iter;
+			world.DestroyBody(body);
+			*iter = nullptr;
+			--count_dynamicBodies;
+		}
+		bodiesToDelete.clear();
+
+		// Update polygons and draw if not marked as expired
 		for (auto& polygon : customPolygons)
-			polygon.Draw(window);
+		{
+			polygon.Update(&world);
+			if (!polygon.IsExpired())
+				polygon.Draw(window);
+		}
+
+		// Remove polygons and resize vector
+		RemoveExpiredCustomPolygons(customPolygons, &world, count_dynamicBodies);
+
+		// Remove all bodies if flag set
+		if (clearAllBodies && count_dynamicBodies > 0)
+		{
+			clearAllBodies = false;
+
+			// Get pointers to all dynamic bodies that contain no user data
+			for (b2Body* body = world.GetBodyList(); body != 0; body = body->GetNext())
+			{
+				if (body->GetType() == b2_dynamicBody && body->GetUserData().pointer == 0)
+				{
+					bodiesToDelete.push_back(body);
+				}
+			}
+
+			// Delete bodies
+			if (bodiesToDelete.size() > 0)
+			{
+				for (auto iter = bodiesToDelete.begin(); iter != bodiesToDelete.end(); ++iter)
+				{
+					b2Body* body = *iter;
+					world.DestroyBody(body);
+					*iter = nullptr;
+				}
+			}
+
+			// Delete custom polygons
+			if (customPolygons.size() > 0)
+			{
+				for (auto& polygon : customPolygons)
+					polygon.Delete(&world);
+				customPolygons.clear();
+			}
+
+			// Reset dynamic body count
+			count_dynamicBodies = 0;
+		}
+		else if (clearAllBodies && count_dynamicBodies == 0)
+		{
+			clearAllBodies = false;
+		}
 
 		edgeChain.Draw(window);
 		edgeChainLeft.Draw(window);

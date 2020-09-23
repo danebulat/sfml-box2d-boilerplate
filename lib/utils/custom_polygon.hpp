@@ -20,12 +20,15 @@ private:
 	bool					  m_wireframe;
 	b2Body* 				  m_body;
 
+	bool					  m_expired;
+
 public:
 	CustomPolygon()
 		: m_color(sf::Color::Magenta)
 		, m_vertexCount(0)
 		, m_wireframe(false)
 		, m_body(nullptr)
+		, m_expired(false)
 	{}
 
 	~CustomPolygon()
@@ -101,6 +104,11 @@ public:
 		return m_wireframe;
 	}
 
+	bool IsExpired() const
+	{
+		return m_expired;
+	}
+
 	void Draw(sf::RenderWindow& window)
 	{
 		b2Fixture* fixture = m_body->GetFixtureList();
@@ -126,6 +134,30 @@ public:
 
 		// Render vertex array to window
 		window.draw(m_vertexArray);
+	}
+
+	void Update(b2World* world)
+	{
+		b2Vec2 scaledWorldPosition = m_body->GetWorldCenter();
+		sf::Vector2f worldPosition;
+		worldPosition.x = scaledWorldPosition.x * SCALE;
+		worldPosition.y = scaledWorldPosition.y * SCALE;
+
+		if (worldPosition.x < -50.f || worldPosition.x > 1250.f ||
+			worldPosition.y < -50.f || worldPosition.y > 650.f)
+		{
+			Delete(world);
+		}
+	}
+
+	void Delete(b2World* world)
+	{
+		if (m_body != nullptr)
+		{
+			world->DestroyBody(m_body);
+			m_body = nullptr;
+			m_expired = true;
+		}
 	}
 };
 

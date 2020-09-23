@@ -2,8 +2,10 @@
 #define BOX2D_UTILS_HPP
 
 #include <SFML/Graphics.hpp>
+#include <algorithm>
 #include "box2d/box2d.h"
 #include "utils/constants.hpp"
+#include "utils/custom_polygon.hpp"
 
 /** GetMousePosition
  *      sf::RenderWindow& - Window to test mouse position
@@ -183,6 +185,29 @@ void CreateGround(b2World& world, float x, float y)
 	fixtureDef.shape = &shape;
 
 	body->CreateFixture(&fixtureDef);
+}
+
+/** RemoveExpiredCustomPolygons
+ * 		std::vector<CustomPolygon> - The CustomPolygon collection
+ *      b2World* 				   - Box2D world
+ *
+ * 	Deletes expired CustomPolygon objects and destroys their
+ *  associated Box2D object.
+ */
+
+static void RemoveExpiredCustomPolygons(
+	std::vector<CustomPolygon>& polygons, b2World* world, unsigned int& counter)
+{
+	// Remove expired polygons
+	auto newEnd = std::remove_if(polygons.begin(), polygons.end(),
+		[&counter](CustomPolygon& polygon) -> bool {
+			if (polygon.IsExpired())
+				--counter;
+			return polygon.IsExpired();
+		});
+
+	// Resize vector appropriately
+	polygons.erase(newEnd, polygons.end());
 }
 
 namespace demo_data
