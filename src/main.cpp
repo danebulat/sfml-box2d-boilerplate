@@ -140,13 +140,7 @@ int main(int argc, char** argv)
 				// Space key: add new custom polygon
 				if (event.key.code == sf::Keyboard::Space)
 				{
-					sf::Vector2f mousePos = GetMousePosition(window);
-					CustomPolygon custom;
-					custom.SetTag("custom");
-					custom.SetWireframe(wireframe);
-					custom.Init(demo_data::customPolygonCoords, mousePos, &world);
-					customPolygons.push_back(custom);
-					++count_dynamicBodies;
+					CreateCustomPolygon(&world, customPolygons, wireframe, count_dynamicBodies, window);
 				}
 			}
 

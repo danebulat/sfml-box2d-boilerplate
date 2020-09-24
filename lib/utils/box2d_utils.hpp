@@ -5,7 +5,43 @@
 #include <algorithm>
 #include "box2d/box2d.h"
 #include "utils/constants.hpp"
+#include "utils/mouse_utils.hpp"
 #include "utils/custom_polygon.hpp"
+
+namespace demo_data
+{
+	// edge chain central
+	std::vector<sf::Vector2f> coords =  {
+		sf::Vector2f(20.f,  540.f),
+		sf::Vector2f(150.f, 470.f),
+		sf::Vector2f(360.f, 507.f),
+		sf::Vector2f(617.f, 435.f),
+		sf::Vector2f(750.f, 540.f)
+	};
+
+	// edge chain left
+	std::vector<sf::Vector2f> coordsLeft = {
+		sf::Vector2f(22.f,  35.f),
+		sf::Vector2f(55.f, 230.f),
+		sf::Vector2f(20.f, 540.f)
+	};
+
+	// edge chain right
+	std::vector<sf::Vector2f> coordsRight = {
+		sf::Vector2f(750.f, 540.f),
+		sf::Vector2f(722.f, 230.f),
+		sf::Vector2f(778.f,  35.f)
+	};
+
+	// custom polygon
+	std::vector<sf::Vector2f> customPolygonCoords = {
+		sf::Vector2f(10.f, 10.f),
+		sf::Vector2f(10.f, 0.f),
+		sf::Vector2f(0.f, -30.f),
+		sf::Vector2f(-10.f, 0.f),
+		sf::Vector2f(-10.f, 20.f)
+	};
+}
 
 /** DoTestPoint
  *      b2Fixture*    - The shape to test against
@@ -87,6 +123,26 @@ void DoRayCast(b2Fixture* fixture, sf::Vector2f& rayEndPoint, sf::RenderWindow& 
 
 		window.draw(point);
 	}
+}
+
+/** CreateCustomPolygon
+ *
+ * 	Create a CustomPolygon object and add to vector.
+ */
+
+void CreateCustomPolygon(b2World* world,
+	std::vector<CustomPolygon>& collection,
+	bool wireframe,
+	unsigned int& counter,
+	sf::RenderWindow& window)
+{
+	sf::Vector2f mousePos = GetMousePosition(window);
+	CustomPolygon polygon;
+	polygon.SetTag("custom");
+	polygon.SetWireframe(wireframe);
+	polygon.Init(demo_data::customPolygonCoords, mousePos, world);
+	collection.push_back(polygon);
+	++counter;
 }
 
 /** CreateBox
@@ -293,41 +349,6 @@ static void RemoveOffScreenDynamicBodies(b2World* world, unsigned int& counter)
 		// Decrement counter
 		--counter;
 	}
-}
-
-namespace demo_data
-{
-	// edge chain central
-	std::vector<sf::Vector2f> coords =  {
-		sf::Vector2f(20.f,  540.f),
-		sf::Vector2f(150.f, 470.f),
-		sf::Vector2f(360.f, 507.f),
-		sf::Vector2f(617.f, 435.f),
-		sf::Vector2f(750.f, 540.f)
-	};
-
-	// edge chain left
-	std::vector<sf::Vector2f> coordsLeft = {
-		sf::Vector2f(22.f,  35.f),
-		sf::Vector2f(55.f, 230.f),
-		sf::Vector2f(20.f, 540.f)
-	};
-
-	// edge chain right
-	std::vector<sf::Vector2f> coordsRight = {
-		sf::Vector2f(750.f, 540.f),
-		sf::Vector2f(722.f, 230.f),
-		sf::Vector2f(778.f,  35.f)
-	};
-
-	// custom polygon
-	std::vector<sf::Vector2f> customPolygonCoords = {
-		sf::Vector2f(10.f, 10.f),
-		sf::Vector2f(10.f, 0.f),
-		sf::Vector2f(0.f, -30.f),
-		sf::Vector2f(-10.f, 0.f),
-		sf::Vector2f(-10.f, 20.f)
-	};
 }
 
 #endif
