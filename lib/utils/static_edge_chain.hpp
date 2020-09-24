@@ -20,6 +20,7 @@ struct VertexHandle
 class StaticEdgeChain
 {
 private:
+	std::string 			  m_tag;
 	unsigned int 			  m_vertexCount;
 	std::vector<sf::Vector2f> m_vertices;
 
@@ -41,7 +42,7 @@ private:
 
 public:
 	StaticEdgeChain();
-	StaticEdgeChain(std::vector<sf::Vector2f>& vertices, b2World* world);
+	StaticEdgeChain(std::vector<sf::Vector2f>& vertices, const std::string& tag, b2World* world);
 	~StaticEdgeChain();
 
 	void Init(std::vector<sf::Vector2f>& vertices, b2World* world);
@@ -51,6 +52,9 @@ public:
 
 	bool IsEnabled() const;
 	void SetEditable(bool editable);
+
+	const std::string& GetTag() const;
+	void SetTag(const std::string& tag);
 
 	void Draw(sf::RenderWindow& window);
 	void HandleInput(const sf::Event& event, sf::RenderWindow& window);

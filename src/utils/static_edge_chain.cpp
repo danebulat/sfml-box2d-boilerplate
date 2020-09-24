@@ -8,6 +8,7 @@ using sf::RenderWindow;
 using sf::LineStrip;
 using sf::Event;
 using sf::Mouse;
+using std::string;
 
 // --------------------------------------------------------------------------------
 // Initialisation
@@ -23,8 +24,9 @@ StaticEdgeChain::StaticEdgeChain()
 	, m_hoveringOnHandle(false)
 {}
 
-StaticEdgeChain::StaticEdgeChain(std::vector<Vector2f>& vertices, b2World* world)
-	: m_vertexCount(0)//
+StaticEdgeChain::StaticEdgeChain(std::vector<Vector2f>& vertices, const string& tag, b2World* world)
+	: m_tag(tag)
+	, m_vertexCount(0)//
 	, m_color(Color::Blue)
 	, m_body(nullptr)
 	, m_selectedHandle(nullptr)
@@ -140,6 +142,16 @@ bool StaticEdgeChain::IsEnabled() const
 void StaticEdgeChain::SetEditable(bool editable)
 {
 	m_editable = editable;
+}
+
+const std::string& StaticEdgeChain::GetTag() const
+{
+	return m_tag;
+}
+
+void StaticEdgeChain::SetTag(const std::string& tag)
+{
+	m_tag = tag;
 }
 
 // --------------------------------------------------------------------------------

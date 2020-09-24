@@ -21,6 +21,10 @@ bool edgeChainsEnabled = true;
 bool clearAllBodies = false;
 bool renderMouseCoords = true;
 
+int selectedStaticEdgeChainIndex = 0;
+int prevSelectedStaticEdgeChainIndex = 0;
+std::vector<std::string> staticEdgeChainLabels;
+
 enum class RMBMode
 {
 	BoxSpawnMode = 1,
@@ -73,10 +77,13 @@ int main(int argc, char** argv)
 
 	/* Create static edge chain */
 	std::vector<StaticEdgeChain> staticEdgeChains;
-	staticEdgeChains.push_back(StaticEdgeChain(demo_data::coords, &world));
-	staticEdgeChains.push_back(StaticEdgeChain(demo_data::coordsLeft, &world));
-	staticEdgeChains.push_back(StaticEdgeChain(demo_data::coordsRight, &world));
+	staticEdgeChains.push_back(StaticEdgeChain(demo_data::coords, "EC1", &world));
+	staticEdgeChains.push_back(StaticEdgeChain(demo_data::coordsLeft, "EC2", &world));
+	staticEdgeChains.push_back(StaticEdgeChain(demo_data::coordsRight, "EC3", &world));
 	staticEdgeChains[0].SetEditable(true);
+
+	for (auto& chain : staticEdgeChains)
+		staticEdgeChainLabels.push_back(chain.GetTag()); // for ImGui
 
 	/* Vector for custom polygon objects */
 	std::vector<CustomPolygon> customPolygons;
@@ -243,15 +250,6 @@ int main(int argc, char** argv)
 
 		if (ImGui::CollapsingHeader("Box2D Bodies", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			ImGui::Text("Dynamic Bodies: %d\n\n", count_dynamicBodies);
-
-			ImGui::Text("Enable:");
-			if (ImGui::Checkbox(" Edge Chains", &edgeChainsEnabled))
-			{
-				for (auto& chain : staticEdgeChains)
-					chain.SetEnabled(edgeChainsEnabled);
-			}
-
 			float windowWidth = ImGui::GetWindowContentRegionWidth();
             int i = 0;
             ImGui::PushID(i);
@@ -267,6 +265,30 @@ int main(int argc, char** argv)
 
 			ImGui::PopStyleColor(3);
             ImGui::PopID();
+
+			ImGui::Text("Dynamic Bodies: %d", count_dynamicBodies);
+		}
+
+		if (ImGui::CollapsingHeader("Static Edge Chains", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			ImGui::AlignTextToFramePadding();
+            ImGui::Text("Enable"); ImGui::SameLine(130);
+            ImGui::SetNextItemWidth(-1);
+			if (ImGui::Checkbox("##EnableEdgeChains", &edgeChainsEnabled))
+			{
+				for (auto& chain : staticEdgeChains)
+					chain.SetEnabled(edgeChainsEnabled);
+			}
+
+			ImGui::AlignTextToFramePadding();
+            ImGui::Text("Selected"); ImGui::SameLine(130);
+            ImGui::SetNextItemWidth(-1);
+			if (ImGui::Combo("##SelectedEdgeChain", &selectedStaticEdgeChainIndex, staticEdgeChainLabels))
+			{
+                staticEdgeChains[prevSelectedStaticEdgeChainIndex].SetEditable(false);
+				staticEdgeChains[selectedStaticEdgeChainIndex].SetEditable(true);
+				prevSelectedStaticEdgeChainIndex = selectedStaticEdgeChainIndex;
+            }
 		}
 
 		std::vector<std::pair<std::string, std::string>> controls =
