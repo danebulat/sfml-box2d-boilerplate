@@ -40,6 +40,15 @@ StaticEdgeChain::StaticEdgeChain(std::vector<Vector2f>& vertices, const string& 
 StaticEdgeChain::~StaticEdgeChain()
 {}
 
+void StaticEdgeChain::DeleteBody(b2World* world)
+{
+	if (m_body != nullptr)
+	{
+		world->DestroyBody(m_body);
+		m_body = nullptr;
+	}
+}
+
 void StaticEdgeChain::InitVertexHandles()
 {
 	for (int i = 0; i < m_vertices.size(); ++i)

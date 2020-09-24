@@ -46,6 +46,7 @@ public:
 	~StaticEdgeChain();
 
 	void Init(std::vector<sf::Vector2f>& vertices, b2World* world);
+	void DeleteBody(b2World*);
 
 	void SetColor(const sf::Color color);
 	void SetEnabled(bool enabled);

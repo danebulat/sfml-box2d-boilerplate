@@ -237,15 +237,23 @@ int main(int argc, char** argv)
 			ImGui::SameLine();
 			if (ImGui::RadioButton("Ray Cast", &e, 3))
 				rmbMode = RMBMode::RayCastMode;
+		}
 
-			ImGui::Text("Rendering:");
-			if (ImGui::Checkbox(" Wireframe", &wireframe))
+		if (ImGui::CollapsingHeader("Rendering", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			ImGui::AlignTextToFramePadding();
+            ImGui::Text("Wireframe"); ImGui::SameLine(130);
+            ImGui::SetNextItemWidth(-1);
+			if (ImGui::Checkbox("##Wireframe", &wireframe))
 			{
 				for (auto& polygon : customPolygons)
 					polygon.SetWireframe(wireframe);
 			}
 
-			ImGui::Checkbox(" Mouse Coordinates", &renderMouseCoords);
+			ImGui::AlignTextToFramePadding();
+            ImGui::Text("Mouse Coords"); ImGui::SameLine(130);
+            ImGui::SetNextItemWidth(-1);
+			ImGui::Checkbox("##Mouse Coords", &renderMouseCoords);
 		}
 
 		if (ImGui::CollapsingHeader("Box2D Bodies", ImGuiTreeNodeFlags_DefaultOpen))
@@ -258,7 +266,7 @@ int main(int argc, char** argv)
 			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, 0.7f, 0.7f));
 			ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));
 
-			if (ImGui::Button("Clear All Dynamic Bodies", ImVec2(windowWidth, 45)))
+			if (ImGui::Button("Clear All Dynamic Bodies", ImVec2(windowWidth, 30)))
 			{
 				clearAllBodies = true;
 			}
@@ -283,12 +291,80 @@ int main(int argc, char** argv)
 			ImGui::AlignTextToFramePadding();
             ImGui::Text("Selected"); ImGui::SameLine(130);
             ImGui::SetNextItemWidth(-1);
-			if (ImGui::Combo("##SelectedEdgeChain", &selectedStaticEdgeChainIndex, staticEdgeChainLabels))
+
+			if (staticEdgeChains.size() > 0)
 			{
-                staticEdgeChains[prevSelectedStaticEdgeChainIndex].SetEditable(false);
+				if (ImGui::Combo("##SelectedEdgeChain", &selectedStaticEdgeChainIndex, staticEdgeChainLabels))
+				{
+					staticEdgeChains[prevSelectedStaticEdgeChainIndex].SetEditable(false);
+					staticEdgeChains[selectedStaticEdgeChainIndex].SetEditable(true);
+					prevSelectedStaticEdgeChainIndex = selectedStaticEdgeChainIndex;
+				}
+			}
+			else
+			{
+				ImGui::Text("--");
+			}
+
+
+			/* Add new edge chain */
+			float windowWidth = ImGui::GetWindowContentRegionWidth();
+            int i = 3;
+            ImGui::PushID(i);
+
+			ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, 0.7f, 0.7f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));
+
+			if (ImGui::Button("Add Edge Chain", ImVec2(windowWidth, 30)))
+			{
+				sf::Vector2f startPos(400.f, 300.f);
+				std::string tag = "EC" + std::to_string(staticEdgeChains.size() + 1);
+				staticEdgeChains.push_back(StaticEdgeChain(demo_data::newChainCoords, tag, &world));
+				staticEdgeChainLabels.push_back(tag);
+
+				selectedStaticEdgeChainIndex = staticEdgeChains.size()-1;
+				staticEdgeChains[prevSelectedStaticEdgeChainIndex].SetEditable(false);
 				staticEdgeChains[selectedStaticEdgeChainIndex].SetEditable(true);
 				prevSelectedStaticEdgeChainIndex = selectedStaticEdgeChainIndex;
-            }
+			}
+
+			ImGui::PopStyleColor(3);
+            ImGui::PopID();
+
+			/* Delete selected edge chain */
+			i = 3;
+            ImGui::PushID(i+1);
+
+			ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, 0.7f, 0.7f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));
+
+			if (ImGui::Button("Delete Selected Chain", ImVec2(windowWidth, 30)))
+			{
+				if (staticEdgeChains.size() > 0)
+				{
+					// Remove label
+					std::string tag = staticEdgeChains[selectedStaticEdgeChainIndex].GetTag();
+					staticEdgeChainLabels.erase(
+						find(staticEdgeChainLabels.begin(), staticEdgeChainLabels.end(), tag));
+
+					// Remove chain
+					std::vector<StaticEdgeChain>::iterator chain = staticEdgeChains.begin() + selectedStaticEdgeChainIndex;
+					chain->SetEditable(false);
+					chain->DeleteBody(&world);
+					staticEdgeChains.erase(chain);
+
+					// Update indexes
+					selectedStaticEdgeChainIndex = staticEdgeChains.size() - 1;
+					staticEdgeChains[selectedStaticEdgeChainIndex].SetEditable(true);
+					prevSelectedStaticEdgeChainIndex = selectedStaticEdgeChainIndex;
+				}
+			}
+
+			ImGui::PopStyleColor(3);
+            ImGui::PopID();
+
 		}
 
 		std::vector<std::pair<std::string, std::string>> controls =

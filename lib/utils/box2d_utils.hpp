@@ -8,13 +8,19 @@
 #include "utils/mouse_utils.hpp"
 #include "utils/custom_polygon.hpp"
 
+using sf::Vector2f;
+using sf::RectangleShape;
+using sf::CircleShape;
+using sf::RenderWindow;
+
 namespace demo_data
 {
 	// edge chains and custom polygon coordinates
-	extern std::vector<sf::Vector2f> coords;
-	extern std::vector<sf::Vector2f> coordsLeft;
-	extern std::vector<sf::Vector2f> coordsRight;
-	extern std::vector<sf::Vector2f> customPolygonCoords;
+	extern std::vector<Vector2f> newChainCoords;
+	extern std::vector<Vector2f> coords;
+	extern std::vector<Vector2f> coordsLeft;
+	extern std::vector<Vector2f> coordsRight;
+	extern std::vector<Vector2f> customPolygonCoords;
 }
 
 namespace physics
@@ -31,11 +37,11 @@ using namespace ::demo_data;
  *  changes the passed sprite's color of there is a collision.
  */
 
-void DoTestPoint(b2Fixture* fixture, const sf::Vector2f& clickPos,
-		sf::RectangleShape& sprite);
+void DoTestPoint(b2Fixture* fixture, const Vector2f& clickPos,
+		RectangleShape& sprite);
 
-void DoTestPoint(b2Fixture* fixture, const sf::Vector2f& clickPos,
-		sf::CircleShape& sprite);
+void DoTestPoint(b2Fixture* fixture, const Vector2f& clickPos,
+		CircleShape& sprite);
 
 /** DoRayCast
  *      b2Fixture*        - The shape to test against
@@ -46,8 +52,8 @@ void DoTestPoint(b2Fixture* fixture, const sf::Vector2f& clickPos,
  *  end point. Draw the first point of contact on the passed fixture.
  */
 
-void DoRayCast(b2Fixture* fixture, sf::Vector2f& rayEndPoint,
-	sf::RenderWindow& window);
+void DoRayCast(b2Fixture* fixture, Vector2f& rayEndPoint,
+	RenderWindow& window);
 
 /** CreateCustomPolygon
  *
@@ -58,7 +64,7 @@ void CreateCustomPolygon(b2World* world,
 	std::vector<CustomPolygon>& collection,
 	bool wireframe,
 	unsigned int& counter,
-	sf::RenderWindow& window);
+	RenderWindow& window);
 
 /** CreateBox
  *      b2World& - The world to add box to
