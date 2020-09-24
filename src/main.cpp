@@ -6,6 +6,7 @@
 #include "utils/box2d_utils.hpp"
 #include "utils/static_edge_chain.hpp"
 #include "utils/custom_polygon.hpp"
+#include "utils/mouse_utils.hpp"
 
 #include "imgui.h"
 #include "imgui-SFML.h"

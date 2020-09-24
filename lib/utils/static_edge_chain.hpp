@@ -6,7 +6,7 @@
 #include <vector>
 #include "box2d/box2d.h"
 #include "utils/constants.hpp"
-
+#include "utils/mouse_utils.hpp"
 
 /* Draggable point handle to edit edge chain vertices */
 struct VertexHandle
@@ -165,12 +165,6 @@ public:
 
 	void HandleInput(const sf::Event& event, sf::RenderWindow& window)
 	{
-		// KeyReleased
-		if (event.type == sf::Event::KeyReleased)
-		{
-
-		}
-
 		// MouseButtonPressed
 		if (event.type == sf::Event::MouseButtonPressed)
 		{
@@ -195,9 +189,7 @@ public:
 			if (m_editable)
 			{
 				// Get mouse position
-				sf::Vector2f mousePosition = window.mapPixelToCoords(sf::Mouse::getPosition(), window.getView());
-				sf::Vector2i windowOffset = window.getPosition();
-				sf::Vector2f mousePos(mousePosition.x - (float)windowOffset.x, mousePosition.y - (float)windowOffset.y);
+				sf::Vector2f mousePos = GetMousePosition(window);
 
 				// Handle previous frame before updating hovering flag
 				if (m_hoveringOnHandle && m_leftMouseDown)
@@ -205,27 +197,28 @@ public:
 					m_selectedHandle->m_position = mousePos;
 					m_selectedHandle->m_sprite.setPosition(m_selectedHandle->m_position);
 
-					// Update b2BobyPosition
-					b2Fixture* fixture = m_body->GetFixtureList();
+					// Disable body before updating vertices
+					m_body->SetEnabled(false);
 
+					// TODO: Destroy body and re-create new chain
+					b2Fixture* fixture = m_body->GetFixtureList();
 					if (fixture->GetType() == b2Shape::e_chain)
 					{
 						b2ChainShape* shape = dynamic_cast<b2ChainShape*>(fixture->GetShape());
 
-						std::size_t index = m_selectedHandle->m_vertexIndex;
-						float posX = m_selectedHandle->m_position.x / SCALE;
-						float posY = m_selectedHandle->m_position.y / SCALE;
-						shape->m_vertices[index].Set(posX, posY);
+						shape->m_vertices[m_selectedHandle->m_vertexIndex].Set(
+							m_selectedHandle->m_position.x / SCALE,
+							m_selectedHandle->m_position.y / SCALE);
 					}
 
-					// Reload body (not very efficient)
-					m_body->SetEnabled(false);
+					// Enable body after updating its data
 					m_body->SetEnabled(true);
 
 					// Update sf::VertexArray
 					m_vertexArray[m_selectedHandle->m_vertexIndex].position = m_selectedHandle->m_position;
 				}
 
+				// Handle gets selected automatically if the mouse is hovering over it
 				m_hoveringOnHandle = false;
 
 				for (int i = 0; i < m_vertexHandles.size(); ++i)
@@ -239,13 +232,16 @@ public:
 					{
 						m_vertexHandles[i].m_sprite.setFillColor(m_vertexHandles[i].m_hoverColor);
 
-						// If vertex is already selected, unselect it
+						// If another vertex is already selected, unselect it
 						if (m_selectedHandle != nullptr && m_selectedHandle != &m_vertexHandles[i])
 							m_selectedHandle->m_sprite.setFillColor(m_selectedHandle->m_color);
 
 						// Cache the hovered handle
 						if (m_selectedHandle != &m_vertexHandles[i])
+						{
 							m_selectedHandle = &m_vertexHandles[i];
+							std::cout << "handle selected\n";
+						}
 
 						// Cache mouse position
 						m_hoveringOnHandle = true;
@@ -255,10 +251,12 @@ public:
 					{
 						m_vertexHandles[i].m_sprite.setFillColor(m_vertexHandles[i].m_color);
 					}
-
-					if (!m_hoveringOnHandle)
-						m_selectedHandle = nullptr;
 				}// end for
+
+				if (!m_hoveringOnHandle)
+				{
+					m_selectedHandle = nullptr;
+				}
 			}// end editable
 		}
 	}
