@@ -13,6 +13,8 @@
 #include "imgui/imgui_utils.hpp"
 #include "imgui/imgui_demos.hpp"
 
+using namespace physics;
+
 // ImGui variabless
 static int e = 1;
 bool edgeChainsEnabled = true;
