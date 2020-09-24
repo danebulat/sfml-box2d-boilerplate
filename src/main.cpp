@@ -70,15 +70,11 @@ int main(int argc, char** argv)
 	CreateGround(world, 400.f, 575.f);
 
 	/* Create static edge chain */
-	StaticEdgeChain edgeChain;
-	edgeChain.Init(demo_data::coords, &world);
-	edgeChain.SetEditable(true);
-
-	StaticEdgeChain edgeChainLeft;
-	edgeChainLeft.Init(demo_data::coordsLeft, &world);
-
-	StaticEdgeChain edgeChainRight;
-	edgeChainRight.Init(demo_data::coordsRight, &world);
+	std::vector<StaticEdgeChain> staticEdgeChains;
+	staticEdgeChains.push_back(StaticEdgeChain(demo_data::coords, &world));
+	staticEdgeChains.push_back(StaticEdgeChain(demo_data::coordsLeft, &world));
+	staticEdgeChains.push_back(StaticEdgeChain(demo_data::coordsRight, &world));
+	staticEdgeChains[0].SetEditable(true);
 
 	/* Vector for custom polygon objects */
 	std::vector<CustomPolygon> customPolygons;
@@ -129,9 +125,8 @@ int main(int argc, char** argv)
 				{
 					edgeChainsEnabled = !edgeChainsEnabled;
 
-					edgeChain.SetEnabled(edgeChainsEnabled);
-					edgeChainLeft.SetEnabled(edgeChainsEnabled);
-					edgeChainRight.SetEnabled(edgeChainsEnabled);
+					for (auto& chain : staticEdgeChains)
+						chain.SetEnabled(edgeChainsEnabled);
 				}
 
 				// W key: toggle custom polygon wireframe
@@ -158,42 +153,28 @@ int main(int argc, char** argv)
 			// Mouse move
 			if (event.type == sf::Event::MouseMoved)
 			{
-				sf::Vector2f position = (GetMousePosition(window) + sf::Vector2f(10.f, -15.f));
-				std::string xPos = std::to_string(position.x);
-				std::string yPos = std::to_string(position.y);
-
-				xPos = xPos.substr(0, 5);
-				yPos = yPos.substr(0, 5);
-				std::string label = "(" + xPos + "," + yPos + ")";
-
-				mouseLabel.setPosition(position);
-				mouseLabel.setString(label);
+				SetMouseLabel(mouseLabel, window);
 			}
 
 			// Left and right button release
 			if (event.type == sf::Event::MouseButtonReleased)
 			{
+				// Spawn a circle
 				if (event.mouseButton.button == sf::Mouse::Middle)
 				{
 					sf::Vector2f mousePos = GetMousePosition(window);
-					float mouseX = mousePos.x;
-					float mouseY = mousePos.y;
-
-					CreateCircle(world, mouseX, mouseY);
+					CreateCircle(world, mousePos.x, mousePos.y);
 					++count_dynamicBodies;
 				}
 				else if (event.mouseButton.button == sf::Mouse::Right)
 				{
 					holdingRMB = false;
 
+					// Spawn a box
 					if (rmbMode == RMBMode::BoxSpawnMode)
 					{
-						// Spawn a box
 						sf::Vector2f mousePos = GetMousePosition(window);
-						float mouseX = mousePos.x;
-						float mouseY = mousePos.y;
-
-						CreateBox(world, mouseX, mouseY);
+						CreateBox(world, mousePos.x, mousePos.y);
 						++count_dynamicBodies;
 					}
 				}
@@ -210,9 +191,8 @@ int main(int argc, char** argv)
 				drawClickPoint = false;
 
 			// Handle edge chain input
-			edgeChain.HandleInput(event, window);
-			edgeChainLeft.HandleInput(event, window);
-			edgeChainRight.HandleInput(event, window);
+			for (auto& chain : staticEdgeChains)
+				chain.HandleInput(event, window);
 
 		}// end window.poll(event)
 
@@ -272,9 +252,8 @@ int main(int argc, char** argv)
 			ImGui::Text("Enable:");
 			if (ImGui::Checkbox(" Edge Chains", &edgeChainsEnabled))
 			{
-				edgeChain.SetEnabled(edgeChainsEnabled);
-				edgeChainLeft.SetEnabled(edgeChainsEnabled);
-				edgeChainRight.SetEnabled(edgeChainsEnabled);
+				for (auto& chain : staticEdgeChains)
+					chain.SetEnabled(edgeChainsEnabled);
 			}
 
 			float windowWidth = ImGui::GetWindowContentRegionWidth();
@@ -431,9 +410,8 @@ int main(int argc, char** argv)
 			clearAllBodies = false;
 		}
 
-		edgeChain.Draw(window);
-		edgeChainLeft.Draw(window);
-		edgeChainRight.Draw(window);
+		for (auto& chain : staticEdgeChains)
+			chain.Draw(window);
 
 		if (drawClickPoint)
 			window.draw(circle);

@@ -17,10 +17,25 @@ StaticEdgeChain::StaticEdgeChain()
 	: m_vertexCount(0)
 	, m_color(Color::Blue)
 	, m_body(nullptr)
-	, m_editable(false)
 	, m_selectedHandle(nullptr)
+	, m_editable(false)
 	, m_leftMouseDown(false)
 	, m_hoveringOnHandle(false)
+{}
+
+StaticEdgeChain::StaticEdgeChain(std::vector<Vector2f>& vertices, b2World* world)
+	: m_vertexCount(0)//
+	, m_color(Color::Blue)
+	, m_body(nullptr)
+	, m_selectedHandle(nullptr)
+	, m_editable(false)
+	, m_leftMouseDown(false)
+	, m_hoveringOnHandle(false)
+{
+	Init(vertices, world);
+}
+
+StaticEdgeChain::~StaticEdgeChain()
 {}
 
 void StaticEdgeChain::InitVertexHandles()
@@ -43,7 +58,7 @@ void StaticEdgeChain::InitVertexHandles()
 	}
 }
 
-void StaticEdgeChain::Init(std::vector<Vector2f> vertices, b2World* world)
+void StaticEdgeChain::Init(std::vector<Vector2f>& vertices, b2World* world)
 {
 	m_vertexCount = vertices.size();
 	m_vertices = vertices;

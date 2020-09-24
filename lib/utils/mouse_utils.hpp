@@ -11,4 +11,6 @@
 
 sf::Vector2f GetMousePosition(const sf::RenderWindow& window);
 
+void SetMouseLabel(sf::Text& label, sf::RenderWindow& window);
+
 #endif

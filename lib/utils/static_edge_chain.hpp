@@ -29,10 +29,10 @@ private:
 	std::vector<b2Vec2>		  m_scaledVertices;
 	b2Body*					  m_body;
 
+	// Vertex handle data
 	std::vector<VertexHandle> m_vertexHandles;
-	bool					  m_editable;
 	VertexHandle*			  m_selectedHandle;
-
+	bool					  m_editable;
 	bool 					  m_leftMouseDown;
 	bool					  m_hoveringOnHandle;
 
@@ -41,8 +41,10 @@ private:
 
 public:
 	StaticEdgeChain();
+	StaticEdgeChain(std::vector<sf::Vector2f>& vertices, b2World* world);
+	~StaticEdgeChain();
 
-	void Init(std::vector<sf::Vector2f> vertices, b2World* world);
+	void Init(std::vector<sf::Vector2f>& vertices, b2World* world);
 
 	void SetColor(const sf::Color color);
 	void SetEnabled(bool enabled);
