@@ -13,7 +13,17 @@ struct VertexHandle
 	sf::Vector2f    m_position;		// world position
 	sf::CircleShape m_sprite;
 	sf::Color 		m_color;
-	sf::Color		m_hoverColor;
+	sf::Color 		m_hoverColor;
+};
+
+/* Draggable handle to move the entire edge chain */
+struct MoveHandle
+{
+	float 			m_size = 15.f;
+	sf::Vector2f	m_position;
+	sf::CircleShape	m_sprite;
+	sf::Color 		m_color;
+	sf::Color 		m_hoverColor;
 };
 
 /* Static edge chain */
@@ -38,12 +48,19 @@ private:
 	std::vector<VertexHandle> m_vertexHandles;
 	VertexHandle*			  m_selectedHandle;
 	bool					  m_editable;
-	bool 					  m_leftMouseDown;
 	bool					  m_hoveringOnHandle;
+	bool 					  m_leftMouseDown;
+
+	// Move handle data
+	MoveHandle 				  m_moveHandle;
+	bool 					  m_hoveringOnMoveHandle;
+
 
 private:
 	void InitVertexHandles();
+	void InitMoveHandle();
 	void InitWorldBoundingBox();
+	void CalculateMoveHandlePosition();
 
 public:
 	StaticEdgeChain();

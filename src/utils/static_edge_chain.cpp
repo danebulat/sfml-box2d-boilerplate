@@ -60,8 +60,8 @@ void StaticEdgeChain::InitVertexHandles()
 	for (int i = 0; i < m_vertices.size(); ++i)
 	{
 		VertexHandle vHandle;
-		vHandle.m_color = Color(0.f, 0.f, 255.f, 96.f);
-		vHandle.m_hoverColor = Color(255.f, 0.f, 0, 128.f);
+		vHandle.m_color = Color(0.f, 0.f, 255.f, 64.f);
+		vHandle.m_hoverColor = Color(0.f, 0.f, 255.f, 128.f);
 		vHandle.m_position.x = m_vertices[i].x;
 		vHandle.m_position.y = m_vertices[i].y;
 
@@ -73,6 +73,29 @@ void StaticEdgeChain::InitVertexHandles()
 
 		m_vertexHandles.push_back(vHandle);
 	}
+}
+
+void StaticEdgeChain::InitMoveHandle()
+{
+	Color color(255.f, 0.f, 0.f, 32.f);
+	m_moveHandle.m_color = color;
+
+	color.a = 96.f;
+	m_moveHandle.m_hoverColor = color;
+
+	m_moveHandle.m_sprite.setRadius(m_moveHandle.m_size);
+	m_moveHandle.m_sprite.setFillColor(m_moveHandle.m_color);
+	m_moveHandle.m_sprite.setOrigin(m_moveHandle.m_size, m_moveHandle.m_size);
+
+	// Calculate position of move handle (center of bounding box)
+	CalculateMoveHandlePosition();
+}
+
+void StaticEdgeChain::CalculateMoveHandlePosition()
+{
+	m_moveHandle.m_position.x = m_boundingBox.left + (m_boundingBox.width * .5f);
+	m_moveHandle.m_position.y = m_boundingBox.top; //+ (m_boundingBox.height * .5f);
+	m_moveHandle.m_sprite.setPosition(m_moveHandle.m_position);
 }
 
 void StaticEdgeChain::InitWorldBoundingBox()
@@ -154,6 +177,9 @@ void StaticEdgeChain::Init(std::vector<Vector2f>& vertices, b2World* world)
 
 	// Initialise world bounding box
 	InitWorldBoundingBox();
+
+	// Initialise move handle
+	InitMoveHandle();
 }
 
 // --------------------------------------------------------------------------------
@@ -223,6 +249,7 @@ void StaticEdgeChain::Draw(RenderWindow& window)
 		if (m_updateWorldBoundingBox)
 		{
 			InitWorldBoundingBox();
+			CalculateMoveHandlePosition();
 			m_updateWorldBoundingBox = false;
 		}
 
@@ -241,13 +268,16 @@ void StaticEdgeChain::Draw(RenderWindow& window)
 
 		bbShape.setSize(Vector2f(width, height));
 		window.draw(bbShape);
+		// END TODO
 	}
 
-	// Draw vertex handles
+	// Draw move handle vertex handles
 	if (m_editable)
 	{
 		for (auto& handle : m_vertexHandles)
 			window.draw(handle.m_sprite);
+
+		window.draw(m_moveHandle.m_sprite);
 	}
 }
 
@@ -349,6 +379,23 @@ void StaticEdgeChain::HandleInput(const Event& event, RenderWindow& window)
 				}
 			}// end for
 
+			// Check if mouse is hovering over the move handle
+			Vector2f moveHandlePos = m_moveHandle.m_position;
+			float radius = m_moveHandle.m_size;
+
+			if (((mousePos.x > moveHandlePos.x - radius) && (mousePos.x < moveHandlePos.x + radius)) &&
+				((mousePos.y > moveHandlePos.y - radius) && (mousePos.y < moveHandlePos.y + radius)))
+			{
+				m_moveHandle.m_sprite.setFillColor(m_moveHandle.m_hoverColor);
+				m_hoveringOnMoveHandle = true;
+			}
+			else
+			{
+				m_moveHandle.m_sprite.setFillColor(m_moveHandle.m_color);
+				m_hoveringOnMoveHandle = false;
+			}
+
+			// Clear selected handle cache if mouse is not hovering over a handle
 			if (!m_hoveringOnHandle)
 			{
 				m_selectedHandle = nullptr;
