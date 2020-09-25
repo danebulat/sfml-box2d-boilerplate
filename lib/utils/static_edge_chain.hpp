@@ -6,6 +6,7 @@
 #include <memory>
 #include "box2d/box2d.h"
 #include "utils/bounding_box.hpp"
+#include "utils/move_handle.hpp"
 
 /* Draggable point handle to edit edge chain vertices */
 struct VertexHandle
@@ -18,56 +19,41 @@ struct VertexHandle
 	sf::Color 		m_hoverColor;
 };
 
-/* Draggable handle to move the entire edge chain */
-struct MoveHandle
-{
-	float 			m_size = 15.f;
-	sf::Vector2f	m_position;
-	sf::CircleShape	m_sprite;
-	sf::Color 		m_color;
-	sf::Color 		m_hoverColor;
-	sf::Font 		m_font;
-	sf::Text 		m_label;
-};
-
 /* Static edge chain */
 class StaticEdgeChain
 {
 private:
-	std::string 			  m_tag;
-	unsigned int 			  m_vertexCount;
-	std::vector<sf::Vector2f> m_vertices;
+	std::string 			  		m_tag;
+	unsigned int 			  		m_vertexCount;
+	std::vector<sf::Vector2f> 		m_vertices;
 
-	sf::Color    			  m_color;
-	sf::VertexArray			  m_vertexArray;
+	sf::Color    			  		m_color;
+	sf::VertexArray			  		m_vertexArray;
 
 	std::shared_ptr<BoundingBox>	m_boundingBox;
 	bool 					  		m_drawWorldBoundingBox;
 	bool 					  		m_updateBoundingBox;
 
-	std::vector<b2Vec2>		  m_scaledVertices;
-	b2Body*					  m_body;
+	std::vector<b2Vec2>		  		m_scaledVertices;
+	b2Body*					 		m_body;
 
 	// Handle data
-	sf::Vector2f 			  m_prevMousePosition;
-	bool 					  m_mouseMoved;
-	bool 					  m_leftMouseDown;
+	sf::Vector2f 			  		m_prevMousePosition;
+	bool 					  		m_mouseMoved;
+	bool 					  		m_leftMouseDown;
 
 	// Vertex handle data
-	std::vector<VertexHandle> m_vertexHandles;
-	VertexHandle*			  m_selectedHandle;
-	bool					  m_editable;
-	bool					  m_hoveringOnHandle;
+	std::vector<VertexHandle> 		m_vertexHandles;
+	VertexHandle*			  		m_selectedHandle;
+	bool					  		m_editable;
+	bool					  		m_hoveringOnHandle;
 
 	// Move handle data
-	MoveHandle 				  m_moveHandle;
-	bool 					  m_hoveringOnMoveHandle;
-
+	std::shared_ptr<MoveHandle>		m_moveHandle;
+	bool 					  		m_hoveringOnMoveHandle;
 
 private:
 	void InitVertexHandles();
-	void InitMoveHandle();
-	void CalculateMoveHandlePosition();
 
 public:
 	StaticEdgeChain();
