@@ -54,10 +54,12 @@ public:
 	void DeleteBody(b2World*);
 
 	void SetColor(const sf::Color color);
-	void SetEnabled(bool enabled);
 
+	void SetEnabled(bool enabled);
 	bool IsEnabled() const;
+
 	void SetEditable(bool editable);
+	bool IsEditable() const;
 
 	const std::string& GetTag() const;
 	void SetTag(const std::string& tag);

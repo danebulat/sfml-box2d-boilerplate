@@ -20,6 +20,7 @@ static int e = 1;
 bool edgeChainsEnabled = true;
 bool clearAllBodies = false;
 bool renderMouseCoords = true;
+bool renderBoundingBoxes = true;
 
 int selectedStaticEdgeChainIndex = 0;
 int prevSelectedStaticEdgeChainIndex = 0;
@@ -243,7 +244,7 @@ int main(int argc, char** argv)
 		if (ImGui::CollapsingHeader("Rendering", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			ImGui::AlignTextToFramePadding();
-            ImGui::Text("Wireframe"); ImGui::SameLine(130);
+            ImGui::Text("Wireframe"); ImGui::SameLine(195);
             ImGui::SetNextItemWidth(-1);
 			if (ImGui::Checkbox("##Wireframe", &wireframe))
 			{
@@ -252,9 +253,14 @@ int main(int argc, char** argv)
 			}
 
 			ImGui::AlignTextToFramePadding();
-            ImGui::Text("Mouse Coords"); ImGui::SameLine(130);
+            ImGui::Text("Selection Bounding Box"); ImGui::SameLine(195);
             ImGui::SetNextItemWidth(-1);
-			ImGui::Checkbox("##Mouse Coords", &renderMouseCoords);
+			ImGui::Checkbox("##BoundingBoxes", &renderBoundingBoxes);
+
+			ImGui::AlignTextToFramePadding();
+            ImGui::Text("Mouse Coords"); ImGui::SameLine(195);
+            ImGui::SetNextItemWidth(-1);
+			ImGui::Checkbox("##MouseCoords", &renderMouseCoords);
 		}
 
 		if (ImGui::CollapsingHeader("Box2D Bodies", ImGuiTreeNodeFlags_DefaultOpen))
@@ -308,7 +314,6 @@ int main(int argc, char** argv)
 			{
 				ImGui::Text("--");
 			}
-
 
 			/* Add new edge chain */
 			float windowWidth = ImGui::GetWindowContentRegionWidth();
@@ -509,7 +514,12 @@ int main(int argc, char** argv)
 		}
 
 		for (auto& chain : staticEdgeChains)
+		{
+			if (chain.IsEditable())
+				chain.DrawWorldBoundingBox(renderBoundingBoxes);
 			chain.Draw(window);
+		}
+
 
 		if (drawClickPoint)
 			window.draw(circle);

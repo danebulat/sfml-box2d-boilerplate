@@ -188,6 +188,11 @@ void StaticEdgeChain::SetEditable(bool editable)
 	m_editable = editable;
 }
 
+bool StaticEdgeChain::IsEditable() const
+{
+	return m_editable;
+}
+
 const std::string& StaticEdgeChain::GetTag() const
 {
 	return m_tag;
@@ -223,14 +228,14 @@ void StaticEdgeChain::Draw(RenderWindow& window)
 
 		// TODO: Class for bounding box
 		sf::RectangleShape bbShape;
-		sf::Color color(196.f,196.f,196.f, 16.f);
+		sf::Color color(196.f,196.f,196.f, 20.f);
 		float width = m_boundingBox.width;
 		float height = m_boundingBox.height;
 
 		bbShape.setPosition(m_boundingBox.left, m_boundingBox.top);
 		bbShape.setFillColor(color);
 
-		color.a = 96.f;
+		color.a = 196.f;
 		bbShape.setOutlineColor(color);
 		bbShape.setOutlineThickness(1.f);
 
