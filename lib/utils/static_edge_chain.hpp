@@ -24,6 +24,8 @@ struct MoveHandle
 	sf::CircleShape	m_sprite;
 	sf::Color 		m_color;
 	sf::Color 		m_hoverColor;
+	sf::Font 		m_font;
+	sf::Text 		m_label;
 };
 
 /* Static edge chain */

@@ -105,6 +105,19 @@ void StaticEdgeChain::CalculateMoveHandlePosition()
 	m_moveHandle.m_position.x = m_boundingBox.left + (m_boundingBox.width * .5f);
 	m_moveHandle.m_position.y = m_boundingBox.top; //- (m_boundingBox.height * .5f);
 	m_moveHandle.m_sprite.setPosition(m_moveHandle.m_position);
+
+	if (!m_moveHandle.m_font.loadFromFile("content/Menlo-Regular.ttf"))
+		std::cout << "StaticEdgeChain::CalculateMoveHandlePosition() - failed to load font\n";
+
+	m_moveHandle.m_label.setFont(m_moveHandle.m_font);
+	m_moveHandle.m_label.setFillColor(Color::Black);
+	m_moveHandle.m_label.setCharacterSize(12);
+	m_moveHandle.m_label.setStyle(sf::Text::Regular);
+	m_moveHandle.m_label.setString(sf::String(m_tag));
+
+	m_moveHandle.m_label.setPosition(
+		m_moveHandle.m_position.x - (m_moveHandle.m_label.getLocalBounds().width * .5f),
+		m_moveHandle.m_position.y - m_moveHandle.m_size*2.0f);
 }
 
 void StaticEdgeChain::InitWorldBoundingBox()
@@ -244,45 +257,6 @@ void StaticEdgeChain::DrawWorldBoundingBox(bool flag)
 }
 
 // --------------------------------------------------------------------------------
-// Draw
-// --------------------------------------------------------------------------------
-
-void StaticEdgeChain::Draw(RenderWindow& window)
-{
-	window.draw(m_vertexArray);
-
-	// Draw bounding box
-	if (m_drawWorldBoundingBox)
-	{
-		// TODO: Class for bounding box
-		sf::RectangleShape bbShape;
-		sf::Color color(196.f,196.f,196.f, 20.f);
-		float width = m_boundingBox.width;
-		float height = m_boundingBox.height;
-
-		bbShape.setPosition(m_boundingBox.left, m_boundingBox.top);
-		bbShape.setFillColor(color);
-
-		color.a = 196.f;
-		bbShape.setOutlineColor(color);
-		bbShape.setOutlineThickness(1.f);
-
-		bbShape.setSize(Vector2f(width, height));
-		window.draw(bbShape);
-		// END TODO
-	}
-
-	// Draw move handle vertex handles
-	if (m_editable)
-	{
-		for (auto& handle : m_vertexHandles)
-			window.draw(handle.m_sprite);
-
-		window.draw(m_moveHandle.m_sprite);
-	}
-}
-
-// --------------------------------------------------------------------------------
 // Input
 // --------------------------------------------------------------------------------
 
@@ -333,7 +307,7 @@ void StaticEdgeChain::Update(RenderWindow& window)
 		// ----------------------------------------------------------------------
 
 		// Handle previous frame (move handle)
-		if (m_hoveringOnMoveHandle && m_leftMouseDown && !m_hoveringOnHandle)
+		if ((m_hoveringOnMoveHandle && m_leftMouseDown) && !(m_hoveringOnHandle && m_leftMouseDown))
 		{
 			// Get move increment (pixel coordinates)
 			Vector2f moveIncrement = GetIncrement(m_prevMousePosition, mousePos);
@@ -381,8 +355,6 @@ void StaticEdgeChain::Update(RenderWindow& window)
 			m_updateWorldBoundingBox = true;
 		}
 
-		m_hoveringOnMoveHandle = false;
-
 		// Check if mouse is hovering over the move handle
 		if (m_mouseMoved)
 		{
@@ -394,7 +366,6 @@ void StaticEdgeChain::Update(RenderWindow& window)
 			{
 				m_moveHandle.m_sprite.setFillColor(m_moveHandle.m_hoverColor);
 				m_hoveringOnMoveHandle = true;
-				m_hoveringOnHandle = false; // clear selected handle cache
 			}
 			else
 			{
@@ -439,7 +410,6 @@ void StaticEdgeChain::Update(RenderWindow& window)
 		}
 
 		// Handler gets selected automatically if the mouse is hovering over it
-		m_hoveringOnHandle = false;
 		if (m_mouseMoved)
 		{
 			for (int i = 0; i < m_vertexHandles.size(); ++i)
@@ -467,6 +437,7 @@ void StaticEdgeChain::Update(RenderWindow& window)
 				}
 				else
 				{
+					m_hoveringOnHandle = false;
 					m_vertexHandles[i].m_sprite.setFillColor(m_vertexHandles[i].m_color);
 				}
 			}// end for
@@ -481,11 +452,53 @@ void StaticEdgeChain::Update(RenderWindow& window)
 			CalculateMoveHandlePosition();
 			m_updateWorldBoundingBox = false;
 		}
+
+		// Clear selected handle cache if mouse is not hovering over a handle
+		if (!m_hoveringOnHandle)
+		{
+			m_selectedHandle = nullptr;
+		}
+	}
+}
+
+// --------------------------------------------------------------------------------
+// Draw
+// --------------------------------------------------------------------------------
+
+void StaticEdgeChain::Draw(RenderWindow& window)
+{
+	window.draw(m_vertexArray);
+
+	// Draw bounding box
+	if (m_drawWorldBoundingBox)
+	{
+		// TODO: Class for bounding box
+		sf::RectangleShape bbShape;
+		sf::Color color(196.f,196.f,196.f, 20.f);
+		float width = m_boundingBox.width;
+		float height = m_boundingBox.height;
+
+		bbShape.setPosition(m_boundingBox.left, m_boundingBox.top);
+		bbShape.setFillColor(color);
+
+		color.a = 196.f;
+		bbShape.setOutlineColor(color);
+		bbShape.setOutlineThickness(1.f);
+
+		bbShape.setSize(Vector2f(width, height));
+		window.draw(bbShape);
+		// END TODO
 	}
 
-	// Clear selected handle cache if mouse is not hovering over a handle
-	if (!m_hoveringOnHandle)
+	window.draw(m_moveHandle.m_label);
+
+	// Draw move handle vertex handles
+	if (m_editable)
 	{
-		m_selectedHandle = nullptr;
+		for (auto& handle : m_vertexHandles)
+			window.draw(handle.m_sprite);
+
+		window.draw(m_moveHandle.m_sprite);
+
 	}
 }
