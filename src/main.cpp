@@ -26,6 +26,8 @@ int selectedStaticEdgeChainIndex = 0;
 int prevSelectedStaticEdgeChainIndex = 0;
 std::vector<std::string> staticEdgeChainLabels;
 
+bool init = true;
+
 enum class RMBMode
 {
 	BoxSpawnMode = 1,
@@ -81,8 +83,12 @@ int main(int argc, char** argv)
 	staticEdgeChains.push_back(StaticEdgeChain(demo_data::coords, "EC1", &world));
 	staticEdgeChains.push_back(StaticEdgeChain(demo_data::coordsLeft, "EC2", &world));
 	staticEdgeChains.push_back(StaticEdgeChain(demo_data::coordsRight, "EC3", &world));
-	staticEdgeChains[0].SetEditable(true);
-	staticEdgeChains[0].DrawWorldBoundingBox(true);
+
+	// bug fix: Enable all static edge chains to do a full render pass & render labels
+	for (auto& chain : staticEdgeChains) {
+		chain.SetEditable(true);
+		chain.DrawWorldBoundingBox(true);
+	}
 
 	for (auto& chain : staticEdgeChains)
 		staticEdgeChainLabels.push_back(chain.GetTag()); // for ImGui
@@ -524,7 +530,6 @@ int main(int argc, char** argv)
 			chain.Draw(window);
 		}
 
-
 		if (drawClickPoint)
 			window.draw(circle);
 
@@ -533,6 +538,17 @@ int main(int argc, char** argv)
 
 		if (renderMouseCoords)
 			window.draw(mouseLabel);
+
+		// Bug fix: Do one full render pass to draw the text labels
+		if (init) {
+			for (int i=0; i<staticEdgeChains.size(); ++i) {
+				if (i != selectedStaticEdgeChainIndex) {
+					staticEdgeChains[i].SetEditable(false);
+					staticEdgeChains[i].DrawWorldBoundingBox(false);
+				}
+			}
+			init = false;
+		}
 
 		// Render ImGui windows
 		ImGui::SFML::Render(window);

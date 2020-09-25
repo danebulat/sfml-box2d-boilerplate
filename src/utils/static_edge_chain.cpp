@@ -41,6 +41,7 @@ StaticEdgeChain::StaticEdgeChain(std::vector<Vector2f>& vertices, const string& 
 	, m_selectedHandle(nullptr)
 	, m_editable(false)
 	, m_hoveringOnHandle(false)
+	, m_hoveringOnMoveHandle(false)
 {
 	Init(vertices, world);
 }
@@ -97,7 +98,7 @@ void StaticEdgeChain::InitMoveHandle()
 	m_moveHandle.m_sprite.setOrigin(m_moveHandle.m_size, m_moveHandle.m_size);
 
 	// Calculate position of move handle (center of bounding box)
-	CalculateMoveHandlePosition();
+	//CalculateMoveHandlePosition(); // Called separately in Init()
 }
 
 void StaticEdgeChain::CalculateMoveHandlePosition()
@@ -117,7 +118,7 @@ void StaticEdgeChain::CalculateMoveHandlePosition()
 
 	m_moveHandle.m_label.setPosition(
 		m_moveHandle.m_position.x - (m_moveHandle.m_label.getLocalBounds().width * .5f),
-		m_moveHandle.m_position.y - m_moveHandle.m_size*2.0f);
+		m_moveHandle.m_position.y - (m_moveHandle.m_size * 2.0f));
 }
 
 void StaticEdgeChain::InitWorldBoundingBox()
@@ -202,6 +203,9 @@ void StaticEdgeChain::Init(std::vector<Vector2f>& vertices, b2World* world)
 
 	// Initialise move handle
 	InitMoveHandle();
+
+	// Calculate move handle and label positions
+	CalculateMoveHandlePosition();
 }
 
 // --------------------------------------------------------------------------------
@@ -490,8 +494,6 @@ void StaticEdgeChain::Draw(RenderWindow& window)
 		// END TODO
 	}
 
-	window.draw(m_moveHandle.m_label);
-
 	// Draw move handle vertex handles
 	if (m_editable)
 	{
@@ -499,6 +501,8 @@ void StaticEdgeChain::Draw(RenderWindow& window)
 			window.draw(handle.m_sprite);
 
 		window.draw(m_moveHandle.m_sprite);
-
 	}
+
+	// Draw move handle label
+	window.draw(m_moveHandle.m_label);
 }
