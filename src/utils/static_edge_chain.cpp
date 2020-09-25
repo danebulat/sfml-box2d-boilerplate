@@ -6,9 +6,11 @@ using sf::Color;
 using sf::Vector2f;
 using sf::RenderWindow;
 using sf::LineStrip;
+using sf::FloatRect;
 using sf::Event;
 using sf::Mouse;
 using std::string;
+using std::size_t;
 
 // --------------------------------------------------------------------------------
 // Initialisation
@@ -17,6 +19,8 @@ using std::string;
 StaticEdgeChain::StaticEdgeChain()
 	: m_vertexCount(0)
 	, m_color(Color::Blue)
+	, m_drawWorldBoundingBox(false)
+	, m_updateWorldBoundingBox(true)
 	, m_body(nullptr)
 	, m_selectedHandle(nullptr)
 	, m_editable(false)
@@ -26,8 +30,10 @@ StaticEdgeChain::StaticEdgeChain()
 
 StaticEdgeChain::StaticEdgeChain(std::vector<Vector2f>& vertices, const string& tag, b2World* world)
 	: m_tag(tag)
-	, m_vertexCount(0)//
+	, m_vertexCount(0)
 	, m_color(Color::Blue)
+	, m_drawWorldBoundingBox(false)
+	, m_updateWorldBoundingBox(true)
 	, m_body(nullptr)
 	, m_selectedHandle(nullptr)
 	, m_editable(false)
@@ -69,6 +75,35 @@ void StaticEdgeChain::InitVertexHandles()
 	}
 }
 
+void StaticEdgeChain::InitWorldBoundingBox()
+{
+	// Initialise variables to store min/max coordinates
+	float lowerX = m_vertices[0].x;
+	float lowerY = m_vertices[0].y;
+
+	float upperX = m_vertices[0].x;
+	float upperY = m_vertices[0].y;
+
+	// Iterate vertex world positions and find min/max coordinates
+	for (std::size_t i = 0; i < m_vertices.size(); ++i)
+	{
+		float xPos = m_vertices[i].x;
+		float yPos = m_vertices[i].y;
+
+		if      (xPos < lowerX) lowerX = xPos;
+		else if (xPos > upperX) upperX = xPos;
+
+		if 	 	(yPos < lowerY) lowerY = yPos;
+		else if (yPos > upperY) upperY = yPos;
+	}
+
+	// Construct FloatRect to form chain bounding box
+	m_boundingBox.left = lowerX;
+	m_boundingBox.top = lowerY;
+	m_boundingBox.width = upperX - lowerX;
+	m_boundingBox.height = upperY - lowerY;
+}
+
 void StaticEdgeChain::Init(std::vector<Vector2f>& vertices, b2World* world)
 {
 	m_vertexCount = vertices.size();
@@ -93,15 +128,12 @@ void StaticEdgeChain::Init(std::vector<Vector2f>& vertices, b2World* world)
 
 	// Initialise chain shape
 	b2ChainShape chain;
-	b2Vec2 prevVertex((m_vertices[0].x - 100.f) / SCALE,
-					  (m_vertices[0].y) / SCALE);
-
+	b2Vec2 prevVertex((m_vertices[0].x - 100.f)/SCALE, (m_vertices[0].y)/SCALE);
 	b2Vec2 nextVertex((m_vertices[m_vertexCount].x + 100.f) / SCALE,
 					  (m_vertices[m_vertexCount].y) / SCALE);
 
-	chain.CreateChain(m_scaledVertices.data(),
-					  m_vertexCount,
-					  prevVertex, nextVertex);
+	chain.CreateChain(m_scaledVertices.data(), m_vertexCount,
+		prevVertex, nextVertex);
 
 	// Create fixture and body
 	b2FixtureDef fixture;
@@ -119,6 +151,9 @@ void StaticEdgeChain::Init(std::vector<Vector2f>& vertices, b2World* world)
 
 	// Initialise vertex handles
 	InitVertexHandles();
+
+	// Initialise world bounding box
+	InitWorldBoundingBox();
 }
 
 // --------------------------------------------------------------------------------
@@ -163,6 +198,11 @@ void StaticEdgeChain::SetTag(const std::string& tag)
 	m_tag = tag;
 }
 
+void StaticEdgeChain::DrawWorldBoundingBox(bool flag)
+{
+	m_drawWorldBoundingBox = flag;
+}
+
 // --------------------------------------------------------------------------------
 // Draw
 // --------------------------------------------------------------------------------
@@ -170,6 +210,33 @@ void StaticEdgeChain::SetTag(const std::string& tag)
 void StaticEdgeChain::Draw(RenderWindow& window)
 {
 	window.draw(m_vertexArray);
+
+	// Draw bounding box
+	if (m_drawWorldBoundingBox)
+	{
+		// Re-caclulate bounding box if a vertex has been moved
+		if (m_updateWorldBoundingBox)
+		{
+			InitWorldBoundingBox();
+			m_updateWorldBoundingBox = false;
+		}
+
+		// TODO: Class for bounding box
+		sf::RectangleShape bbShape;
+		sf::Color color(196.f,196.f,196.f, 16.f);
+		float width = m_boundingBox.width;
+		float height = m_boundingBox.height;
+
+		bbShape.setPosition(m_boundingBox.left, m_boundingBox.top);
+		bbShape.setFillColor(color);
+
+		color.a = 96.f;
+		bbShape.setOutlineColor(color);
+		bbShape.setOutlineThickness(1.f);
+
+		bbShape.setSize(Vector2f(width, height));
+		window.draw(bbShape);
+	}
 
 	// Draw vertex handles
 	if (m_editable)
@@ -234,8 +301,12 @@ void StaticEdgeChain::HandleInput(const Event& event, RenderWindow& window)
 				// Enable body after updating its data
 				m_body->SetEnabled(true);
 
-				// Update SFML VertexArray
+				// Update cached vertices and SFML VertexArray
+				m_vertices[m_selectedHandle->m_vertexIndex] = m_selectedHandle->m_position;
 				m_vertexArray[m_selectedHandle->m_vertexIndex].position = m_selectedHandle->m_position;
+
+				// Flag to update bounding box
+				m_updateWorldBoundingBox = true;
 			}
 
 			// Handle gets selected automatically if the mouse is hovering over it

@@ -27,6 +27,10 @@ private:
 	sf::Color    			  m_color;
 	sf::VertexArray			  m_vertexArray;
 
+	sf::FloatRect			  m_boundingBox;
+	bool 					  m_drawWorldBoundingBox;
+	bool 					  m_updateWorldBoundingBox;
+
 	std::vector<b2Vec2>		  m_scaledVertices;
 	b2Body*					  m_body;
 
@@ -39,6 +43,7 @@ private:
 
 private:
 	void InitVertexHandles();
+	void InitWorldBoundingBox();
 
 public:
 	StaticEdgeChain();
@@ -56,6 +61,8 @@ public:
 
 	const std::string& GetTag() const;
 	void SetTag(const std::string& tag);
+
+	void DrawWorldBoundingBox(bool flag);
 
 	void Draw(sf::RenderWindow& window);
 	void HandleInput(const sf::Event& event, sf::RenderWindow& window);

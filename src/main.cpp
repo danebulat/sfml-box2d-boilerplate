@@ -81,6 +81,7 @@ int main(int argc, char** argv)
 	staticEdgeChains.push_back(StaticEdgeChain(demo_data::coordsLeft, "EC2", &world));
 	staticEdgeChains.push_back(StaticEdgeChain(demo_data::coordsRight, "EC3", &world));
 	staticEdgeChains[0].SetEditable(true);
+	staticEdgeChains[0].DrawWorldBoundingBox(true);
 
 	for (auto& chain : staticEdgeChains)
 		staticEdgeChainLabels.push_back(chain.GetTag()); // for ImGui
@@ -297,7 +298,9 @@ int main(int argc, char** argv)
 				if (ImGui::Combo("##SelectedEdgeChain", &selectedStaticEdgeChainIndex, staticEdgeChainLabels))
 				{
 					staticEdgeChains[prevSelectedStaticEdgeChainIndex].SetEditable(false);
+					staticEdgeChains[prevSelectedStaticEdgeChainIndex].DrawWorldBoundingBox(false);
 					staticEdgeChains[selectedStaticEdgeChainIndex].SetEditable(true);
+					staticEdgeChains[selectedStaticEdgeChainIndex].DrawWorldBoundingBox(true);
 					prevSelectedStaticEdgeChainIndex = selectedStaticEdgeChainIndex;
 				}
 			}
@@ -325,7 +328,9 @@ int main(int argc, char** argv)
 
 				selectedStaticEdgeChainIndex = staticEdgeChains.size()-1;
 				staticEdgeChains[prevSelectedStaticEdgeChainIndex].SetEditable(false);
+				staticEdgeChains[prevSelectedStaticEdgeChainIndex].DrawWorldBoundingBox(false);
 				staticEdgeChains[selectedStaticEdgeChainIndex].SetEditable(true);
+				staticEdgeChains[selectedStaticEdgeChainIndex].DrawWorldBoundingBox(true);
 				prevSelectedStaticEdgeChainIndex = selectedStaticEdgeChainIndex;
 			}
 
@@ -364,7 +369,6 @@ int main(int argc, char** argv)
 
 			ImGui::PopStyleColor(3);
             ImGui::PopID();
-
 		}
 
 		std::vector<std::pair<std::string, std::string>> controls =
