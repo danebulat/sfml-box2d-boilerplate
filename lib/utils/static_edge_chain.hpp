@@ -44,12 +44,16 @@ private:
 	std::vector<b2Vec2>		  m_scaledVertices;
 	b2Body*					  m_body;
 
+	// Handle data
+	sf::Vector2f 			  m_prevMousePosition;
+	bool 					  m_mouseMoved;
+	bool 					  m_leftMouseDown;
+
 	// Vertex handle data
 	std::vector<VertexHandle> m_vertexHandles;
 	VertexHandle*			  m_selectedHandle;
 	bool					  m_editable;
 	bool					  m_hoveringOnHandle;
-	bool 					  m_leftMouseDown;
 
 	// Move handle data
 	MoveHandle 				  m_moveHandle;
@@ -83,6 +87,7 @@ public:
 
 	void DrawWorldBoundingBox(bool flag);
 
+	void Update(sf::RenderWindow& window);
 	void Draw(sf::RenderWindow& window);
 	void HandleInput(const sf::Event& event, sf::RenderWindow& window);
 };

@@ -402,6 +402,10 @@ int main(int argc, char** argv)
          End ImGui
          ----------------------------------------------------------------------*/
 
+		/* Update edge chains */
+		for (auto& chain : staticEdgeChains)
+			chain.Update(window);
+
 		/* Draw */
 		window.clear(sf::Color::White);
 

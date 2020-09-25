@@ -22,9 +22,10 @@ StaticEdgeChain::StaticEdgeChain()
 	, m_drawWorldBoundingBox(false)
 	, m_updateWorldBoundingBox(true)
 	, m_body(nullptr)
+	, m_mouseMoved(false)
+	, m_leftMouseDown(false)
 	, m_selectedHandle(nullptr)
 	, m_editable(false)
-	, m_leftMouseDown(false)
 	, m_hoveringOnHandle(false)
 {}
 
@@ -35,9 +36,10 @@ StaticEdgeChain::StaticEdgeChain(std::vector<Vector2f>& vertices, const string& 
 	, m_drawWorldBoundingBox(false)
 	, m_updateWorldBoundingBox(true)
 	, m_body(nullptr)
+	, m_mouseMoved(false)
+	, m_leftMouseDown(false)
 	, m_selectedHandle(nullptr)
 	, m_editable(false)
-	, m_leftMouseDown(false)
 	, m_hoveringOnHandle(false)
 {
 	Init(vertices, world);
@@ -67,6 +69,9 @@ void StaticEdgeChain::InitVertexHandles()
 
 		vHandle.m_sprite.setRadius(vHandle.m_size);
 		vHandle.m_sprite.setFillColor(vHandle.m_color);
+		vHandle.m_sprite.setOutlineColor(Color(0.f, 0.f, 255.f, 124.f));
+		vHandle.m_sprite.setOutlineThickness(1);
+
 		vHandle.m_sprite.setOrigin(vHandle.m_size, vHandle.m_size);
 		vHandle.m_sprite.setPosition(m_vertices[i].x, m_vertices[i].y);
 		vHandle.m_vertexIndex = i;
@@ -77,7 +82,7 @@ void StaticEdgeChain::InitVertexHandles()
 
 void StaticEdgeChain::InitMoveHandle()
 {
-	Color color(255.f, 0.f, 0.f, 32.f);
+	Color color(102.f, 0.f, 102.f, 56.f);
 	m_moveHandle.m_color = color;
 
 	color.a = 96.f;
@@ -85,6 +90,10 @@ void StaticEdgeChain::InitMoveHandle()
 
 	m_moveHandle.m_sprite.setRadius(m_moveHandle.m_size);
 	m_moveHandle.m_sprite.setFillColor(m_moveHandle.m_color);
+
+	color.a = 112.f;
+	m_moveHandle.m_sprite.setOutlineColor(color);
+	m_moveHandle.m_sprite.setOutlineThickness(1);
 	m_moveHandle.m_sprite.setOrigin(m_moveHandle.m_size, m_moveHandle.m_size);
 
 	// Calculate position of move handle (center of bounding box)
@@ -94,7 +103,7 @@ void StaticEdgeChain::InitMoveHandle()
 void StaticEdgeChain::CalculateMoveHandlePosition()
 {
 	m_moveHandle.m_position.x = m_boundingBox.left + (m_boundingBox.width * .5f);
-	m_moveHandle.m_position.y = m_boundingBox.top; //+ (m_boundingBox.height * .5f);
+	m_moveHandle.m_position.y = m_boundingBox.top; //- (m_boundingBox.height * .5f);
 	m_moveHandle.m_sprite.setPosition(m_moveHandle.m_position);
 }
 
@@ -245,14 +254,6 @@ void StaticEdgeChain::Draw(RenderWindow& window)
 	// Draw bounding box
 	if (m_drawWorldBoundingBox)
 	{
-		// Re-caclulate bounding box if a vertex has been moved
-		if (m_updateWorldBoundingBox)
-		{
-			InitWorldBoundingBox();
-			CalculateMoveHandlePosition();
-			m_updateWorldBoundingBox = false;
-		}
-
 		// TODO: Class for bounding box
 		sf::RectangleShape bbShape;
 		sf::Color color(196.f,196.f,196.f, 20.f);
@@ -308,45 +309,139 @@ void StaticEdgeChain::HandleInput(const Event& event, RenderWindow& window)
 	// MouseMoved
 	if (event.type == Event::MouseMoved)
 	{
-		if (m_editable)
+		m_mouseMoved = true;
+	}
+	else
+	{
+		m_mouseMoved = false;
+	}
+}
+
+// --------------------------------------------------------------------------------
+// Update
+// --------------------------------------------------------------------------------
+
+void StaticEdgeChain::Update(RenderWindow& window)
+{
+	// Get mouse position
+	Vector2f mousePos = GetMousePosition(window);
+
+	if (m_editable)
+	{
+		// ----------------------------------------------------------------------
+		// Move handle
+		// ----------------------------------------------------------------------
+
+		// Handle previous frame (move handle)
+		if (m_hoveringOnMoveHandle && m_leftMouseDown && !m_hoveringOnHandle)
 		{
-			// Get mouse position
-			Vector2f mousePos = GetMousePosition(window);
+			// Get move increment (pixel coordinates)
+			Vector2f moveIncrement = GetIncrement(m_prevMousePosition, mousePos);
 
-			// Handle previous frame before updating hovering flag
-			if (m_hoveringOnHandle && m_leftMouseDown)
+			// Cache new position of move handle and update sprite position
+			m_moveHandle.m_position += moveIncrement;
+			m_moveHandle.m_sprite.setPosition(m_moveHandle.m_position);
+
+			// Disable the body before updating vertices
+			m_body->SetEnabled(false);
+
+			b2Fixture* fixture = m_body->GetFixtureList();
+			if (fixture->GetType() == b2Shape::e_chain)
 			{
-				m_selectedHandle->m_position = mousePos;
-				m_selectedHandle->m_sprite.setPosition(m_selectedHandle->m_position);
+				b2ChainShape* shape = dynamic_cast<b2ChainShape*>(fixture->GetShape());
 
-				// Disable body before updating vertices
-				m_body->SetEnabled(false);
-
-				// TODO: Destroy body and re-create new chain
-				b2Fixture* fixture = m_body->GetFixtureList();
-				if (fixture->GetType() == b2Shape::e_chain)
+				for (size_t i = 0; i < m_vertexCount; ++i)
 				{
-					b2ChainShape* shape = dynamic_cast<b2ChainShape*>(fixture->GetShape());
-
-					shape->m_vertices[m_selectedHandle->m_vertexIndex].Set(
-						m_selectedHandle->m_position.x / SCALE,
-						m_selectedHandle->m_position.y / SCALE);
+					shape->m_vertices[i].x += moveIncrement.x / SCALE;
+					shape->m_vertices[i].y += moveIncrement.y / SCALE;
 				}
-
-				// Enable body after updating its data
-				m_body->SetEnabled(true);
-
-				// Update cached vertices and SFML VertexArray
-				m_vertices[m_selectedHandle->m_vertexIndex] = m_selectedHandle->m_position;
-				m_vertexArray[m_selectedHandle->m_vertexIndex].position = m_selectedHandle->m_position;
-
-				// Flag to update bounding box
-				m_updateWorldBoundingBox = true;
 			}
 
-			// Handle gets selected automatically if the mouse is hovering over it
-			m_hoveringOnHandle = false;
+			// Enable body after updating its data
+			m_body->SetEnabled(true);
 
+			// Update cached vertices and SFML VertexArray
+			for (size_t i = 0; i < m_vertexCount; ++i)
+			{
+				m_vertices[i] += moveIncrement;
+				m_vertexArray[i].position += moveIncrement;
+
+				m_scaledVertices[i].x += moveIncrement.x / SCALE;
+				m_scaledVertices[i].y += moveIncrement.y / SCALE;
+			}
+
+			// Update vertex handle positions
+			for (auto& handle : m_vertexHandles)
+			{
+				handle.m_position += moveIncrement;
+				handle.m_sprite.setPosition(handle.m_position);
+			}
+
+			// Flag to update bounding box
+			m_updateWorldBoundingBox = true;
+		}
+
+		m_hoveringOnMoveHandle = false;
+
+		// Check if mouse is hovering over the move handle
+		if (m_mouseMoved)
+		{
+			Vector2f moveHandlePos = m_moveHandle.m_position;
+			float radius = m_moveHandle.m_size;
+
+			if (((mousePos.x > moveHandlePos.x - radius) && (mousePos.x < moveHandlePos.x + radius)) &&
+				((mousePos.y > moveHandlePos.y - radius) && (mousePos.y < moveHandlePos.y + radius)))
+			{
+				m_moveHandle.m_sprite.setFillColor(m_moveHandle.m_hoverColor);
+				m_hoveringOnMoveHandle = true;
+				m_hoveringOnHandle = false; // clear selected handle cache
+			}
+			else
+			{
+				m_moveHandle.m_sprite.setFillColor(m_moveHandle.m_color);
+				m_hoveringOnMoveHandle = false;
+			}
+		}
+
+		// ----------------------------------------------------------------------
+		// Vertex handles
+		// ----------------------------------------------------------------------
+
+		// Handle previous frame before updating hovering flag
+		if (m_hoveringOnHandle && m_leftMouseDown)
+		{
+			m_selectedHandle->m_position += GetIncrement(m_prevMousePosition, mousePos);
+			m_selectedHandle->m_sprite.setPosition(m_selectedHandle->m_position);
+
+			// Disable body before updating vertices
+			m_body->SetEnabled(false);
+
+			// TODO: Destroy body and re-create new chain
+			b2Fixture* fixture = m_body->GetFixtureList();
+			if (fixture->GetType() == b2Shape::e_chain)
+			{
+				b2ChainShape* shape = dynamic_cast<b2ChainShape*>(fixture->GetShape());
+
+				shape->m_vertices[m_selectedHandle->m_vertexIndex].Set(
+					m_selectedHandle->m_position.x / SCALE,
+					m_selectedHandle->m_position.y / SCALE);
+			}
+
+			// Enable body after updating its data
+			m_body->SetEnabled(true);
+
+			// Update cached vertices and SFML VertexArray
+			m_vertices[m_selectedHandle->m_vertexIndex] = m_selectedHandle->m_position;
+			m_vertexArray[m_selectedHandle->m_vertexIndex].position = m_selectedHandle->m_position;
+
+			// Flag to update bounding box
+			m_updateWorldBoundingBox = true;
+		}
+
+		// Handler gets selected automatically if the mouse is hovering over it
+		m_hoveringOnHandle = false;
+		if (m_mouseMoved)
+		{
 			for (int i = 0; i < m_vertexHandles.size(); ++i)
 			{
 				Vector2f handlePos = m_vertexHandles[i].m_position;
@@ -364,12 +459,9 @@ void StaticEdgeChain::HandleInput(const Event& event, RenderWindow& window)
 
 					// Cache the hovered handle
 					if (m_selectedHandle != &m_vertexHandles[i])
-					{
 						m_selectedHandle = &m_vertexHandles[i];
-						std::cout << "handle selected\n";
-					}
 
-					// Cache mouse position
+					// Set up an update for the next frame
 					m_hoveringOnHandle = true;
 					break;
 				}
@@ -378,28 +470,22 @@ void StaticEdgeChain::HandleInput(const Event& event, RenderWindow& window)
 					m_vertexHandles[i].m_sprite.setFillColor(m_vertexHandles[i].m_color);
 				}
 			}// end for
+		}
 
-			// Check if mouse is hovering over the move handle
-			Vector2f moveHandlePos = m_moveHandle.m_position;
-			float radius = m_moveHandle.m_size;
+		m_prevMousePosition = mousePos;
 
-			if (((mousePos.x > moveHandlePos.x - radius) && (mousePos.x < moveHandlePos.x + radius)) &&
-				((mousePos.y > moveHandlePos.y - radius) && (mousePos.y < moveHandlePos.y + radius)))
-			{
-				m_moveHandle.m_sprite.setFillColor(m_moveHandle.m_hoverColor);
-				m_hoveringOnMoveHandle = true;
-			}
-			else
-			{
-				m_moveHandle.m_sprite.setFillColor(m_moveHandle.m_color);
-				m_hoveringOnMoveHandle = false;
-			}
+		// Re-caclulate bounding box if a vertex has been moved
+		if (m_updateWorldBoundingBox)
+		{
+			InitWorldBoundingBox();
+			CalculateMoveHandlePosition();
+			m_updateWorldBoundingBox = false;
+		}
+	}
 
-			// Clear selected handle cache if mouse is not hovering over a handle
-			if (!m_hoveringOnHandle)
-			{
-				m_selectedHandle = nullptr;
-			}
-		}// end editable
+	// Clear selected handle cache if mouse is not hovering over a handle
+	if (!m_hoveringOnHandle)
+	{
+		m_selectedHandle = nullptr;
 	}
 }

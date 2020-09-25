@@ -33,3 +33,12 @@ void SetMouseLabel(Text& label, RenderWindow& window)
 	label.setPosition(pos);
 	label.setString(str);
 }
+
+/** Calculate difference vector between the current and previous
+ *  mouse position
+ */
+
+Vector2f GetIncrement(const Vector2f& prev, const Vector2f& cur)
+{
+	return Vector2f(cur.x - prev.x, cur.y - prev.y);
+}
