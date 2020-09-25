@@ -19,7 +19,7 @@ using std::size_t;
 StaticEdgeChain::StaticEdgeChain()
 	: m_vertexCount(0)
 	, m_color(Color::Blue)
-	, m_drawWorldBoundingBox(false)
+	, m_drawBoundingBox(false)
 	, m_updateBoundingBox(false)
 	, m_body(nullptr)
 	, m_mouseMoved(false)
@@ -33,7 +33,7 @@ StaticEdgeChain::StaticEdgeChain(std::vector<Vector2f>& vertices, const string& 
 	: m_tag(tag)
 	, m_vertexCount(0)
 	, m_color(Color::Blue)
-	, m_drawWorldBoundingBox(false)
+	, m_drawBoundingBox(false)
 	, m_updateBoundingBox(false)
 	, m_body(nullptr)
 	, m_mouseMoved(false)
@@ -183,9 +183,9 @@ void StaticEdgeChain::SetTag(const std::string& tag)
 	m_tag = tag;
 }
 
-void StaticEdgeChain::DrawWorldBoundingBox(bool flag)
+void StaticEdgeChain::DrawBoundingBox(bool flag)
 {
-	m_drawWorldBoundingBox = flag;
+	m_drawBoundingBox = flag;
 }
 
 // --------------------------------------------------------------------------------
@@ -399,7 +399,7 @@ void StaticEdgeChain::Draw(RenderWindow& window)
 	window.draw(m_vertexArray);
 
 	// Draw bounding box
-	if (m_drawWorldBoundingBox)
+	if (m_drawBoundingBox)
 	{
 		m_boundingBox->Draw(window);
 	}

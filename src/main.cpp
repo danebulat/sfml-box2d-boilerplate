@@ -83,7 +83,7 @@ int main(int argc, char** argv)
 	staticEdgeChains.push_back(StaticEdgeChain(demo_data::coordsRight, "EC3", &world));
 
 	staticEdgeChains[0].SetEditable(true);
-	staticEdgeChains[0].DrawWorldBoundingBox(true);
+	staticEdgeChains[0].DrawBoundingBox(true);
 
 	for (auto& chain : staticEdgeChains)
 		staticEdgeChainLabels.push_back(chain.GetTag()); // for ImGui
@@ -305,9 +305,9 @@ int main(int argc, char** argv)
 				if (ImGui::Combo("##SelectedEdgeChain", &selectedStaticEdgeChainIndex, staticEdgeChainLabels))
 				{
 					staticEdgeChains[prevSelectedStaticEdgeChainIndex].SetEditable(false);
-					staticEdgeChains[prevSelectedStaticEdgeChainIndex].DrawWorldBoundingBox(false);
+					staticEdgeChains[prevSelectedStaticEdgeChainIndex].DrawBoundingBox(false);
 					staticEdgeChains[selectedStaticEdgeChainIndex].SetEditable(true);
-					staticEdgeChains[selectedStaticEdgeChainIndex].DrawWorldBoundingBox(true);
+					staticEdgeChains[selectedStaticEdgeChainIndex].DrawBoundingBox(true);
 					prevSelectedStaticEdgeChainIndex = selectedStaticEdgeChainIndex;
 				}
 			}
@@ -334,9 +334,9 @@ int main(int argc, char** argv)
 
 				selectedStaticEdgeChainIndex = staticEdgeChains.size()-1;
 				staticEdgeChains[prevSelectedStaticEdgeChainIndex].SetEditable(false);
-				staticEdgeChains[prevSelectedStaticEdgeChainIndex].DrawWorldBoundingBox(false);
+				staticEdgeChains[prevSelectedStaticEdgeChainIndex].DrawBoundingBox(false);
 				staticEdgeChains[selectedStaticEdgeChainIndex].SetEditable(true);
-				staticEdgeChains[selectedStaticEdgeChainIndex].DrawWorldBoundingBox(true);
+				staticEdgeChains[selectedStaticEdgeChainIndex].DrawBoundingBox(true);
 				prevSelectedStaticEdgeChainIndex = selectedStaticEdgeChainIndex;
 			}
 
@@ -521,7 +521,7 @@ int main(int argc, char** argv)
 		for (auto& chain : staticEdgeChains)
 		{
 			if (chain.IsEditable())
-				chain.DrawWorldBoundingBox(renderBoundingBoxes);
+				chain.DrawBoundingBox(renderBoundingBoxes);
 			chain.Draw(window);
 		}
 

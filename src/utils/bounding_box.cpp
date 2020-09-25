@@ -6,7 +6,6 @@ using sf::Vector2f;
 using sf::RenderWindow;
 using std::vector;
 
-
 BoundingBox::BoundingBox(vector<Vector2f>& vertices)
 {
 	m_sprite.setFillColor(Color(196.f, 196.f, 196.f, 20.f));
@@ -15,6 +14,9 @@ BoundingBox::BoundingBox(vector<Vector2f>& vertices)
 
 	Calculate(vertices);
 }
+
+BoundingBox::~BoundingBox()
+{}
 
 void BoundingBox::Calculate(vector<Vector2f>& vertices)
 {

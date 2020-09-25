@@ -16,6 +16,7 @@ private:
 
 public:
 	BoundingBox(std::vector<sf::Vector2f>& vertices);
+	~BoundingBox();
 
 	// Not copyable
 	BoundingBox(const BoundingBox&) = delete;

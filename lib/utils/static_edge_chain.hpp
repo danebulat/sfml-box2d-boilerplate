@@ -31,7 +31,7 @@ private:
 	sf::VertexArray			  		m_vertexArray;
 
 	std::shared_ptr<BoundingBox>	m_boundingBox;
-	bool 					  		m_drawWorldBoundingBox;
+	bool 					  		m_drawBoundingBox;
 	bool 					  		m_updateBoundingBox;
 
 	std::vector<b2Vec2>		  		m_scaledVertices;
@@ -74,7 +74,7 @@ public:
 	const std::string& GetTag() const;
 	void SetTag(const std::string& tag);
 
-	void DrawWorldBoundingBox(bool flag);
+	void DrawBoundingBox(bool flag);
 
 	void Update(sf::RenderWindow& window);
 	void Draw(sf::RenderWindow& window);
