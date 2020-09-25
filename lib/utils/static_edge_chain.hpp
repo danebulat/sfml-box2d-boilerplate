@@ -3,7 +3,9 @@
 
 #include <SFML/Graphics.hpp>
 #include <vector>
+#include <memory>
 #include "box2d/box2d.h"
+#include "utils/bounding_box.hpp"
 
 /* Draggable point handle to edit edge chain vertices */
 struct VertexHandle
@@ -39,9 +41,9 @@ private:
 	sf::Color    			  m_color;
 	sf::VertexArray			  m_vertexArray;
 
-	sf::FloatRect			  m_boundingBox;
-	bool 					  m_drawWorldBoundingBox;
-	bool 					  m_updateWorldBoundingBox;
+	std::shared_ptr<BoundingBox>	m_boundingBox;
+	bool 					  		m_drawWorldBoundingBox;
+	bool 					  		m_updateBoundingBox;
 
 	std::vector<b2Vec2>		  m_scaledVertices;
 	b2Body*					  m_body;
@@ -65,7 +67,6 @@ private:
 private:
 	void InitVertexHandles();
 	void InitMoveHandle();
-	void InitWorldBoundingBox();
 	void CalculateMoveHandlePosition();
 
 public:

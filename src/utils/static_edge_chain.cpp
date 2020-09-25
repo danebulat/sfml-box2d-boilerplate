@@ -20,7 +20,7 @@ StaticEdgeChain::StaticEdgeChain()
 	: m_vertexCount(0)
 	, m_color(Color::Blue)
 	, m_drawWorldBoundingBox(false)
-	, m_updateWorldBoundingBox(true)
+	, m_updateBoundingBox(true)
 	, m_body(nullptr)
 	, m_mouseMoved(false)
 	, m_leftMouseDown(false)
@@ -34,7 +34,7 @@ StaticEdgeChain::StaticEdgeChain(std::vector<Vector2f>& vertices, const string& 
 	, m_vertexCount(0)
 	, m_color(Color::Blue)
 	, m_drawWorldBoundingBox(false)
-	, m_updateWorldBoundingBox(true)
+	, m_updateBoundingBox(true)
 	, m_body(nullptr)
 	, m_mouseMoved(false)
 	, m_leftMouseDown(false)
@@ -44,6 +44,64 @@ StaticEdgeChain::StaticEdgeChain(std::vector<Vector2f>& vertices, const string& 
 	, m_hoveringOnMoveHandle(false)
 {
 	Init(vertices, world);
+}
+
+void StaticEdgeChain::Init(std::vector<Vector2f>& vertices, b2World* world)
+{
+	m_vertexCount = vertices.size();
+	m_vertices = vertices;
+
+	// Initialise SFML vertex array
+	m_vertexArray.setPrimitiveType(LineStrip);
+	m_vertexArray.resize(m_vertexCount);
+	for (std::size_t i = 0; i < m_vertexCount; ++i)
+	{
+		m_vertexArray[i].position = m_vertices[i];
+		m_vertexArray[i].color = m_color;
+	}
+
+	// Initialise scaled vertex array
+	m_scaledVertices.resize(m_vertexCount);
+	for (std::size_t i = 0; i < m_vertexCount; ++i)
+	{
+		m_scaledVertices[i].x = m_vertices[i].x / SCALE;
+		m_scaledVertices[i].y = m_vertices[i].y / SCALE;
+	}
+
+	// Initialise chain shape
+	b2ChainShape chain;
+	b2Vec2 prevVertex((m_vertices[0].x - 100.f)/SCALE, (m_vertices[0].y)/SCALE);
+	b2Vec2 nextVertex((m_vertices[m_vertexCount].x + 100.f) / SCALE,
+					  (m_vertices[m_vertexCount].y) / SCALE);
+
+	chain.CreateChain(m_scaledVertices.data(), m_vertexCount,
+		prevVertex, nextVertex);
+
+	// Create fixture and body
+	b2FixtureDef fixture;
+	fixture.density = 0.f;
+	fixture.shape = &chain;
+
+	b2BodyDef bodyDef;
+	bodyDef.position.Set(0, 0);
+	bodyDef.type = b2_staticBody;
+
+	b2Body* body = world->CreateBody(&bodyDef);
+	body->CreateFixture(&fixture);
+
+	m_body = body;
+
+	// Initialise world bounding box
+	m_boundingBox.reset(new BoundingBox(m_vertices));
+
+	// Initialise vertex handles
+	InitVertexHandles();
+
+	// Initialise move handle
+	InitMoveHandle();
+
+	// Calculate move handle and label positions
+	CalculateMoveHandlePosition();
 }
 
 StaticEdgeChain::~StaticEdgeChain()
@@ -96,15 +154,14 @@ void StaticEdgeChain::InitMoveHandle()
 	m_moveHandle.m_sprite.setOutlineColor(color);
 	m_moveHandle.m_sprite.setOutlineThickness(1);
 	m_moveHandle.m_sprite.setOrigin(m_moveHandle.m_size, m_moveHandle.m_size);
-
-	// Calculate position of move handle (center of bounding box)
-	//CalculateMoveHandlePosition(); // Called separately in Init()
 }
 
 void StaticEdgeChain::CalculateMoveHandlePosition()
 {
-	m_moveHandle.m_position.x = m_boundingBox.left + (m_boundingBox.width * .5f);
-	m_moveHandle.m_position.y = m_boundingBox.top; //- (m_boundingBox.height * .5f);
+	FloatRect boundingBoxPos = m_boundingBox->GetBoundingBox();
+
+	m_moveHandle.m_position.x = boundingBoxPos.left + (boundingBoxPos.width * .5f);
+	m_moveHandle.m_position.y = boundingBoxPos.top;
 	m_moveHandle.m_sprite.setPosition(m_moveHandle.m_position);
 
 	if (!m_moveHandle.m_font.loadFromFile("content/Menlo-Regular.ttf"))
@@ -119,93 +176,6 @@ void StaticEdgeChain::CalculateMoveHandlePosition()
 	m_moveHandle.m_label.setPosition(
 		m_moveHandle.m_position.x - (m_moveHandle.m_label.getLocalBounds().width * .5f),
 		m_moveHandle.m_position.y - (m_moveHandle.m_size * 2.0f));
-}
-
-void StaticEdgeChain::InitWorldBoundingBox()
-{
-	// Initialise variables to store min/max coordinates
-	float lowerX = m_vertices[0].x;
-	float lowerY = m_vertices[0].y;
-
-	float upperX = m_vertices[0].x;
-	float upperY = m_vertices[0].y;
-
-	// Iterate vertex world positions and find min/max coordinates
-	for (std::size_t i = 0; i < m_vertices.size(); ++i)
-	{
-		float xPos = m_vertices[i].x;
-		float yPos = m_vertices[i].y;
-
-		if      (xPos < lowerX) lowerX = xPos;
-		else if (xPos > upperX) upperX = xPos;
-
-		if 	 	(yPos < lowerY) lowerY = yPos;
-		else if (yPos > upperY) upperY = yPos;
-	}
-
-	// Construct FloatRect to form chain bounding box
-	m_boundingBox.left = lowerX;
-	m_boundingBox.top = lowerY;
-	m_boundingBox.width = upperX - lowerX;
-	m_boundingBox.height = upperY - lowerY;
-}
-
-void StaticEdgeChain::Init(std::vector<Vector2f>& vertices, b2World* world)
-{
-	m_vertexCount = vertices.size();
-	m_vertices = vertices;
-
-	// Initialise SFML vertex array
-	m_vertexArray.setPrimitiveType(LineStrip);
-	m_vertexArray.resize(m_vertexCount);
-	for (std::size_t i = 0; i < m_vertexCount; ++i)
-	{
-		m_vertexArray[i].position = m_vertices[i];
-		m_vertexArray[i].color = m_color;
-	}
-
-	// Initialise scaled vertex array
-	m_scaledVertices.resize(m_vertexCount);
-	for (std::size_t i = 0; i < m_vertexCount; ++i)
-	{
-		m_scaledVertices[i].x = m_vertices[i].x / SCALE;
-		m_scaledVertices[i].y = m_vertices[i].y / SCALE;
-	}
-
-	// Initialise chain shape
-	b2ChainShape chain;
-	b2Vec2 prevVertex((m_vertices[0].x - 100.f)/SCALE, (m_vertices[0].y)/SCALE);
-	b2Vec2 nextVertex((m_vertices[m_vertexCount].x + 100.f) / SCALE,
-					  (m_vertices[m_vertexCount].y) / SCALE);
-
-	chain.CreateChain(m_scaledVertices.data(), m_vertexCount,
-		prevVertex, nextVertex);
-
-	// Create fixture and body
-	b2FixtureDef fixture;
-	fixture.density = 0.f;
-	fixture.shape = &chain;
-
-	b2BodyDef bodyDef;
-	bodyDef.position.Set(0, 0);
-	bodyDef.type = b2_staticBody;
-
-	b2Body* body = world->CreateBody(&bodyDef);
-	body->CreateFixture(&fixture);
-
-	m_body = body;
-
-	// Initialise vertex handles
-	InitVertexHandles();
-
-	// Initialise world bounding box
-	InitWorldBoundingBox();
-
-	// Initialise move handle
-	InitMoveHandle();
-
-	// Calculate move handle and label positions
-	CalculateMoveHandlePosition();
 }
 
 // --------------------------------------------------------------------------------
@@ -356,7 +326,7 @@ void StaticEdgeChain::Update(RenderWindow& window)
 			}
 
 			// Flag to update bounding box
-			m_updateWorldBoundingBox = true;
+			m_updateBoundingBox = true;
 		}
 
 		// Check if mouse is hovering over the move handle
@@ -410,7 +380,7 @@ void StaticEdgeChain::Update(RenderWindow& window)
 			m_vertexArray[m_selectedHandle->m_vertexIndex].position = m_selectedHandle->m_position;
 
 			// Flag to update bounding box
-			m_updateWorldBoundingBox = true;
+			m_updateBoundingBox = true;
 		}
 
 		// Handler gets selected automatically if the mouse is hovering over it
@@ -450,11 +420,11 @@ void StaticEdgeChain::Update(RenderWindow& window)
 		m_prevMousePosition = mousePos;
 
 		// Re-caclulate bounding box if a vertex has been moved
-		if (m_updateWorldBoundingBox)
+		if (m_updateBoundingBox)
 		{
-			InitWorldBoundingBox();
+			m_boundingBox->Update(m_vertices);
 			CalculateMoveHandlePosition();
-			m_updateWorldBoundingBox = false;
+			m_updateBoundingBox = false;
 		}
 
 		// Clear selected handle cache if mouse is not hovering over a handle
@@ -476,22 +446,7 @@ void StaticEdgeChain::Draw(RenderWindow& window)
 	// Draw bounding box
 	if (m_drawWorldBoundingBox)
 	{
-		// TODO: Class for bounding box
-		sf::RectangleShape bbShape;
-		sf::Color color(196.f,196.f,196.f, 20.f);
-		float width = m_boundingBox.width;
-		float height = m_boundingBox.height;
-
-		bbShape.setPosition(m_boundingBox.left, m_boundingBox.top);
-		bbShape.setFillColor(color);
-
-		color.a = 196.f;
-		bbShape.setOutlineColor(color);
-		bbShape.setOutlineThickness(1.f);
-
-		bbShape.setSize(Vector2f(width, height));
-		window.draw(bbShape);
-		// END TODO
+		m_boundingBox->Draw(window);
 	}
 
 	// Draw move handle vertex handles
