@@ -29,35 +29,6 @@ void StaticEdgeChain::GetChainGhostVertices(b2Vec2& p, b2Vec2& n, vector<Vector2
 	n.y = (vertices[count].y) / SCALE;
 }
 
-void StaticEdgeChain::BuildBody(b2World* world)
-{
-	// Scale vertices
-	vector<b2Vec2> scaled(m_vertexCount);
-
-	for (int i = 0; i < scaled.size(); ++i)
-	{
-		scaled[i].x = m_vertices[i].x / SCALE;
-		scaled[i].y = m_vertices[i].y / SCALE;
-	}
-
-	// Create fixture and body
-	b2ChainShape chain;
-	b2Vec2 p, n;
-	GetChainGhostVertices(p, n, m_vertices);
-	chain.CreateChain(scaled.data(), scaled.size(), p, n);
-
-	b2FixtureDef fixture;
-	fixture.density = 0.f;
-	fixture.shape = &chain;
-
-	b2BodyDef bodyDef;
-	bodyDef.position.Set(0, 0);
-	bodyDef.type = b2_staticBody;
-
-	m_body = world->CreateBody(&bodyDef);
-	m_body->CreateFixture(&fixture);
-}
-
 sf::Vector2f StaticEdgeChain::GetNextAddedVertexPosition(vector<Vector2f>& vertices)
 {
 	// Calculate new vertex position based on last 2 vertices
@@ -163,6 +134,40 @@ void StaticEdgeChain::DeleteBody(b2World* world)
 		world->DestroyBody(m_body);
 		m_body = nullptr;
 	}
+}
+
+void StaticEdgeChain::BuildBody(b2World* world)
+{
+	// Get world position
+	b2Vec2 worldPos(0,0);
+	if (m_body != nullptr)
+		worldPos = m_body->GetWorldCenter();
+
+	// Scale vertices
+	vector<b2Vec2> scaled(m_vertexCount);
+
+	for (int i = 0; i < scaled.size(); ++i)
+	{
+		scaled[i].x = m_vertices[i].x / SCALE;
+		scaled[i].y = m_vertices[i].y / SCALE;
+	}
+
+	// Create fixture and body
+	b2ChainShape chain;
+	b2Vec2 p, n;
+	GetChainGhostVertices(p, n, m_vertices);
+	chain.CreateChain(scaled.data(), scaled.size(), p, n);
+
+	b2FixtureDef fixture;
+	fixture.density = 0.f;
+	fixture.shape = &chain;
+
+	b2BodyDef bodyDef;
+	bodyDef.position.Set(worldPos.x, worldPos.y);
+	bodyDef.type = b2_staticBody;
+
+	m_body = world->CreateBody(&bodyDef);
+	m_body->CreateFixture(&fixture);
 }
 
 void StaticEdgeChain::AddVertex(b2World* world)
@@ -299,20 +304,11 @@ void StaticEdgeChain::Update(RenderWindow& window)
 			Vector2f moveIncrement = GetIncrement(m_prevMousePosition, mousePos);
 			m_moveHandle->Update(moveIncrement);
 
-			// Disable the body before updating vertices
-			m_body->SetEnabled(false);
-
-			b2Fixture* fixture = m_body->GetFixtureList();
-			if (fixture->GetType() == b2Shape::e_chain)
-			{
-				b2ChainShape* shape = dynamic_cast<b2ChainShape*>(fixture->GetShape());
-
-				for (size_t i = 0; i < m_vertexCount; ++i)
-				{
-					shape->m_vertices[i].x += moveIncrement.x / SCALE;
-					shape->m_vertices[i].y += moveIncrement.y / SCALE;
-				}
-			}
+			// Update body's world position
+			b2Vec2 position = m_body->GetWorldCenter();
+			position.x += moveIncrement.x / SCALE;
+			position.y *= moveIncrement.y / SCALE;
+			m_body->SetTransform(position, m_body->GetAngle());
 
 			// Enable body after updating its data
 			m_body->SetEnabled(true);
