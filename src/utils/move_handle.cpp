@@ -1,4 +1,5 @@
 #include "utils/move_handle.hpp"
+#include "utils/font_store.hpp"
 
 using sf::Color;
 using sf::FloatRect;
@@ -24,11 +25,8 @@ MoveHandle::MoveHandle(shared_ptr<BoundingBox> boundingBox, const String& label)
 	m_sprite.setOutlineThickness(1);
 	m_sprite.setOrigin(m_size, m_size);
 
-	// TODO: Get font from singleton
-	if (!m_font.loadFromFile("content/Menlo-Regular.ttf"))
-		cerr << "MoveHandle::MoveHandle() : Unable to load font" << endl;
-
-	m_label.setFont(m_font);
+	sf::Font& font = FontStore::GetInstance()->GetFont("Menlo-Regular.ttf");
+	m_label.setFont(font);
 	m_label.setFillColor(Color::Black);
 	m_label.setCharacterSize(12);
 	m_label.setStyle(Text::Regular);
