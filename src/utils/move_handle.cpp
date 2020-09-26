@@ -73,10 +73,10 @@ void MoveHandle::Draw(RenderWindow& window, bool inEditMode)
 	// Draw sprite if this edge chain is selected
 	if (inEditMode)
 	{
-		if (m_hoverState)
-			m_sprite.setFillColor(m_hoverColor);
-		else
+		if (!m_hoverState)
 			m_sprite.setFillColor(m_color);
+		else
+			m_sprite.setFillColor(m_hoverColor);
 
 		window.draw(m_sprite);
 		window.draw(m_label);

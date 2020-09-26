@@ -60,21 +60,20 @@ void StaticEdgeChain::Init(std::vector<Vector2f>& vertices, b2World* world)
 		m_vertexArray[i].color = m_color;
 	}
 
-	// Initialise scaled vertex array
-	m_scaledVertices.resize(m_vertexCount);
-	for (std::size_t i = 0; i < m_vertexCount; ++i)
+	// Initialise chain shape
+	std::vector<b2Vec2> scaledVertices(m_vertices.size());
+	for (size_t i = 0; i < scaledVertices.size(); ++i)
 	{
-		m_scaledVertices[i].x = m_vertices[i].x / SCALE;
-		m_scaledVertices[i].y = m_vertices[i].y / SCALE;
+		scaledVertices[i].x = m_vertices[i].x / SCALE;
+		scaledVertices[i].y = m_vertices[i].y / SCALE;
 	}
 
-	// Initialise chain shape
 	b2ChainShape chain;
 	b2Vec2 prevVertex((m_vertices[0].x - 100.f)/SCALE, (m_vertices[0].y)/SCALE);
 	b2Vec2 nextVertex((m_vertices[m_vertexCount].x + 100.f) / SCALE,
 					  (m_vertices[m_vertexCount].y) / SCALE);
 
-	chain.CreateChain(m_scaledVertices.data(), m_vertexCount,
+	chain.CreateChain(scaledVertices.data(), m_vertexCount,
 		prevVertex, nextVertex);
 
 	// Create fixture and body
@@ -98,7 +97,8 @@ void StaticEdgeChain::Init(std::vector<Vector2f>& vertices, b2World* world)
 	m_moveHandle.reset(new MoveHandle(m_boundingBox, m_tag));
 
 	// Initialise vertex handles
-	InitVertexHandles();
+	for (unsigned int i = 0; i < m_vertices.size(); ++i)
+		m_vertexHandles.push_back(VertexHandle(m_vertices[i], i));
 }
 
 StaticEdgeChain::~StaticEdgeChain()
@@ -110,29 +110,6 @@ void StaticEdgeChain::DeleteBody(b2World* world)
 	{
 		world->DestroyBody(m_body);
 		m_body = nullptr;
-	}
-}
-
-void StaticEdgeChain::InitVertexHandles()
-{
-	for (int i = 0; i < m_vertices.size(); ++i)
-	{
-		VertexHandle vHandle;
-		vHandle.m_color = Color(0.f, 0.f, 255.f, 64.f);
-		vHandle.m_hoverColor = Color(0.f, 0.f, 255.f, 128.f);
-		vHandle.m_position.x = m_vertices[i].x;
-		vHandle.m_position.y = m_vertices[i].y;
-
-		vHandle.m_sprite.setRadius(vHandle.m_size);
-		vHandle.m_sprite.setFillColor(vHandle.m_color);
-		vHandle.m_sprite.setOutlineColor(Color(0.f, 0.f, 255.f, 124.f));
-		vHandle.m_sprite.setOutlineThickness(1);
-
-		vHandle.m_sprite.setOrigin(vHandle.m_size, vHandle.m_size);
-		vHandle.m_sprite.setPosition(m_vertices[i].x, m_vertices[i].y);
-		vHandle.m_vertexIndex = i;
-
-		m_vertexHandles.push_back(vHandle);
 	}
 }
 
@@ -268,17 +245,11 @@ void StaticEdgeChain::Update(RenderWindow& window)
 			{
 				m_vertices[i] += moveIncrement;
 				m_vertexArray[i].position += moveIncrement;
-
-				m_scaledVertices[i].x += moveIncrement.x / SCALE;
-				m_scaledVertices[i].y += moveIncrement.y / SCALE;
 			}
 
-			// Update vertex handle positions
+			// Update vertex handle positions (if whole chain was moved)
 			for (auto& handle : m_vertexHandles)
-			{
-				handle.m_position += moveIncrement;
-				handle.m_sprite.setPosition(handle.m_position);
-			}
+				handle.Update(moveIncrement);
 
 			// Flag to update bounding box
 			m_updateBoundingBox = true;
@@ -310,8 +281,10 @@ void StaticEdgeChain::Update(RenderWindow& window)
 		// Handle previous frame before updating hovering flag
 		if (m_hoveringOnHandle && m_leftMouseDown)
 		{
-			m_selectedHandle->m_position += GetIncrement(m_prevMousePosition, mousePos);
-			m_selectedHandle->m_sprite.setPosition(m_selectedHandle->m_position);
+			// The index of the vertex being clicked on
+			unsigned int index = m_selectedHandle->GetVertexIndex();
+
+			m_selectedHandle->Update(GetIncrement(m_prevMousePosition, mousePos));
 
 			// Disable body before updating vertices
 			m_body->SetEnabled(false);
@@ -322,17 +295,17 @@ void StaticEdgeChain::Update(RenderWindow& window)
 			{
 				b2ChainShape* shape = dynamic_cast<b2ChainShape*>(fixture->GetShape());
 
-				shape->m_vertices[m_selectedHandle->m_vertexIndex].Set(
-					m_selectedHandle->m_position.x / SCALE,
-					m_selectedHandle->m_position.y / SCALE);
+				shape->m_vertices[index].Set(
+					m_selectedHandle->GetPosition().x / SCALE,
+					m_selectedHandle->GetPosition().y / SCALE);
 			}
 
 			// Enable body after updating its data
 			m_body->SetEnabled(true);
 
 			// Update cached vertices and SFML VertexArray
-			m_vertices[m_selectedHandle->m_vertexIndex] = m_selectedHandle->m_position;
-			m_vertexArray[m_selectedHandle->m_vertexIndex].position = m_selectedHandle->m_position;
+			m_vertices[index] = m_selectedHandle->GetPosition();
+			m_vertexArray[index].position = m_selectedHandle->GetPosition();
 
 			// Flag to update bounding box
 			m_updateBoundingBox = true;
@@ -341,20 +314,19 @@ void StaticEdgeChain::Update(RenderWindow& window)
 		// Handler gets selected automatically if the mouse is hovering over it
 		if (m_mouseMoved)
 		{
+			// Loop to cache a vertex handle if mouse is hovering over it
 			for (int i = 0; i < m_vertexHandles.size(); ++i)
 			{
-				Vector2f handlePos = m_vertexHandles[i].m_position;
-				float radius = m_vertexHandles[i].m_size;
+				Vector2f handlePos = m_vertexHandles[i].GetPosition();
+				float radius = m_vertexHandles[i].GetSize();
 
 				// Check if mouse is hovering over a vertex handle
 				if (((mousePos.x > handlePos.x - radius) && (mousePos.x < handlePos.x + radius)) &&
 					((mousePos.y > handlePos.y - radius) && (mousePos.y < handlePos.y + radius)))
 				{
-					m_vertexHandles[i].m_sprite.setFillColor(m_vertexHandles[i].m_hoverColor);
-
 					// If another vertex is already selected, unselect it
 					if (m_selectedHandle != nullptr && m_selectedHandle != &m_vertexHandles[i])
-						m_selectedHandle->m_sprite.setFillColor(m_selectedHandle->m_color);
+						m_selectedHandle->SetHoveredState(false);
 
 					// Cache the hovered handle
 					if (m_selectedHandle != &m_vertexHandles[i])
@@ -362,12 +334,13 @@ void StaticEdgeChain::Update(RenderWindow& window)
 
 					// Set up an update for the next frame
 					m_hoveringOnHandle = true;
+					m_vertexHandles[i].SetHoveredState(m_hoveringOnHandle);
 					break;
 				}
 				else
 				{
 					m_hoveringOnHandle = false;
-					m_vertexHandles[i].m_sprite.setFillColor(m_vertexHandles[i].m_color);
+					m_vertexHandles[i].SetHoveredState(m_hoveringOnHandle);
 				}
 			}// end for
 		}
@@ -404,12 +377,13 @@ void StaticEdgeChain::Draw(RenderWindow& window)
 		m_boundingBox->Draw(window);
 	}
 
-	// Draw move handle vertex handles
+	// Draw vertex handles
 	if (m_editable)
 	{
 		for (auto& handle : m_vertexHandles)
-			window.draw(handle.m_sprite);
+			handle.Draw(window);
 	}
 
+	// Draw move handle
 	m_moveHandle->Draw(window, m_editable);
 }

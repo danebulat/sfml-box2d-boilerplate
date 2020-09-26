@@ -7,17 +7,7 @@
 #include "box2d/box2d.h"
 #include "utils/bounding_box.hpp"
 #include "utils/move_handle.hpp"
-
-/* Draggable point handle to edit edge chain vertices */
-struct VertexHandle
-{
-	float 			m_size = 10.f;
-	unsigned int 	m_vertexIndex;	// the vertex it refers to
-	sf::Vector2f    m_position;		// world position
-	sf::CircleShape m_sprite;
-	sf::Color 		m_color;
-	sf::Color 		m_hoverColor;
-};
+#include "utils/vertex_handle.hpp"
 
 /* Static edge chain */
 class StaticEdgeChain
@@ -34,7 +24,6 @@ private:
 	bool 					  		m_drawBoundingBox;
 	bool 					  		m_updateBoundingBox;
 
-	std::vector<b2Vec2>		  		m_scaledVertices;
 	b2Body*					 		m_body;
 
 	// Handle data
@@ -51,9 +40,6 @@ private:
 	// Move handle data
 	std::shared_ptr<MoveHandle>		m_moveHandle;
 	bool 					  		m_hoveringOnMoveHandle;
-
-private:
-	void InitVertexHandles();
 
 public:
 	StaticEdgeChain();
