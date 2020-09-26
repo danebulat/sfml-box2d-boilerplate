@@ -41,6 +41,11 @@ private:
 	std::shared_ptr<MoveHandle>		m_moveHandle;
 	bool 					  		m_hoveringOnMoveHandle;
 
+	// Add and remove vertex flags
+public:
+	bool m_addVertex;
+	bool m_removeVertex;
+
 private:
 	static void GetChainGhostVertices(b2Vec2& p, b2Vec2& n,
 		std::vector<sf::Vector2f>& vertices);
@@ -48,7 +53,7 @@ private:
 	static sf::Vector2f GetNextAddedVertexPosition(
 		std::vector<sf::Vector2f>& vertices);
 
-	void BuildBody(b2World* world);
+	void BuildBody(b2World* world, const sf::Vector2f& position);
 
 public:
 	StaticEdgeChain();
@@ -59,6 +64,7 @@ public:
 	void DeleteBody(b2World* world);
 
 	void AddVertex(b2World* world);
+	void RemoveVertex(b2World* world);
 
 	void SetColor(const sf::Color color);
 
@@ -73,7 +79,7 @@ public:
 
 	void DrawBoundingBox(bool flag);
 
-	void Update(sf::RenderWindow& window);
+	void Update(sf::RenderWindow& window, b2World* world);
 	void Draw(sf::RenderWindow& window);
 	void HandleInput(const sf::Event& event, sf::RenderWindow& window);
 };
