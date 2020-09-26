@@ -29,35 +29,6 @@ void StaticEdgeChain::GetChainGhostVertices(b2Vec2& p, b2Vec2& n, vector<Vector2
 	n.y = (vertices[count].y) / SCALE;
 }
 
-void StaticEdgeChain::BuildBody(b2World* world)
-{
-	// Scale vertices
-	vector<b2Vec2> scaled(m_vertexCount);
-
-	for (int i = 0; i < scaled.size(); ++i)
-	{
-		scaled[i].x = m_vertices[i].x / SCALE;
-		scaled[i].y = m_vertices[i].y / SCALE;
-	}
-
-	// Create fixture and body
-	b2ChainShape chain;
-	b2Vec2 p, n;
-	GetChainGhostVertices(p, n, m_vertices);
-	chain.CreateChain(scaled.data(), scaled.size(), p, n);
-
-	b2FixtureDef fixture;
-	fixture.density = 0.f;
-	fixture.shape = &chain;
-
-	b2BodyDef bodyDef;
-	bodyDef.position.Set(0, 0);
-	bodyDef.type = b2_staticBody;
-
-	m_body = world->CreateBody(&bodyDef);
-	m_body->CreateFixture(&fixture);
-}
-
 sf::Vector2f StaticEdgeChain::GetNextAddedVertexPosition(vector<Vector2f>& vertices)
 {
 	// Calculate new vertex position based on last 2 vertices
@@ -106,6 +77,8 @@ StaticEdgeChain::StaticEdgeChain()
 	, m_selectedHandle(nullptr)
 	, m_editable(false)
 	, m_hoveringOnHandle(false)
+	, m_addVertex(false)
+	, m_removeVertex(false)
 {}
 
 StaticEdgeChain::StaticEdgeChain(std::vector<Vector2f>& vertices, const string& tag, b2World* world)
@@ -140,7 +113,8 @@ void StaticEdgeChain::Init(std::vector<Vector2f>& vertices, b2World* world)
 	}
 
 	// Build b2Body
-	BuildBody(world);
+	Vector2f p(0.f, 0.f);
+	BuildBody(world, p);
 
 	// Instantiate world bounding box
 	m_boundingBox.reset(new BoundingBox(m_vertices));
@@ -165,17 +139,54 @@ void StaticEdgeChain::DeleteBody(b2World* world)
 	}
 }
 
+void StaticEdgeChain::BuildBody(b2World* world, const Vector2f& position)
+{
+	if (m_body != nullptr)
+	{
+		world->DestroyBody(m_body);
+		m_body = nullptr;
+	}
+
+	b2Vec2 worldPos(position.x/SCALE, position.y/SCALE);
+
+	// Scale vertices
+	vector<b2Vec2> scaled(m_vertexCount);
+
+	for (int i = 0; i < scaled.size(); ++i)
+	{
+		scaled[i].x = m_vertices[i].x / SCALE;
+		scaled[i].y = m_vertices[i].y / SCALE;
+	}
+
+	// Create fixture and body
+	b2ChainShape chain;
+	b2Vec2 p, n;
+	GetChainGhostVertices(p, n, m_vertices);
+	chain.CreateChain(scaled.data(), scaled.size(), p, n);
+
+	b2FixtureDef fixture;
+	fixture.density = 0.f;
+	fixture.shape = &chain;
+
+	b2BodyDef bodyDef;
+	bodyDef.position.Set(worldPos.x, worldPos.y);
+	bodyDef.type = b2_staticBody;
+
+	m_body = world->CreateBody(&bodyDef);
+	m_body->CreateFixture(&fixture);
+}
+
 void StaticEdgeChain::AddVertex(b2World* world)
 {
 	Vector2f position = GetNextAddedVertexPosition(m_vertices);
 
 	// Update m_vertices vector with new vertex
 	m_vertices.push_back(position);
-	m_vertexCount++;
+	++m_vertexCount;
 
 	// Delete body and rebuild it
-	DeleteBody(world);
-	BuildBody(world);
+	b2Vec2 pos = m_body->GetWorldCenter();
+	BuildBody(world, Vector2f(pos.x*SCALE, pos.y*SCALE));
 
 	// Update SFML vertex array
 	m_vertexArray.resize(m_vertexCount);
@@ -188,6 +199,29 @@ void StaticEdgeChain::AddVertex(b2World* world)
 
 	// Add a new VertexHandle
 	m_vertexHandles.push_back(VertexHandle(position, m_vertexCount-1));
+}
+
+void StaticEdgeChain::RemoveVertex(b2World* world)
+{
+	if (m_vertices.size() > 3)
+	{
+		m_vertices.pop_back();
+		--m_vertexCount;
+
+		// Delete body and rebuild it
+		b2Vec2 pos = m_body->GetWorldCenter();
+		BuildBody(world, Vector2f(pos.x*SCALE, pos.y*SCALE));
+
+		// Resize SFML vertex array
+		m_vertexArray.resize(m_vertexCount);
+
+		// Update bounding box & move handle
+		m_boundingBox->Update(m_vertices);
+		m_moveHandle->Update(m_boundingBox);
+
+		// Remove last vertex handle
+		m_vertexHandles.pop_back();
+	}
 }
 
 // --------------------------------------------------------------------------------
@@ -281,13 +315,26 @@ void StaticEdgeChain::HandleInput(const Event& event, RenderWindow& window)
 // Update
 // --------------------------------------------------------------------------------
 
-void StaticEdgeChain::Update(RenderWindow& window)
+void StaticEdgeChain::Update(RenderWindow& window, b2World* world)
 {
 	// Get mouse position
 	Vector2f mousePos = GetMousePosition(window);
 
 	if (m_editable)
 	{
+		// Handle adding or removing vertices
+		if (m_addVertex)
+		{
+			AddVertex(world);
+			m_addVertex = false;
+		}
+
+		if (m_removeVertex)
+		{
+			RemoveVertex(world);
+			m_removeVertex = false;
+		}
+
 		// ----------------------------------------------------------------------
 		// Move handle
 		// ----------------------------------------------------------------------
@@ -299,9 +346,11 @@ void StaticEdgeChain::Update(RenderWindow& window)
 			Vector2f moveIncrement = GetIncrement(m_prevMousePosition, mousePos);
 			m_moveHandle->Update(moveIncrement);
 
-			// Disable the body before updating vertices
 			m_body->SetEnabled(false);
 
+			// NOTE: Do not try to update the body's world position, as the vertices
+			// are not updated. Also causes crashing when trying to rebuild the vertices.
+			// Therefore, do not modify an edge chain's world position after creation.
 			b2Fixture* fixture = m_body->GetFixtureList();
 			if (fixture->GetType() == b2Shape::e_chain)
 			{

@@ -216,9 +216,6 @@ int main(int argc, char** argv)
 			circle.setPosition(clickPos);
 		}
 
-		/** Update Box2D */
-		world.Step(1/60.f, 8, 3);
-
 		/* Update ImGui */
 		ImGui::SFML::Update(window, dt);
 
@@ -379,7 +376,14 @@ int main(int argc, char** argv)
 			if (ImGui::Button("Add Vertex"))
 			{
 				if (staticEdgeChains.size() != 0)
-					staticEdgeChains[selectedStaticEdgeChainIndex].AddVertex(&world);
+					staticEdgeChains[selectedStaticEdgeChainIndex].m_addVertex = true;
+			}
+
+			ImGui::SameLine();
+			if (ImGui::Button("Remove Vertex"))
+			{
+				if (staticEdgeChains.size() != 0)
+					staticEdgeChains[selectedStaticEdgeChainIndex].m_removeVertex = true;
 			}
 		}
 
@@ -408,10 +412,12 @@ int main(int argc, char** argv)
 		/*----------------------------------------------------------------------
          End ImGui
          ----------------------------------------------------------------------*/
-
 		/* Update edge chains */
 		for (auto& chain : staticEdgeChains)
-			chain.Update(window);
+			chain.Update(window, &world);
+
+		/** Update Box2D */
+		world.Step(1/60.f, 8, 3);
 
 		/* Draw */
 		window.clear(sf::Color::White);
