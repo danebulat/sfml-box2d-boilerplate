@@ -375,6 +375,12 @@ int main(int argc, char** argv)
 
 			ImGui::PopStyleColor(3);
             ImGui::PopID();
+
+			if (ImGui::Button("Add Vertex"))
+			{
+				if (staticEdgeChains.size() != 0)
+					staticEdgeChains[selectedStaticEdgeChainIndex].AddVertex(&world);
+			}
 		}
 
 		std::vector<std::pair<std::string, std::string>> controls =

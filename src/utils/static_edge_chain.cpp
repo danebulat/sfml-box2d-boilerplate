@@ -10,7 +10,86 @@ using sf::FloatRect;
 using sf::Event;
 using sf::Mouse;
 using std::string;
+using std::vector;
 using std::size_t;
+
+// --------------------------------------------------------------------------------
+// Static Methods
+// --------------------------------------------------------------------------------
+
+void StaticEdgeChain::GetChainGhostVertices(b2Vec2& p, b2Vec2& n, vector<Vector2f>& vertices)
+{
+	int count = vertices.size() - 1;
+	float offset = 100.f;
+
+	p.x = (vertices[0].x - offset) / SCALE;
+	p.y = (vertices[0].y) / SCALE;
+
+	n.x = (vertices[count].x + offset) / SCALE;
+	n.y = (vertices[count].y) / SCALE;
+}
+
+void StaticEdgeChain::BuildBody(b2World* world)
+{
+	// Scale vertices
+	vector<b2Vec2> scaled(m_vertexCount);
+
+	for (int i = 0; i < scaled.size(); ++i)
+	{
+		scaled[i].x = m_vertices[i].x / SCALE;
+		scaled[i].y = m_vertices[i].y / SCALE;
+	}
+
+	// Create fixture and body
+	b2ChainShape chain;
+	b2Vec2 p, n;
+	GetChainGhostVertices(p, n, m_vertices);
+	chain.CreateChain(scaled.data(), scaled.size(), p, n);
+
+	b2FixtureDef fixture;
+	fixture.density = 0.f;
+	fixture.shape = &chain;
+
+	b2BodyDef bodyDef;
+	bodyDef.position.Set(0, 0);
+	bodyDef.type = b2_staticBody;
+
+	m_body = world->CreateBody(&bodyDef);
+	m_body->CreateFixture(&fixture);
+}
+
+sf::Vector2f StaticEdgeChain::GetNextAddedVertexPosition(vector<Vector2f>& vertices)
+{
+	// Calculate new vertex position based on last 2 vertices
+	Vector2f position;
+	float offset = 50.f;
+
+	if (vertices.size() > 2)
+	{
+		vector<Vector2f>::iterator last1 = vertices.end() - 1;
+		vector<Vector2f>::iterator last2 = last1 - 1;
+
+		position.x = last1->x;
+		position.y = last1->y;
+
+		if (last1->x > last2->x)
+			position.x += offset;
+		else
+			position.x -= offset;
+	}
+	else if (vertices.size() == 1)
+	{
+		position = vertices[0];
+		position.x += offset;
+	}
+	else
+	{
+		position.x = 100.f;
+		position.y = 100.f;
+	}
+
+	return position;
+}
 
 // --------------------------------------------------------------------------------
 // Initialisation
@@ -60,35 +139,8 @@ void StaticEdgeChain::Init(std::vector<Vector2f>& vertices, b2World* world)
 		m_vertexArray[i].color = m_color;
 	}
 
-	// Initialise chain shape
-	std::vector<b2Vec2> scaledVertices(m_vertices.size());
-	for (size_t i = 0; i < scaledVertices.size(); ++i)
-	{
-		scaledVertices[i].x = m_vertices[i].x / SCALE;
-		scaledVertices[i].y = m_vertices[i].y / SCALE;
-	}
-
-	b2ChainShape chain;
-	b2Vec2 prevVertex((m_vertices[0].x - 100.f)/SCALE, (m_vertices[0].y)/SCALE);
-	b2Vec2 nextVertex((m_vertices[m_vertexCount].x + 100.f) / SCALE,
-					  (m_vertices[m_vertexCount].y) / SCALE);
-
-	chain.CreateChain(scaledVertices.data(), m_vertexCount,
-		prevVertex, nextVertex);
-
-	// Create fixture and body
-	b2FixtureDef fixture;
-	fixture.density = 0.f;
-	fixture.shape = &chain;
-
-	b2BodyDef bodyDef;
-	bodyDef.position.Set(0, 0);
-	bodyDef.type = b2_staticBody;
-
-	b2Body* body = world->CreateBody(&bodyDef);
-	body->CreateFixture(&fixture);
-
-	m_body = body;
+	// Build b2Body
+	BuildBody(world);
 
 	// Instantiate world bounding box
 	m_boundingBox.reset(new BoundingBox(m_vertices));
@@ -111,6 +163,31 @@ void StaticEdgeChain::DeleteBody(b2World* world)
 		world->DestroyBody(m_body);
 		m_body = nullptr;
 	}
+}
+
+void StaticEdgeChain::AddVertex(b2World* world)
+{
+	Vector2f position = GetNextAddedVertexPosition(m_vertices);
+
+	// Update m_vertices vector with new vertex
+	m_vertices.push_back(position);
+	m_vertexCount++;
+
+	// Delete body and rebuild it
+	DeleteBody(world);
+	BuildBody(world);
+
+	// Update SFML vertex array
+	m_vertexArray.resize(m_vertexCount);
+	m_vertexArray[m_vertexCount-1].position = position;
+	m_vertexArray[m_vertexCount-1].color = m_color;
+
+	// Update bounding box & move handle
+	m_boundingBox->Update(m_vertices);
+	m_moveHandle->Update(m_boundingBox);
+
+	// Add a new VertexHandle
+	m_vertexHandles.push_back(VertexHandle(position, m_vertexCount-1));
 }
 
 // --------------------------------------------------------------------------------

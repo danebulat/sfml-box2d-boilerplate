@@ -41,13 +41,24 @@ private:
 	std::shared_ptr<MoveHandle>		m_moveHandle;
 	bool 					  		m_hoveringOnMoveHandle;
 
+private:
+	static void GetChainGhostVertices(b2Vec2& p, b2Vec2& n,
+		std::vector<sf::Vector2f>& vertices);
+
+	static sf::Vector2f GetNextAddedVertexPosition(
+		std::vector<sf::Vector2f>& vertices);
+
+	void BuildBody(b2World* world);
+
 public:
 	StaticEdgeChain();
 	StaticEdgeChain(std::vector<sf::Vector2f>& vertices, const std::string& tag, b2World* world);
 	~StaticEdgeChain();
 
 	void Init(std::vector<sf::Vector2f>& vertices, b2World* world);
-	void DeleteBody(b2World*);
+	void DeleteBody(b2World* world);
+
+	void AddVertex(b2World* world);
 
 	void SetColor(const sf::Color color);
 
