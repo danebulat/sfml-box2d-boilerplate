@@ -3,10 +3,9 @@
 #include <string>
 #include <algorithm>
 #include "box2d/box2d.h"
-#include "utils/box2d_utils.hpp"
-#include "utils/static_edge_chain.hpp"
 #include "utils/custom_polygon.hpp"
 #include "utils/mouse_utils.hpp"
+#include "utils/edge_chain_manager.hpp"
 
 #include "imgui.h"
 #include "imgui-SFML.h"
@@ -17,14 +16,8 @@ using namespace physics;
 
 // ImGui variabless
 static int e = 1;
-bool edgeChainsEnabled = true;
 bool clearAllBodies = false;
 bool renderMouseCoords = true;
-bool renderBoundingBoxes = true;
-
-int selectedStaticEdgeChainIndex = 0;
-int prevSelectedStaticEdgeChainIndex = 0;
-std::vector<std::string> staticEdgeChainLabels;
 
 enum class RMBMode
 {
@@ -39,7 +32,12 @@ int main(int argc, char** argv)
 	RMBMode rmbMode = RMBMode::BoxSpawnMode;
 
 	/** Prepare the window */
-	sf::RenderWindow window(sf::VideoMode(1150.f, 600.f, 32), "SFML - Box2D Boilerplate", sf::Style::Default);
+	sf::Vector2f resolution;
+	resolution.x = VideoMode::getDesktopMode().width;
+    resolution.y = VideoMode::getDesktopMode().height;
+
+	sf::RenderWindow window(sf::VideoMode(resolution.x * .9f, resolution.y * .75f, 32),
+		"SFML - Box2D Boilerplate", sf::Style::Default);
 	window.setFramerateLimit(60);
 
 	// Initialise ImGui
@@ -76,17 +74,8 @@ int main(int argc, char** argv)
 	b2World world(gravity);
 	CreateGround(world, 400.f, 575.f);
 
-	/* Create static edge chain */
-	std::vector<StaticEdgeChain> staticEdgeChains;
-	staticEdgeChains.push_back(StaticEdgeChain(demo_data::coords, "EC1", &world));
-	staticEdgeChains.push_back(StaticEdgeChain(demo_data::coordsLeft, "EC2", &world));
-	staticEdgeChains.push_back(StaticEdgeChain(demo_data::coordsRight, "EC3", &world));
-
-	staticEdgeChains[0].SetEditable(true);
-	staticEdgeChains[0].DrawBoundingBox(true);
-
-	for (auto& chain : staticEdgeChains)
-		staticEdgeChainLabels.push_back(chain.GetTag()); // for ImGui
+	/* Create edge chain manager */
+	EdgeChainManager edgeChainManager(&world);
 
 	/* Vector for custom polygon objects */
 	std::vector<CustomPolygon> customPolygons;
@@ -135,10 +124,7 @@ int main(int argc, char** argv)
 				// E key: toggle static edge shape
 				if (event.key.code == sf::Keyboard::E)
 				{
-					edgeChainsEnabled = !edgeChainsEnabled;
-
-					for (auto& chain : staticEdgeChains)
-						chain.SetEnabled(edgeChainsEnabled);
+					edgeChainManager.ToggleEnable();
 				}
 
 				// W key: toggle custom polygon wireframe
@@ -186,31 +172,8 @@ int main(int argc, char** argv)
 				}
 				else if (event.mouseButton.button == sf::Mouse::Left)
 				{
-					// Check if mouse has clicked on a chain label
-					for (int i = 0; i < staticEdgeChains.size(); ++i)
-					{
-						auto& chain = staticEdgeChains[i];
-
-						sf::FloatRect r = chain.GetMoveHandleLabelRect();
-						sf::Vector2f  m = GetMousePosition(window);
-
-						if ((m.x > r.left && m.x < r.left + r.width) &&
-							(m.y > r.top && m.y < r.top + r.height))
-						{
-							if (selectedStaticEdgeChainIndex != i)
-							{
-								selectedStaticEdgeChainIndex = i;
-								staticEdgeChains[prevSelectedStaticEdgeChainIndex].SetEditable(false);
-								staticEdgeChains[prevSelectedStaticEdgeChainIndex].DrawBoundingBox(false);
-								staticEdgeChains[selectedStaticEdgeChainIndex].SetEditable(true);
-								staticEdgeChains[selectedStaticEdgeChainIndex].DrawBoundingBox(true);
-								prevSelectedStaticEdgeChainIndex = selectedStaticEdgeChainIndex;
-							}
-
-							break;
-						}
-					}
-				}// mouse::left
+					edgeChainManager.CheckChainClicked(window);
+				}
 			}
 
 			if (event.type == sf::Event::MouseButtonPressed)
@@ -221,11 +184,12 @@ int main(int argc, char** argv)
 				}
 			}
 			else
+			{
 				drawClickPoint = false;
+			}
 
 			// Handle edge chain input
-			for (auto& chain : staticEdgeChains)
-				chain.HandleInput(event, window);
+			edgeChainManager.HandleInput(event, window);
 
 		}// end window.poll(event)
 
@@ -280,7 +244,7 @@ int main(int argc, char** argv)
 			ImGui::AlignTextToFramePadding();
             ImGui::Text("Selection Bounding Box"); ImGui::SameLine(195);
             ImGui::SetNextItemWidth(-1);
-			ImGui::Checkbox("##BoundingBoxes", &renderBoundingBoxes);
+			ImGui::Checkbox("##BoundingBoxes", &edgeChainManager.GetDrawBBFlag());
 
 			ImGui::AlignTextToFramePadding();
             ImGui::Text("Mouse Coords"); ImGui::SameLine(195);
@@ -314,25 +278,20 @@ int main(int argc, char** argv)
 			ImGui::AlignTextToFramePadding();
             ImGui::Text("Enable"); ImGui::SameLine(130);
             ImGui::SetNextItemWidth(-1);
-			if (ImGui::Checkbox("##EnableEdgeChains", &edgeChainsEnabled))
+			if (ImGui::Checkbox("##EnableEdgeChains", &edgeChainManager.GetEnableFlag()))
 			{
-				for (auto& chain : staticEdgeChains)
-					chain.SetEnabled(edgeChainsEnabled);
+				edgeChainManager.SyncEnable();
 			}
 
 			ImGui::AlignTextToFramePadding();
             ImGui::Text("Selected"); ImGui::SameLine(130);
             ImGui::SetNextItemWidth(-1);
 
-			if (staticEdgeChains.size() > 0)
+			if (edgeChainManager.GetChainCount() > 0)
 			{
-				if (ImGui::Combo("##SelectedEdgeChain", &selectedStaticEdgeChainIndex, staticEdgeChainLabels))
+				if (ImGui::Combo("##SelectedEdgeChain", &edgeChainManager.GetSelectedChainIndex(), edgeChainManager.GetChainLabels()))
 				{
-					staticEdgeChains[prevSelectedStaticEdgeChainIndex].SetEditable(false);
-					staticEdgeChains[prevSelectedStaticEdgeChainIndex].DrawBoundingBox(false);
-					staticEdgeChains[selectedStaticEdgeChainIndex].SetEditable(true);
-					staticEdgeChains[selectedStaticEdgeChainIndex].DrawBoundingBox(true);
-					prevSelectedStaticEdgeChainIndex = selectedStaticEdgeChainIndex;
+					edgeChainManager.SelectCurrentChain();
 				}
 			}
 			else
@@ -351,17 +310,7 @@ int main(int argc, char** argv)
 
 			if (ImGui::Button("Add Edge Chain", ImVec2(windowWidth, 30)))
 			{
-				sf::Vector2f startPos(400.f, 300.f);
-				std::string tag = "EC" + std::to_string(staticEdgeChains.size() + 1);
-				staticEdgeChains.push_back(StaticEdgeChain(demo_data::newChainCoords, tag, &world));
-				staticEdgeChainLabels.push_back(tag);
-
-				selectedStaticEdgeChainIndex = staticEdgeChains.size()-1;
-				staticEdgeChains[prevSelectedStaticEdgeChainIndex].SetEditable(false);
-				staticEdgeChains[prevSelectedStaticEdgeChainIndex].DrawBoundingBox(false);
-				staticEdgeChains[selectedStaticEdgeChainIndex].SetEditable(true);
-				staticEdgeChains[selectedStaticEdgeChainIndex].DrawBoundingBox(true);
-				prevSelectedStaticEdgeChainIndex = selectedStaticEdgeChainIndex;
+				edgeChainManager.PushChain();
 			}
 
 			ImGui::PopStyleColor(3);
@@ -377,24 +326,7 @@ int main(int argc, char** argv)
 
 			if (ImGui::Button("Delete Selected Chain", ImVec2(windowWidth, 30)))
 			{
-				if (staticEdgeChains.size() > 0)
-				{
-					// Remove label
-					std::string tag = staticEdgeChains[selectedStaticEdgeChainIndex].GetTag();
-					staticEdgeChainLabels.erase(
-						find(staticEdgeChainLabels.begin(), staticEdgeChainLabels.end(), tag));
-
-					// Remove chain
-					std::vector<StaticEdgeChain>::iterator chain = staticEdgeChains.begin() + selectedStaticEdgeChainIndex;
-					chain->SetEditable(false);
-					chain->DeleteBody(&world);
-					staticEdgeChains.erase(chain);
-
-					// Update indexes
-					selectedStaticEdgeChainIndex = staticEdgeChains.size() - 1;
-					staticEdgeChains[selectedStaticEdgeChainIndex].SetEditable(true);
-					prevSelectedStaticEdgeChainIndex = selectedStaticEdgeChainIndex;
-				}
+				edgeChainManager.PopChain();
 			}
 
 			ImGui::PopStyleColor(3);
@@ -403,15 +335,13 @@ int main(int argc, char** argv)
 			ImGui::PushItemWidth((windowWidth/2) + 10.f);
 			if (ImGui::Button("Add Vertex", ImVec2((windowWidth/2), 20)))
 			{
-				if (staticEdgeChains.size() != 0)
-					staticEdgeChains[selectedStaticEdgeChainIndex].m_addVertex = true;
+				edgeChainManager.AddVertexToSelectedChain();
 			}
 
 			ImGui::SameLine((windowWidth/2)+15);
 			if (ImGui::Button("Remove Vertex", ImVec2((windowWidth/2)-8.f, 20)))
 			{
-				if (staticEdgeChains.size() != 0)
-					staticEdgeChains[selectedStaticEdgeChainIndex].m_removeVertex = true;
+				edgeChainManager.RemoveVertexFromSelectedChain();
 			}
 		}
 
@@ -535,8 +465,7 @@ int main(int argc, char** argv)
 		RemoveOffScreenDynamicBodies(&world, count_dynamicBodies);
 
 		/* Update edge chains */
-		for (auto& chain : staticEdgeChains)
-			chain.Update(window, &world);
+		edgeChainManager.Update(window);
 
 		/* Update polygons and draw if not marked as expired */
 		for (auto& polygon : customPolygons)
@@ -559,12 +488,7 @@ int main(int argc, char** argv)
 			clearAllBodies = false;
 		}
 
-		for (auto& chain : staticEdgeChains)
-		{
-			if (chain.IsEditable())
-				chain.DrawBoundingBox(renderBoundingBoxes);
-			chain.Draw(window);
-		}
+		edgeChainManager.Draw(window);
 
 		if (drawClickPoint)
 			window.draw(circle);

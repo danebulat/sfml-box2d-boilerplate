@@ -53,7 +53,7 @@ void MoveHandle::Calculate(shared_ptr<BoundingBox> boundingBox)
 
 	m_label.setPosition(
 		m_position.x - (m_label.getLocalBounds().width * 0.5f),
-		m_position.y - (m_size * 2.2f));
+		m_position.y - ((m_size * 1.9f)));
 }
 
 // Update when handle is being dragged

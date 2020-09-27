@@ -1,0 +1,184 @@
+#include "utils/edge_chain_manager.hpp"
+
+EdgeChainManager::EdgeChainManager(b2World* world)
+{
+	m_guiEnable = true;	// Enable all chains
+	m_guiDrawBB = true;	// Draw bounding box on selected chain
+
+	m_world = world;
+	m_chains.push_back(StaticEdgeChain(demo_data::coords, "EC1", m_world));
+	m_chains.push_back(StaticEdgeChain(demo_data::coordsLeft, "EC2", m_world));
+	m_chains.push_back(StaticEdgeChain(demo_data::coordsRight, "EC3", m_world));
+
+	m_chains[0].SetEditable(true);
+	m_chains[0].DrawBoundingBox(true);
+	m_currSelectedIndex = 0;
+	m_prevSelectedIndex = 0;
+
+	for (auto& chain : m_chains)
+		m_guiLabels.push_back(chain.GetTag());
+}
+
+void EdgeChainManager::CheckChainClicked(sf::RenderWindow& window)
+{
+	for (int i = 0; i < m_chains.size(); ++i)
+	{
+		auto& chain = m_chains[i];
+		sf::FloatRect r = chain.GetMoveHandleLabelRect();
+		sf::Vector2f  m = GetMousePosition(window);
+
+		if ((m.x > r.left && m.x < r.left + r.width) &&
+			(m.y > r.top && m.y < r.top + r.height))
+		{
+			if (m_currSelectedIndex != i)
+			{
+				m_currSelectedIndex = i;
+				SelectCurrentChain();
+			}
+
+			break;
+		}
+	}
+}
+
+/* Select chain at m_currSelectionIndex */
+void EdgeChainManager::SelectCurrentChain()
+{
+	m_chains[m_prevSelectedIndex].SetEditable(false);
+	m_chains[m_prevSelectedIndex].DrawBoundingBox(false);
+
+	m_chains[m_currSelectedIndex].SetEditable(true);
+	m_chains[m_currSelectedIndex].DrawBoundingBox(true);
+	m_prevSelectedIndex = m_currSelectedIndex;
+}
+
+/* Create a new StaticEdgeChain object */
+void EdgeChainManager::PushChain()
+{
+	// TODO: Pass starting position
+	sf::Vector2f startPos(400.f, 300.f);
+
+	// Generate a unique label for the new chain
+	unsigned int n = m_chains.size() + 1;
+	std::string tag = "EC" + std::to_string(n);
+	while (std::find(m_guiLabels.begin(), m_guiLabels.end(), tag) != m_guiLabels.end())
+	{
+		tag = tag.substr(0,2) + std::to_string(++n);
+	}
+
+	m_chains.push_back(StaticEdgeChain(demo_data::newChainCoords, tag, m_world));
+	m_guiLabels.push_back(tag);
+
+	m_currSelectedIndex = m_chains.size()-1;
+	SelectCurrentChain();
+}
+
+void EdgeChainManager::PopChain()
+{
+	if (m_chains.size() > 0)
+	{
+		// Remove label
+		std::string tag = m_chains[m_currSelectedIndex].GetTag();
+		m_guiLabels.erase(find(m_guiLabels.begin(), m_guiLabels.end(), tag));
+
+		// Remove chain b2Body and remove chain from m_chains
+		auto chain = m_chains.begin() + m_currSelectedIndex;
+		chain->SetEditable(false);
+		chain->DeleteBody(m_world);
+		m_chains.erase(chain);
+
+		// Update indexes
+		if (m_chains.size() > 0)
+		{
+			m_currSelectedIndex = m_chains.size() - 1;
+			m_chains[m_currSelectedIndex].SetEditable(true);
+			m_prevSelectedIndex = m_currSelectedIndex;
+		}
+		else
+		{
+			// change to -1 to signify no chain selected
+			m_currSelectedIndex = 0;
+		}
+	}
+}
+
+void EdgeChainManager::AddVertexToSelectedChain()
+{
+	// TODO: Make accessor method for m_addVertex
+	if (m_chains.size() > 0)
+		m_chains[m_currSelectedIndex].m_addVertex = true;
+}
+
+void EdgeChainManager::RemoveVertexFromSelectedChain()
+{
+	// TODO: Make accessor method for m_addVertex
+	if (m_chains.size() > 0)
+		m_chains[m_currSelectedIndex].m_removeVertex = true;
+}
+
+void EdgeChainManager::HandleInput(const sf::Event& event, sf::RenderWindow& window)
+{
+	for (auto& chain : m_chains)
+		chain.HandleInput(event, window);
+}
+
+void EdgeChainManager::Update(sf::RenderWindow& window)
+{
+	for (auto& chain : m_chains)
+		chain.Update(window, m_world);
+}
+
+void EdgeChainManager::Draw(sf::RenderWindow& window)
+{
+	for (auto& chain : m_chains)
+	{
+		if (chain.IsEditable())
+		{
+			chain.DrawBoundingBox(m_guiDrawBB);
+		}
+
+		chain.Draw(window);
+	}
+}
+
+// ----------------------------------------------------------------------
+// Accessors
+// ----------------------------------------------------------------------
+
+int EdgeChainManager::GetChainCount() const
+{
+	return m_chains.size();
+}
+
+int& EdgeChainManager::GetSelectedChainIndex()
+{
+	return m_currSelectedIndex;
+}
+
+std::vector<std::string>& EdgeChainManager::GetChainLabels()
+{
+	return m_guiLabels;
+}
+
+bool& EdgeChainManager::GetEnableFlag()
+{
+	return m_guiEnable;
+}
+
+void EdgeChainManager::SyncEnable()
+{
+	for (auto& chain : m_chains)
+	{
+		chain.SetEnabled(m_guiEnable);
+	}
+}
+
+void EdgeChainManager::ToggleEnable()
+{
+	m_guiEnable = !m_guiEnable;
+}
+
+bool& EdgeChainManager::GetDrawBBFlag()
+{
+	return m_guiDrawBB;
+}
