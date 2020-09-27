@@ -210,7 +210,7 @@ int main(int argc, char** argv)
 							break;
 						}
 					}
-				}
+				}// mouse::left
 			}
 
 			if (event.type == sf::Event::MouseButtonPressed)
@@ -400,14 +400,15 @@ int main(int argc, char** argv)
 			ImGui::PopStyleColor(3);
             ImGui::PopID();
 
-			if (ImGui::Button("Add Vertex"))
+			ImGui::PushItemWidth((windowWidth/2) + 10.f);
+			if (ImGui::Button("Add Vertex", ImVec2((windowWidth/2), 20)))
 			{
 				if (staticEdgeChains.size() != 0)
 					staticEdgeChains[selectedStaticEdgeChainIndex].m_addVertex = true;
 			}
 
-			ImGui::SameLine();
-			if (ImGui::Button("Remove Vertex"))
+			ImGui::SameLine((windowWidth/2)+15);
+			if (ImGui::Button("Remove Vertex", ImVec2((windowWidth/2)-8.f, 20)))
 			{
 				if (staticEdgeChains.size() != 0)
 					staticEdgeChains[selectedStaticEdgeChainIndex].m_removeVertex = true;
@@ -439,9 +440,6 @@ int main(int argc, char** argv)
 		/*----------------------------------------------------------------------
          End ImGui
          ----------------------------------------------------------------------*/
-		/* Update edge chains */
-		for (auto& chain : staticEdgeChains)
-			chain.Update(window, &world);
 
 		/** Update Box2D */
 		world.Step(1/60.f, 8, 3);
@@ -533,20 +531,24 @@ int main(int argc, char** argv)
 			}
 		}
 
-		// Delete bodies that are off screen
+		/* Delete bodies that are off screen */
 		RemoveOffScreenDynamicBodies(&world, count_dynamicBodies);
 
-		// Update polygons and draw if not marked as expired
+		/* Update edge chains */
+		for (auto& chain : staticEdgeChains)
+			chain.Update(window, &world);
+
+		/* Update polygons and draw if not marked as expired */
 		for (auto& polygon : customPolygons)
 		{
 			polygon.Update(&world);
 			polygon.Draw(window);
 		}
 
-		// Remove marked expired polygons and resize vector
+		/* Remove marked expired polygons and resize vector */
 		RemoveExpiredCustomPolygons(customPolygons, &world, count_dynamicBodies);
 
-		// Remove all bodies if flag set
+		/* Remove all bodies if flag set */
 		if (clearAllBodies && count_dynamicBodies > 0)
 		{
 			clearAllBodies = false;

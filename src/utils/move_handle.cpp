@@ -14,7 +14,7 @@ using std::endl;
 MoveHandle::MoveHandle(shared_ptr<BoundingBox> boundingBox, const String& label)
 {
 	m_hoverState = false;
-	m_size = 15.f;
+	m_size = 20.f;
 
 	m_color = Color(102.f, 0.f, 102.f, 56.f);
 	m_hoverColor = Color(102.f, 0.f, 102.f, 128.f);
