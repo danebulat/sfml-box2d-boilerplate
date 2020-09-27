@@ -104,16 +104,14 @@ void EdgeChainManager::PopChain()
 
 void EdgeChainManager::AddVertexToSelectedChain()
 {
-	// TODO: Make accessor method for m_addVertex
 	if (m_chains.size() > 0)
-		m_chains[m_currSelectedIndex].m_addVertex = true;
+		m_chains[m_currSelectedIndex].SetAddVertexFlag(true);
 }
 
 void EdgeChainManager::RemoveVertexFromSelectedChain()
 {
-	// TODO: Make accessor method for m_addVertex
 	if (m_chains.size() > 0)
-		m_chains[m_currSelectedIndex].m_removeVertex = true;
+		m_chains[m_currSelectedIndex].SetRemoveVertexFlag(true);
 }
 
 void EdgeChainManager::HandleInput(const sf::Event& event, sf::RenderWindow& window)

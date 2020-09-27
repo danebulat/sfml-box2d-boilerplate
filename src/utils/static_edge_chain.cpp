@@ -281,6 +281,16 @@ FloatRect StaticEdgeChain::GetMoveHandleLabelRect() const
 	return m_moveHandle->GetLabelRectangle();
 }
 
+void StaticEdgeChain::SetAddVertexFlag(bool flag)
+{
+	m_addVertex = flag;
+}
+
+void StaticEdgeChain::SetRemoveVertexFlag(bool flag)
+{
+	m_removeVertex = flag;
+}
+
 // --------------------------------------------------------------------------------
 // Input
 // --------------------------------------------------------------------------------

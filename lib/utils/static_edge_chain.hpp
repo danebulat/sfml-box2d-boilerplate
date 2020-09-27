@@ -78,8 +78,10 @@ public:
 	void SetTag(const std::string& tag);
 
 	sf::FloatRect GetMoveHandleLabelRect() const;
-
 	void DrawBoundingBox(bool flag);
+
+	void SetAddVertexFlag(bool flag);
+	void SetRemoveVertexFlag(bool flag);
 
 	void Update(sf::RenderWindow& window, b2World* world);
 	void Draw(sf::RenderWindow& window);
