@@ -276,6 +276,11 @@ void StaticEdgeChain::DrawBoundingBox(bool flag)
 	m_drawBoundingBox = flag;
 }
 
+FloatRect StaticEdgeChain::GetMoveHandleLabelRect() const
+{
+	return m_moveHandle->GetLabelRectangle();
+}
+
 // --------------------------------------------------------------------------------
 // Input
 // --------------------------------------------------------------------------------
@@ -487,6 +492,9 @@ void StaticEdgeChain::Update(RenderWindow& window, b2World* world)
 
 		m_prevMousePosition = mousePos;
 	}
+
+	// Set move handle label color
+	m_moveHandle->SelectLabel(m_editable);
 }
 
 // --------------------------------------------------------------------------------

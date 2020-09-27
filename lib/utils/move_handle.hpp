@@ -16,6 +16,10 @@ private:
 	sf::Color 			m_color;
 	sf::Color 			m_hoverColor;
 
+	bool 				m_labelSelected;
+	sf::Color			m_labelColor;
+	sf::Color			m_labelSelectedColor;
+
 	float 				m_size;
 	bool				m_hoverState;
 
@@ -40,6 +44,8 @@ public:
 	void SetHoveredState(bool flag);
 	float GetSize() const;
 	sf::Vector2f GetPosition();
+	sf::FloatRect GetLabelRectangle() const;
+	void SelectLabel(bool flag);
 };
 
 #endif

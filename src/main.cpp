@@ -184,6 +184,33 @@ int main(int argc, char** argv)
 						++count_dynamicBodies;
 					}
 				}
+				else if (event.mouseButton.button == sf::Mouse::Left)
+				{
+					// Check if mouse has clicked on a chain label
+					for (int i = 0; i < staticEdgeChains.size(); ++i)
+					{
+						auto& chain = staticEdgeChains[i];
+
+						sf::FloatRect r = chain.GetMoveHandleLabelRect();
+						sf::Vector2f  m = GetMousePosition(window);
+
+						if ((m.x > r.left && m.x < r.left + r.width) &&
+							(m.y > r.top && m.y < r.top + r.height))
+						{
+							if (selectedStaticEdgeChainIndex != i)
+							{
+								selectedStaticEdgeChainIndex = i;
+								staticEdgeChains[prevSelectedStaticEdgeChainIndex].SetEditable(false);
+								staticEdgeChains[prevSelectedStaticEdgeChainIndex].DrawBoundingBox(false);
+								staticEdgeChains[selectedStaticEdgeChainIndex].SetEditable(true);
+								staticEdgeChains[selectedStaticEdgeChainIndex].DrawBoundingBox(true);
+								prevSelectedStaticEdgeChainIndex = selectedStaticEdgeChainIndex;
+							}
+
+							break;
+						}
+					}
+				}
 			}
 
 			if (event.type == sf::Event::MouseButtonPressed)

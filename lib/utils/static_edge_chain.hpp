@@ -77,6 +77,8 @@ public:
 	const std::string& GetTag() const;
 	void SetTag(const std::string& tag);
 
+	sf::FloatRect GetMoveHandleLabelRect() const;
+
 	void DrawBoundingBox(bool flag);
 
 	void Update(sf::RenderWindow& window, b2World* world);
