@@ -22,6 +22,9 @@ VertexHandle::VertexHandle(Vector2f& vertex, unsigned int index)
 	m_sprite.setPosition(m_position);
 }
 
+VertexHandle::~VertexHandle()
+{}
+
 void VertexHandle::SetHoveredState(bool flag)
 {
 	m_hoveredState = flag;

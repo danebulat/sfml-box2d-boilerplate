@@ -23,6 +23,7 @@ private:
 
 public:
 	VertexHandle(sf::Vector2f& vertex, unsigned int index);
+	~VertexHandle();
 
 	void SetHoveredState(bool flag);
 

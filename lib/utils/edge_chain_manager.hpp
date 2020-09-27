@@ -20,6 +20,10 @@ private:
 
 public:
 	EdgeChainManager(b2World* world);
+	~EdgeChainManager();
+
+	EdgeChainManager(const EdgeChainManager&) = delete;
+	EdgeChainManager& operator== (const EdgeChainManager&) = delete;
 
 	void CheckChainClicked(sf::RenderWindow& window);
 	void SelectCurrentChain();

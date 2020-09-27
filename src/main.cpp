@@ -75,7 +75,7 @@ int main(int argc, char** argv)
 	CreateGround(world, 400.f, 575.f);
 
 	/* Create edge chain manager */
-	EdgeChainManager edgeChainManager(&world);
+	std::unique_ptr<EdgeChainManager> edgeChainManager(new EdgeChainManager(&world));
 
 	/* Vector for custom polygon objects */
 	std::vector<CustomPolygon> customPolygons;
@@ -124,7 +124,7 @@ int main(int argc, char** argv)
 				// E key: toggle static edge shape
 				if (event.key.code == sf::Keyboard::E)
 				{
-					edgeChainManager.ToggleEnable();
+					edgeChainManager->ToggleEnable();
 				}
 
 				// W key: toggle custom polygon wireframe
@@ -172,7 +172,7 @@ int main(int argc, char** argv)
 				}
 				else if (event.mouseButton.button == sf::Mouse::Left)
 				{
-					edgeChainManager.CheckChainClicked(window);
+					edgeChainManager->CheckChainClicked(window);
 				}
 			}
 
@@ -189,7 +189,7 @@ int main(int argc, char** argv)
 			}
 
 			// Handle edge chain input
-			edgeChainManager.HandleInput(event, window);
+			edgeChainManager->HandleInput(event, window);
 
 		}// end window.poll(event)
 
@@ -244,7 +244,7 @@ int main(int argc, char** argv)
 			ImGui::AlignTextToFramePadding();
             ImGui::Text("Selection Bounding Box"); ImGui::SameLine(195);
             ImGui::SetNextItemWidth(-1);
-			ImGui::Checkbox("##BoundingBoxes", &edgeChainManager.GetDrawBBFlag());
+			ImGui::Checkbox("##BoundingBoxes", &edgeChainManager->GetDrawBBFlag());
 
 			ImGui::AlignTextToFramePadding();
             ImGui::Text("Mouse Coords"); ImGui::SameLine(195);
@@ -278,20 +278,20 @@ int main(int argc, char** argv)
 			ImGui::AlignTextToFramePadding();
             ImGui::Text("Enable"); ImGui::SameLine(130);
             ImGui::SetNextItemWidth(-1);
-			if (ImGui::Checkbox("##EnableEdgeChains", &edgeChainManager.GetEnableFlag()))
+			if (ImGui::Checkbox("##EnableEdgeChains", &edgeChainManager->GetEnableFlag()))
 			{
-				edgeChainManager.SyncEnable();
+				edgeChainManager->SyncEnable();
 			}
 
 			ImGui::AlignTextToFramePadding();
             ImGui::Text("Selected"); ImGui::SameLine(130);
             ImGui::SetNextItemWidth(-1);
 
-			if (edgeChainManager.GetChainCount() > 0)
+			if (edgeChainManager->GetChainCount() > 0)
 			{
-				if (ImGui::Combo("##SelectedEdgeChain", &edgeChainManager.GetSelectedChainIndex(), edgeChainManager.GetChainLabels()))
+				if (ImGui::Combo("##SelectedEdgeChain", &edgeChainManager->GetSelectedChainIndex(), edgeChainManager->GetChainLabels()))
 				{
-					edgeChainManager.SelectCurrentChain();
+					edgeChainManager->SelectCurrentChain();
 				}
 			}
 			else
@@ -310,7 +310,7 @@ int main(int argc, char** argv)
 
 			if (ImGui::Button("Add Edge Chain", ImVec2(windowWidth, 30)))
 			{
-				edgeChainManager.PushChain();
+				edgeChainManager->PushChain();
 			}
 
 			ImGui::PopStyleColor(3);
@@ -326,7 +326,7 @@ int main(int argc, char** argv)
 
 			if (ImGui::Button("Delete Selected Chain", ImVec2(windowWidth, 30)))
 			{
-				edgeChainManager.PopChain();
+				edgeChainManager->PopChain();
 			}
 
 			ImGui::PopStyleColor(3);
@@ -335,13 +335,13 @@ int main(int argc, char** argv)
 			ImGui::PushItemWidth((windowWidth/2) + 10.f);
 			if (ImGui::Button("Add Vertex", ImVec2((windowWidth/2), 20)))
 			{
-				edgeChainManager.AddVertexToSelectedChain();
+				edgeChainManager->AddVertexToSelectedChain();
 			}
 
 			ImGui::SameLine((windowWidth/2)+15);
 			if (ImGui::Button("Remove Vertex", ImVec2((windowWidth/2)-8.f, 20)))
 			{
-				edgeChainManager.RemoveVertexFromSelectedChain();
+				edgeChainManager->RemoveVertexFromSelectedChain();
 			}
 		}
 
@@ -465,7 +465,7 @@ int main(int argc, char** argv)
 		RemoveOffScreenDynamicBodies(&world, count_dynamicBodies);
 
 		/* Update edge chains */
-		edgeChainManager.Update(window);
+		edgeChainManager->Update(window);
 
 		/* Update polygons and draw if not marked as expired */
 		for (auto& polygon : customPolygons)
@@ -488,7 +488,7 @@ int main(int argc, char** argv)
 			clearAllBodies = false;
 		}
 
-		edgeChainManager.Draw(window);
+		edgeChainManager->Draw(window);
 
 		if (drawClickPoint)
 			window.draw(circle);

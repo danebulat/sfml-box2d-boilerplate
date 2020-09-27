@@ -19,6 +19,9 @@ EdgeChainManager::EdgeChainManager(b2World* world)
 		m_guiLabels.push_back(chain.GetTag());
 }
 
+EdgeChainManager::~EdgeChainManager()
+{}
+
 void EdgeChainManager::CheckChainClicked(sf::RenderWindow& window)
 {
 	for (int i = 0; i < m_chains.size(); ++i)
