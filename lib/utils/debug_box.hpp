@@ -1,19 +1,14 @@
 #ifndef DEBUG_BOX_HPP
 #define DEBUG_BOX_HPP
 
-#include <SFML/Graphics.hpp>
 #include <box2d/box2d.h>
-#include "utils/constants.hpp"
+#include "utils/debug_shape.hpp"
 
-class DebugBox
+class DebugBox : public DebugShape
 {
 private:
 	sf::RectangleShape	m_sprite;
-	sf::Vector2f 		m_position;
-	std::string* 		m_tag;
-
 	float 				m_size;
-	bool 				m_markedForDelete;
 
 	b2Body*				m_body;
 	b2World*			m_world;
@@ -22,21 +17,16 @@ private:
 	void CreateBody();
 
 public:
-	static unsigned int BodyCount;
-
 	DebugBox(const sf::Vector2f& position, b2World* world);
-	~DebugBox();
+	virtual ~DebugBox();
 
 	void DeleteBody();
 
-	void Update();
-	void Draw(sf::RenderWindow& window);
+	virtual void Update();
+	virtual void Draw(sf::RenderWindow& window);
 
 	std::string* GetUserData();
 	sf::Vector2f GetPosition() const;
-
-	void MarkForDelete(bool flag);
-	bool IsMarkedForDelete() const;
 };
 
 #endif

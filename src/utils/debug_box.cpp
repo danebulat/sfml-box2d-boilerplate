@@ -1,13 +1,10 @@
 #include "utils/debug_box.hpp"
+#include "utils/constants.hpp"
 
-unsigned int DebugBox::BodyCount = 0;
-
-DebugBox::DebugBox(const sf::Vector2f& position, b2World* world)
+DebugBox::DebugBox(const sf::Vector2f& position,
+	b2World* world) : DebugShape(position, "debug_box")
 {
-	m_markedForDelete = false;
-	m_position = position;
 	m_size = 32.f;
-	m_tag = new std::string("debug_box");
 	m_world = world;
 
 	m_sprite.setPosition(m_position);
@@ -34,6 +31,7 @@ DebugBox::~DebugBox()
 		m_body = nullptr;
 	}
 
+	std::cout << "--BodyCount (DebugBox)\n";
 	--BodyCount;
 }
 
@@ -116,19 +114,4 @@ std::string* DebugBox::GetUserData()
 	}
 
 	return nullptr;
-}
-
-void DebugBox::MarkForDelete(bool flag)
-{
-	m_markedForDelete = flag;
-}
-
-bool DebugBox::IsMarkedForDelete() const
-{
-	return m_markedForDelete;
-}
-
-sf::Vector2f DebugBox::GetPosition() const
-{
-	return m_position;
 }

@@ -7,6 +7,7 @@
 #include "utils/mouse_utils.hpp"
 #include "utils/edge_chain_manager.hpp"
 #include "utils/debug_box.hpp"
+#include "utils/debug_circle.hpp"
 
 #include "imgui.h"
 #include "imgui-SFML.h"
@@ -14,6 +15,8 @@
 #include "imgui/imgui_demos.hpp"
 
 using namespace physics;
+
+unsigned int DebugShape::BodyCount = 0;
 
 // ImGui variabless
 static int e = 1;
@@ -77,7 +80,7 @@ int main(int argc, char** argv)
 	std::unique_ptr<EdgeChainManager> edgeChainManager(new EdgeChainManager(&world));
 
 	/* Vector for debug boxes */
-	std::vector<std::shared_ptr<DebugBox>> debugBoxes;
+	std::vector<DebugShape*> debugBoxes;
 
 	/* Vector for custom polygon objects */
 	std::vector<CustomPolygon> customPolygons;
@@ -86,6 +89,9 @@ int main(int argc, char** argv)
 	sf::Clock clock;
 
 	unsigned int count_dynamicBodies = 0;
+
+	// TMP
+	DebugCircle dCicle(sf::Vector2f(100.f, 100.f), &world);
 
 	while (window.isOpen())
 	{
@@ -172,7 +178,7 @@ int main(int argc, char** argv)
 						// ++count_dynamicBodies;
 
 						debugBoxes.push_back(
-							std::make_shared<DebugBox>(GetMousePosition(window), &world));
+							dynamic_cast<DebugShape*>(new DebugBox(GetMousePosition(window), &world)));
 					}
 				}
 				else if (event.mouseButton.button == sf::Mouse::Left)
@@ -275,7 +281,8 @@ int main(int argc, char** argv)
 			ImGui::PopStyleColor(3);
             ImGui::PopID();
 
-			ImGui::Text("Dynamic Bodies: %d", count_dynamicBodies);
+			//ImGui::Text("Dynamic Bodies: %d", count_dynamicBodies);
+			ImGui::Text("Boxes: %d", DebugBox::BodyCount);
 		}
 
 		if (ImGui::CollapsingHeader("Static Edge Chains", ImGuiTreeNodeFlags_DefaultOpen))
@@ -348,6 +355,11 @@ int main(int argc, char** argv)
 			{
 				edgeChainManager->RemoveVertexFromSelectedChain();
 			}
+
+			if (ImGui::Button("Add Debug Circle")) {
+				debugBoxes.push_back(
+					dynamic_cast<DebugShape*>(new DebugCircle(sf::Vector2f(200.f, 100.f), &world)));
+			}
 		}
 
 		std::vector<std::pair<std::string, std::string>> controls =
@@ -382,7 +394,7 @@ int main(int argc, char** argv)
 		/* Draw */
 		window.clear(sf::Color::White);
 
-		int bodyCount = 0;
+		//int bodyCount = 0;
 		for (b2Body* body = world.GetBodyList(); body != 0; body = body->GetNext())
 		{
 			if (body->GetType() == b2_dynamicBody)
@@ -424,21 +436,21 @@ int main(int argc, char** argv)
 						}
 						case b2Shape::e_circle:
 						{
-							sf::CircleShape sprite;
-							sprite.setRadius(CIRCLE_RADIUS);
-							sprite.setPosition(SCALE * body->GetPosition().x, SCALE * body->GetPosition().y);
-							sprite.setRotation(body->GetAngle() * 180/b2_pi);
-							sprite.setOrigin(CIRCLE_RADIUS, CIRCLE_RADIUS);
-							sprite.setOutlineColor(sf::Color::Black);
-							sprite.setOutlineThickness(2.f);
-							sprite.setFillColor(sf::Color::White);
-							++bodyCount;
+							// sf::CircleShape sprite;
+							// sprite.setRadius(CIRCLE_RADIUS);
+							// sprite.setPosition(SCALE * body->GetPosition().x, SCALE * body->GetPosition().y);
+							// sprite.setRotation(body->GetAngle() * 180/b2_pi);
+							// sprite.setOrigin(CIRCLE_RADIUS, CIRCLE_RADIUS);
+							// sprite.setOutlineColor(sf::Color::Black);
+							// sprite.setOutlineThickness(2.f);
+							// sprite.setFillColor(sf::Color::White);
+							// ++bodyCount;
 
-							// Check if shape is clicked on
-							if (drawClickPoint)
-								DoTestPoint(fixture, clickPos, sprite);
+							// // Check if shape is clicked on
+							// if (drawClickPoint)
+							// 	DoTestPoint(fixture, clickPos, sprite);
 
-							window.draw(sprite);
+							// window.draw(sprite);
 							break;
 						}
 						default:
@@ -461,17 +473,20 @@ int main(int argc, char** argv)
 		edgeChainManager->Update(window);
 
 		/* Update debug boxes */
-		for (auto& box : debugBoxes)
+		for (auto& shape : debugBoxes)
 		{
-			box->Update();
+			if (DebugBox* box = dynamic_cast<DebugBox*>(shape))
+				box->Update();
+			else if (DebugCircle* circle = dynamic_cast<DebugCircle*>(shape))
+				circle->Update();
 
 			// TODO: Put in manager class
 			float offset = 50.f;
-			sf::Vector2f pos = box->GetPosition();
+			sf::Vector2f pos = shape->GetPosition();
 			if (pos.x < 0.f || pos.x > (RESOLUTION.x + offset) ||
 				pos.y < 0.f || pos.y > (RESOLUTION.y + offset))
 			{
-				box->MarkForDelete(true);
+				shape->MarkForDelete(true);
 			}
 		}
 
@@ -482,10 +497,30 @@ int main(int argc, char** argv)
 			std::remove_if(
 				debugBoxes.begin(),
 				debugBoxes.end(),
-				[](std::shared_ptr<DebugBox>& box) {
-					if (box->IsMarkedForDelete())
-						std::cout << "Will remove...\n";
-					return box->IsMarkedForDelete();
+				[](DebugShape* shape) {
+					if (shape->IsMarkedForDelete())
+					{
+						if (DebugBox* box = dynamic_cast<DebugBox*>(shape))
+						{
+							//std::cout << "Will remove box...\n";
+							delete box;
+							box = nullptr;
+							return true;
+						}
+						else if (DebugCircle* circle = dynamic_cast<DebugCircle*>(shape))
+						{
+							//std::cout << "Will remove circle...\n";
+							delete circle;
+							circle = nullptr;
+							return true;
+						}
+
+						delete shape;
+						shape = nullptr;
+						return true;
+					}
+
+					return false;
 				}),
 			debugBoxes.end());
 
@@ -495,6 +530,8 @@ int main(int argc, char** argv)
 			polygon.Update(&world);
 			polygon.Draw(window);
 		}
+
+		dCicle.Update();
 
 		/* Remove marked expired polygons and resize vector */
 		RemoveExpiredCustomPolygons(customPolygons, &world, count_dynamicBodies);
@@ -511,8 +548,15 @@ int main(int argc, char** argv)
 		}
 
 		/* Draw debug boxes */
-		for (auto& box : debugBoxes)
-			box->Draw(window);
+		for (auto& shape : debugBoxes)
+		{
+			if (DebugBox* box = dynamic_cast<DebugBox*>(shape))
+				box->Draw(window);
+			if (DebugCircle* box = dynamic_cast<DebugCircle*>(shape))
+				box->Draw(window);
+		}
+
+		dCicle.Draw(window);
 
 		edgeChainManager->Draw(window);
 
@@ -531,9 +575,25 @@ int main(int argc, char** argv)
 		window.display();
 	}
 
-	// TMP
-	for (auto& box : debugBoxes)
-		box->DeleteBody();
+	// TODO: Put in manager class
+	for (auto& shape : debugBoxes)
+	{
+		if (DebugBox* box = dynamic_cast<DebugBox*>(shape))
+		{
+			delete box;
+			box = nullptr;
+		}
+		else if (DebugCircle* circle = dynamic_cast<DebugCircle*>(shape))
+		{
+			delete circle;
+			circle = nullptr;
+		}
+		else
+		{
+			delete shape;
+			shape = nullptr;
+		}
+	}
 
 	// clean up ImGui, such as deleting the internal font atlas
     ImGui::SFML::Shutdown();
