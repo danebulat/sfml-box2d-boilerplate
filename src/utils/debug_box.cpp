@@ -1,9 +1,11 @@
 #include "utils/debug_box.hpp"
 #include "utils/constants.hpp"
+#include "utils/box2d_utils.hpp"
 
 DebugBox::DebugBox(const sf::Vector2f& position,
 	b2World* world) : DebugShape(position, "debug_box")
 {
+	++DebugBoxCount;
 	m_size = 32.f;
 	m_world = world;
 
@@ -19,11 +21,7 @@ DebugBox::DebugBox(const sf::Vector2f& position,
 
 DebugBox::~DebugBox()
 {
-	if (m_tag != nullptr)
-	{
-		delete m_tag;
-		m_tag = nullptr;
-	}
+	SafeDelete(m_tag);
 
 	if (m_body != nullptr)
 	{
@@ -31,8 +29,10 @@ DebugBox::~DebugBox()
 		m_body = nullptr;
 	}
 
+	--ShapeBodyCount;
+	--DebugBoxCount;
+
 	std::cout << "--BodyCount (DebugBox)\n";
-	--BodyCount;
 }
 
 void DebugBox::CreateBody()
@@ -59,8 +59,6 @@ void DebugBox::CreateBody()
 	fixtureDef.friction = .7f;
 	fixtureDef.shape = &shape;
 	m_body->CreateFixture(&fixtureDef);
-
-	++BodyCount;
 }
 
 void DebugBox::DeleteBody()

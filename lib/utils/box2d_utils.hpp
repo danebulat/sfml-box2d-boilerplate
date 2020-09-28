@@ -13,6 +13,22 @@ using sf::RectangleShape;
 using sf::CircleShape;
 using sf::RenderWindow;
 
+template<class T>
+void SafeDelete(T*& pVal) {
+	if (pVal != nullptr) {
+		delete pVal;
+		pVal = nullptr;
+	}
+}
+
+template<class T>
+void SafeDeleteArray (T*& pVal) {
+    if (pVal != nullptr) {
+		delete [] pVal;
+		pVal = nullptr;
+	}
+}
+
 namespace demo_data
 {
 	// edge chains and custom polygon coordinates

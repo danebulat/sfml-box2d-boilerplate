@@ -4,6 +4,7 @@
 #include <box2d/box2d.h>
 #include "utils/debug_shape.hpp"
 #include "utils/constants.hpp"
+#include "utils/box2d_utils.hpp"
 
 class DebugCircle : public DebugShape
 {
@@ -39,14 +40,13 @@ private:
 		fixtureDef.friction = .7f;
 		fixtureDef.shape = &shape;
 		m_body->CreateFixture(&fixtureDef);
-
-		++BodyCount;
 	}
 
 public:
 	DebugCircle(const sf::Vector2f& position,
 		b2World* world) : DebugShape(position, "debug_circle")
 	{
+		++DebugCircleCount;
 		m_radius = 18.f;
 		m_world = world;
 
@@ -62,11 +62,7 @@ public:
 
 	virtual ~DebugCircle()
 	{
-		if (m_tag != nullptr)
-		{
-			delete m_tag;
-			m_tag = nullptr;
-		}
+		SafeDelete(m_tag);
 
 		if (m_body != nullptr)
 		{
@@ -74,8 +70,10 @@ public:
 			m_body = nullptr;
 		}
 
+		--ShapeBodyCount;
+		--DebugCircleCount;
+
 		std::cout << "--BodyCount (DebugCirle)\n";
-		--BodyCount;
 	}
 
 	void DeleteBody()

@@ -11,11 +11,14 @@ protected:
 	bool 			m_markedForDelete;
 
 public:
-	static unsigned int BodyCount;
+	static unsigned int ShapeBodyCount;
+	static unsigned int DebugBoxCount;
+	static unsigned int DebugCircleCount;
 
 	DebugShape(const sf::Vector2f& position,
 			   const std::string& tag)
 	{
+		++ShapeBodyCount;
 		m_markedForDelete = false;
 		m_position = position;
 		m_tag = new std::string(tag.c_str());
