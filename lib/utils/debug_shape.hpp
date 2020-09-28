@@ -15,32 +15,13 @@ public:
 	static unsigned int DebugBoxCount;
 	static unsigned int DebugCircleCount;
 
-	DebugShape(const sf::Vector2f& position,
-			   const std::string& tag)
-	{
-		++ShapeBodyCount;
-		m_markedForDelete = false;
-		m_position = position;
-		m_tag = new std::string(tag.c_str());
-	}
+	DebugShape(const sf::Vector2f& position, const std::string& tag);
+	virtual ~DebugShape();
 
-	virtual ~DebugShape()
-	{}
+	void MarkForDelete(bool flag);
+	bool IsMarkedForDelete() const;
 
-	void MarkForDelete(bool flag)
-	{
-		m_markedForDelete = flag;
-	}
-
-	bool IsMarkedForDelete() const
-	{
-		return m_markedForDelete;
-	}
-
-	sf::Vector2f GetPosition() const
-	{
-		return m_position;
-	}
+	sf::Vector2f GetPosition() const;
 
 	virtual void Update() = 0;
 	virtual void Draw(sf::RenderWindow& window) = 0;

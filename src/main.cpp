@@ -15,10 +15,6 @@
 
 using namespace physics;
 
-unsigned int DebugShape::ShapeBodyCount = 0;
-unsigned int DebugShape::DebugBoxCount = 0;
-unsigned int DebugShape::DebugCircleCount = 0;
-
 // ImGui variabless
 static int e = 1;
 bool renderMouseCoords = true;
@@ -80,7 +76,7 @@ int main(int argc, char** argv)
 	std::unique_ptr<EdgeChainManager> edgeChainManager(new EdgeChainManager(&world));
 
 	/* Create sprite manager */
-	std::unique_ptr<SpriteManager> spriteManager(new SpriteManager(&world));
+	std::unique_ptr<SpriteManager> spriteManager(new SpriteManager(&world, RESOLUTION));
 
 	/* Vector for custom polygon objects */
 	std::vector<CustomPolygon> customPolygons;

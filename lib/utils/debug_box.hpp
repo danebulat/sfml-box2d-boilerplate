@@ -22,8 +22,8 @@ public:
 
 	void DeleteBody();
 
-	virtual void Update();
-	virtual void Draw(sf::RenderWindow& window);
+	virtual void Update() override;
+	virtual void Draw(sf::RenderWindow& window) override;
 
 	std::string* GetUserData();
 	sf::Vector2f GetPosition() const;
