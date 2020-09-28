@@ -334,4 +334,51 @@ void RemoveOffScreenDynamicBodies(b2World* world, unsigned int& counter)
 	}
 }
 
+/** Traverse bodies
+ *
+ * Debugging function that counts the amount of bodies, dynamic bodies
+ * and fixtures in the passed Box2D world.
+ */
+
+void TraverseWorldBodies(b2World* world)
+{
+	int bodyCount = 0;
+	int dynamicBodyCount = 0;
+	int fixtureCount = 0;
+
+	for (b2Body* body = world->GetBodyList(); body != 0; body = body->GetNext())
+	{
+		++bodyCount;
+
+		if (body->GetType() == b2_dynamicBody)
+		{
+			++dynamicBodyCount;
+
+			b2Fixture* fixture = body->GetFixtureList();
+
+			while (fixture != NULL)
+			{
+				++fixtureCount;
+
+				switch (fixture->GetType())
+				{
+					case b2Shape::e_polygon:
+						break;
+					case b2Shape::e_circle:
+						break;
+					case b2Shape::e_edge:
+						break;
+					case b2Shape::e_chain:
+						break;
+					case b2Shape::e_typeCount:
+						break;
+					default:
+						break;
+				}
+			}
+		}
+	}
+}
+
 }; // namespace physics
+

@@ -33,11 +33,10 @@ int main(int argc, char** argv)
 	RMBMode rmbMode = RMBMode::BoxSpawnMode;
 
 	/** Prepare the window */
-	sf::Vector2f resolution;
-	resolution.x = VideoMode::getDesktopMode().width;
-    resolution.y = VideoMode::getDesktopMode().height;
+	RESOLUTION.x = VideoMode::getDesktopMode().width;
+    RESOLUTION.y = VideoMode::getDesktopMode().height;
 
-	sf::RenderWindow window(sf::VideoMode(resolution.x * .9f, resolution.y * .75f, 32),
+	sf::RenderWindow window(sf::VideoMode(RESOLUTION.x * .9f, RESOLUTION.y * .75f, 32),
 		"SFML - Box2D Boilerplate", sf::Style::Default);
 	window.setFramerateLimit(60);
 
@@ -73,10 +72,12 @@ int main(int argc, char** argv)
 	/** Prepare the world */
 	b2Vec2 gravity(0.f, 9.8f);
 	b2World world(gravity);
-	CreateGround(world, 400.f, 575.f);
 
 	/* Create edge chain manager */
 	std::unique_ptr<EdgeChainManager> edgeChainManager(new EdgeChainManager(&world));
+
+	/* Vector for debug boxes */
+	std::vector<std::shared_ptr<DebugBox>> debugBoxes;
 
 	/* Vector for custom polygon objects */
 	std::vector<CustomPolygon> customPolygons;
@@ -85,9 +86,6 @@ int main(int argc, char** argv)
 	sf::Clock clock;
 
 	unsigned int count_dynamicBodies = 0;
-
-	// TMP
-	DebugBox dBox(sf::Vector2f(100.f, 100.f), &world);
 
 	while (window.isOpen())
 	{
@@ -169,9 +167,12 @@ int main(int argc, char** argv)
 					// Spawn a box
 					if (rmbMode == RMBMode::BoxSpawnMode)
 					{
-						sf::Vector2f mousePos = GetMousePosition(window);
-						CreateBox(world, mousePos.x, mousePos.y);
-						++count_dynamicBodies;
+						// sf::Vector2f mousePos = GetMousePosition(window);
+						// CreateBox(world, mousePos.x, mousePos.y);
+						// ++count_dynamicBodies;
+
+						debugBoxes.push_back(
+							std::make_shared<DebugBox>(GetMousePosition(window), &world));
 					}
 				}
 				else if (event.mouseButton.button == sf::Mouse::Left)
@@ -404,21 +405,21 @@ int main(int argc, char** argv)
 					{
 						case b2Shape::e_polygon:
 						{
-							sf::RectangleShape sprite;
-							sprite.setSize(sf::Vector2f(SQUARE_SIZE, SQUARE_SIZE));
-							sprite.setPosition(SCALE * body->GetPosition().x, SCALE * body->GetPosition().y);
-							sprite.setRotation(body->GetAngle() * 180/b2_pi);
-							sprite.setOrigin(16.f, 16.f);
-							sprite.setOutlineColor(sf::Color::Black);
-							sprite.setOutlineThickness(2.f);
-							sprite.setFillColor(sf::Color::White);
-							++bodyCount;
+							// sf::RectangleShape sprite;
+							// sprite.setSize(sf::Vector2f(SQUARE_SIZE, SQUARE_SIZE));
+							// sprite.setPosition(SCALE * body->GetPosition().x, SCALE * body->GetPosition().y);
+							// sprite.setRotation(body->GetAngle() * 180/b2_pi);
+							// sprite.setOrigin(16.f, 16.f);
+							// sprite.setOutlineColor(sf::Color::Black);
+							// sprite.setOutlineThickness(2.f);
+							// sprite.setFillColor(sf::Color::White);
+							// ++bodyCount;
 
-							// Check if shape is clicked on
-							if (drawClickPoint)
-								DoTestPoint(fixture, clickPos, sprite);
+							// // Check if shape is clicked on
+							// if (drawClickPoint)
+							// 	DoTestPoint(fixture, clickPos, sprite);
 
-							window.draw(sprite);
+							// window.draw(sprite);
 							break;
 						}
 						case b2Shape::e_circle:
@@ -451,18 +452,6 @@ int main(int argc, char** argv)
 					fixture = fixture->GetNext();
 				}// while (fixture != NULL)
 			}
-			else
-			{
-				sf::RectangleShape ground;
-				ground.setSize(sf::Vector2f(800.f, 4.f));
-				ground.setPosition(SCALE * body->GetPosition().x, SCALE * body->GetPosition().y);
-				ground.setRotation(body->GetAngle() * 180/b2_pi);
-				ground.setOrigin(400.f, 8.f);
-				ground.setFillColor(sf::Color::White);
-				ground.setOutlineColor(sf::Color::Black);
-				ground.setOutlineThickness(2.f);
-				window.draw(ground);
-			}
 		}
 
 		/* Delete bodies that are off screen */
@@ -472,7 +461,33 @@ int main(int argc, char** argv)
 		edgeChainManager->Update(window);
 
 		/* Update debug boxes */
-		dBox.Update();
+		for (auto& box : debugBoxes)
+		{
+			box->Update();
+
+			// TODO: Put in manager class
+			float offset = 50.f;
+			sf::Vector2f pos = box->GetPosition();
+			if (pos.x < 0.f || pos.x > (RESOLUTION.x + offset) ||
+				pos.y < 0.f || pos.y > (RESOLUTION.y + offset))
+			{
+				box->MarkForDelete(true);
+			}
+		}
+
+		/* Remove debug boxes marked for delete */
+
+		// TODO: Put in manager class
+		debugBoxes.erase(
+			std::remove_if(
+				debugBoxes.begin(),
+				debugBoxes.end(),
+				[](std::shared_ptr<DebugBox>& box) {
+					if (box->IsMarkedForDelete())
+						std::cout << "Will remove...\n";
+					return box->IsMarkedForDelete();
+				}),
+			debugBoxes.end());
 
 		/* Update polygons and draw if not marked as expired */
 		for (auto& polygon : customPolygons)
@@ -496,7 +511,8 @@ int main(int argc, char** argv)
 		}
 
 		/* Draw debug boxes */
-		dBox.Draw(window);
+		for (auto& box : debugBoxes)
+			box->Draw(window);
 
 		edgeChainManager->Draw(window);
 
@@ -516,7 +532,8 @@ int main(int argc, char** argv)
 	}
 
 	// TMP
-	dBox.DeleteBody();
+	for (auto& box : debugBoxes)
+		box->DeleteBody();
 
 	// clean up ImGui, such as deleting the internal font atlas
     ImGui::SFML::Shutdown();
