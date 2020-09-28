@@ -6,6 +6,7 @@
 #include "utils/custom_polygon.hpp"
 #include "utils/mouse_utils.hpp"
 #include "utils/edge_chain_manager.hpp"
+#include "utils/debug_box.hpp"
 
 #include "imgui.h"
 #include "imgui-SFML.h"
@@ -84,6 +85,9 @@ int main(int argc, char** argv)
 	sf::Clock clock;
 
 	unsigned int count_dynamicBodies = 0;
+
+	// TMP
+	DebugBox dBox(sf::Vector2f(100.f, 100.f), &world);
 
 	while (window.isOpen())
 	{
@@ -467,6 +471,9 @@ int main(int argc, char** argv)
 		/* Update edge chains */
 		edgeChainManager->Update(window);
 
+		/* Update debug boxes */
+		dBox.Update();
+
 		/* Update polygons and draw if not marked as expired */
 		for (auto& polygon : customPolygons)
 		{
@@ -488,6 +495,9 @@ int main(int argc, char** argv)
 			clearAllBodies = false;
 		}
 
+		/* Draw debug boxes */
+		dBox.Draw(window);
+
 		edgeChainManager->Draw(window);
 
 		if (drawClickPoint)
@@ -504,6 +514,9 @@ int main(int argc, char** argv)
 
 		window.display();
 	}
+
+	// TMP
+	dBox.DeleteBody();
 
 	// clean up ImGui, such as deleting the internal font atlas
     ImGui::SFML::Shutdown();
