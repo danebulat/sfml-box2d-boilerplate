@@ -23,6 +23,7 @@ private:
 	bool						m_destroyFlag;
 
 	bool 						m_wireframeMode;
+	bool						m_rmbPressed;
 
 public:
 	static unsigned int DynamicBodiesCount;
@@ -35,7 +36,7 @@ public:
 
 	void PushShape(const ShapeType type, const sf::Vector2f& position);
 
-	void HandleInput(const sf::Event& event);
+	void HandleInput(const sf::Event& event, sf::RenderWindow& window);
 	void Update();
 	void Draw(sf::RenderWindow& window);
 
@@ -44,6 +45,8 @@ public:
 
 	bool* GetWireframeFlag();
 	void ToggleWireframe();
+
+	void DoTestPoint(RenderWindow& window);
 };
 
 #endif

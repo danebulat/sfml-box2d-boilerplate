@@ -19,17 +19,12 @@ using namespace physics;
 static int e = 1;
 bool renderMouseCoords = true;
 
-enum class RMBMode
-{
-	BoxSpawnMode = 1,
-	TestPointMode,
-	RayCastMode
-};
+// Set initial editor mode
+RMBMode EditorSettings::mode = RMBMode::BoxSpawnMode;
 
 int main(int argc, char** argv)
 {
 	util::Platform platform;
-	RMBMode rmbMode = RMBMode::BoxSpawnMode;
 
 	/** Prepare the window */
 	RESOLUTION.x = VideoMode::getDesktopMode().width;
@@ -109,15 +104,15 @@ int main(int argc, char** argv)
 				// Enter key: toggle demo
 				if (event.key.code == sf::Keyboard::Enter)
 				{
-					int mode = (static_cast<int>(rmbMode) + 1);
+					int mode = (static_cast<int>(EditorSettings::mode) + 1);
 					if (mode > 3)
 					{
-						rmbMode = RMBMode::BoxSpawnMode;
+						EditorSettings::mode = RMBMode::BoxSpawnMode;
 						e = 1;
 					}
 					else
 					{
-						rmbMode = static_cast<RMBMode>(mode);
+						EditorSettings::mode = static_cast<RMBMode>(mode);
 						e = mode;
 					}
 				}
@@ -155,7 +150,7 @@ int main(int argc, char** argv)
 					holdingRMB = false;
 
 					// Spawn a box
-					if (rmbMode == RMBMode::BoxSpawnMode)
+					if (EditorSettings::mode == RMBMode::BoxSpawnMode)
 					{
 						spriteManager->PushShape(ShapeType::DebugBox, GetMousePosition(window));
 					}
@@ -180,18 +175,18 @@ int main(int argc, char** argv)
 
 			// Handle manager inputs
 			edgeChainManager->HandleInput(event, window);
-			spriteManager->HandleInput(event);
+			spriteManager->HandleInput(event, window);
 
 		}// end window.poll(event)
 
-		if (holdingRMB && rmbMode == RMBMode::RayCastMode)
+		if (holdingRMB && EditorSettings::mode == RMBMode::RayCastMode)
 		{
 			rayEndPoint = GetMousePosition(window);
 
 			line[1].position.x = rayEndPoint.x;
 			line[1].position.y = rayEndPoint.y;
 		}
-		else if (holdingRMB && rmbMode == RMBMode::TestPointMode)
+		else if (holdingRMB && EditorSettings::mode == RMBMode::TestPointMode)
 		{
 			drawClickPoint = true;
 			clickPos = GetMousePosition(window);
@@ -210,15 +205,18 @@ int main(int argc, char** argv)
 		{
 			ImGui::Text("RMB Mode:");
 			if (ImGui::RadioButton("Spawn Box", &e, 1))
-				rmbMode = RMBMode::BoxSpawnMode;
+				EditorSettings::mode = RMBMode::BoxSpawnMode;
 
 			ImGui::SameLine();
 			if (ImGui::RadioButton("Test Point", &e, 2))
-				rmbMode = RMBMode::TestPointMode;
+			{
+				EditorSettings::mode = RMBMode::TestPointMode;
+			}
+
 
 			ImGui::SameLine();
 			if (ImGui::RadioButton("Ray Cast", &e, 3))
-				rmbMode = RMBMode::RayCastMode;
+				EditorSettings::mode = RMBMode::RayCastMode;
 		}
 
 		if (ImGui::CollapsingHeader("Rendering", ImGuiTreeNodeFlags_DefaultOpen))
@@ -435,7 +433,7 @@ int main(int argc, char** argv)
 					}
 
 					// Draw raycast
-					if (rmbMode == RMBMode::RayCastMode)
+					if (EditorSettings::mode == RMBMode::RayCastMode)
 						DoRayCast(fixture, rayEndPoint, window);
 
 					fixture = fixture->GetNext();
@@ -459,7 +457,7 @@ int main(int argc, char** argv)
 		if (drawClickPoint)
 			window.draw(circle);
 
-		if (rmbMode == RMBMode::RayCastMode)
+		if (EditorSettings::mode == RMBMode::RayCastMode)
 			window.draw(line);
 
 		if (renderMouseCoords)

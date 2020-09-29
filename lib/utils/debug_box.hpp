@@ -13,6 +13,8 @@ private:
 	b2Body*				m_body;
 	b2World*			m_world;
 
+	bool 				m_testPointActive;
+
 private:
 	void CreateBody();
 
@@ -27,6 +29,9 @@ public:
 
 	std::string* GetUserData();
 	sf::Vector2f GetPosition() const;
+
+	void DoTestPoint(const sf::Vector2f& point);
+	void ResetTestPoint();
 };
 
 #endif

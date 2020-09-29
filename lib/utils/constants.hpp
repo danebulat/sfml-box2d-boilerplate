@@ -9,4 +9,16 @@ static const float CIRCLE_RADIUS = 18.f;
 
 static sf::Vector2f RESOLUTION;
 
+enum class RMBMode
+{
+	BoxSpawnMode = 1,
+	TestPointMode,
+	RayCastMode
+};
+
+struct EditorSettings
+{
+	static RMBMode mode;
+};
+
 #endif

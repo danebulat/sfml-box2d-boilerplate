@@ -118,3 +118,30 @@ string* DebugBox::GetUserData()
 
 	return nullptr;
 }
+
+void DebugBox::DoTestPoint(const sf::Vector2f& point)
+{
+	if (m_body->GetType() == b2_dynamicBody)
+	{
+		b2Fixture* fixture = m_body->GetFixtureList();
+
+		if (fixture != NULL)
+		{
+			b2Vec2 scaledPoint(point.x/SCALE, point.y/SCALE);
+
+			if (fixture->TestPoint(scaledPoint))
+			{
+				m_sprite.setFillColor(sf::Color::Blue);
+			}
+			else
+			{
+				m_sprite.setFillColor(sf::Color::White);
+			}
+		}
+	}
+}
+
+void DebugBox::ResetTestPoint()
+{
+	m_sprite.setFillColor(Color::White);
+}

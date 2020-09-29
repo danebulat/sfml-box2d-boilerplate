@@ -9,6 +9,7 @@ SpriteManager::SpriteManager(b2World* world, const sf::Vector2f& resolution)
 	m_resolution = resolution;
 	m_destroyFlag = false;
 	m_wireframeMode = false;
+	m_rmbPressed = false;
 }
 
 SpriteManager::~SpriteManager()
@@ -43,9 +44,9 @@ void SpriteManager::PushShape(const ShapeType type, const sf::Vector2f& position
 	}
 }
 
-void SpriteManager::HandleInput(const sf::Event& event)
+void SpriteManager::HandleInput(const sf::Event& event, sf::RenderWindow& window)
 {
-	// TODO: Handle wireframe toggle for custom polygons
+	// Handle wireframe toggle for custom polygons
 	if (event.type == sf::Event::KeyReleased)
     {
 		// W key: toggle custom polygon wireframe
@@ -61,9 +62,55 @@ void SpriteManager::HandleInput(const sf::Event& event)
 		}
 	}
 
-	// TODO: Handle test point
+	// Handle test point
+	if (event.type == sf::Event::MouseButtonPressed)
+	{
+		if (event.mouseButton.button == sf::Mouse::Right &&
+			EditorSettings::mode == RMBMode::TestPointMode)
+		{
+			m_rmbPressed = true;
+			DoTestPoint(window);
+		}
+	}
+
+	if (event.type == sf::Event::MouseMoved)
+	{
+		if (m_rmbPressed &&
+			EditorSettings::mode == RMBMode::TestPointMode)
+		{
+			DoTestPoint(window);
+		}
+	}
+
+	if (event.type == sf::Event::MouseButtonReleased)
+	{
+		if (event.mouseButton.button == sf::Mouse::Right &&
+			EditorSettings::mode == RMBMode::TestPointMode)
+		{
+			m_rmbPressed = false;
+
+			for (auto& shape : m_debugShapes)
+			{
+				if (DebugBox* box = dynamic_cast<DebugBox*>(shape))
+				{
+					box->ResetTestPoint();
+				}
+			}
+		}
+	}
 
 	// TODO: Handle ray cast
+}
+
+void SpriteManager::DoTestPoint(RenderWindow& window)
+{
+	for (auto& shape : m_debugShapes)
+	{
+		if (DebugBox* box = dynamic_cast<DebugBox*>(shape))
+		{
+			box->DoTestPoint(GetMousePosition(window));
+		}
+	}
 }
 
 bool* SpriteManager::GetWireframeFlag()
