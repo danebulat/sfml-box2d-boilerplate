@@ -16,9 +16,12 @@ private:
 	sf::Color       		  m_color;
 
 	unsigned int 		      m_vertexCount;
-	bool					  m_wireframe;	// TODO: Hook up to SpriteManager::HandleInput
+	bool					  m_wireframe;
 	b2Body* 				  m_body;
 	b2World* 				  m_world;
+
+private:
+	void SetVertexColor(const sf::Color& color);
 
 public:
 	CustomPolygon(const sf::Vector2f& position,
@@ -36,6 +39,9 @@ public:
 
 	virtual void Update() override;
 	virtual void Draw(sf::RenderWindow& window) override;
+
+	void DoTestPoint(const sf::Vector2f& point);
+	void ResetTestPoint();
 };
 
 #endif

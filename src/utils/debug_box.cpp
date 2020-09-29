@@ -119,7 +119,7 @@ string* DebugBox::GetUserData()
 	return nullptr;
 }
 
-void DebugBox::DoTestPoint(const sf::Vector2f& point)
+void DebugBox::DoTestPoint(const Vector2f& point)
 {
 	if (m_body->GetType() == b2_dynamicBody)
 	{
@@ -131,11 +131,11 @@ void DebugBox::DoTestPoint(const sf::Vector2f& point)
 
 			if (fixture->TestPoint(scaledPoint))
 			{
-				m_sprite.setFillColor(sf::Color::Blue);
+				m_sprite.setFillColor(Color::Blue);
 			}
 			else
 			{
-				m_sprite.setFillColor(sf::Color::White);
+				m_sprite.setFillColor(Color::White);
 			}
 		}
 	}

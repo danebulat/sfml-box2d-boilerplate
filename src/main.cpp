@@ -335,6 +335,11 @@ int main(int argc, char** argv)
 			{
 				edgeChainManager->RemoveVertexFromSelectedChain();
 			}
+
+			if (ImGui::Button("Add Circle"))
+			{
+				spriteManager->PushShape(ShapeType::DebugCircle, sf::Vector2f(100.f,100.f));
+			}
 		}
 
 		std::vector<std::pair<std::string, std::string>> controls =

@@ -47,6 +47,7 @@ public:
 	void ToggleWireframe();
 
 	void DoTestPoint(RenderWindow& window);
+	void ResetTestPoint();
 };
 
 #endif

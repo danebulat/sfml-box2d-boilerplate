@@ -1,9 +1,15 @@
 #include "utils/sprite_manager.hpp"
 #include "utils/constants.hpp"
 
+using sf::Vector2f;
+using sf::Event;
+using sf::Keyboard;
+using sf::Mouse;
+using sf::RenderWindow;
+
 unsigned int SpriteManager::DynamicBodiesCount = 0;
 
-SpriteManager::SpriteManager(b2World* world, const sf::Vector2f& resolution)
+SpriteManager::SpriteManager(b2World* world, const Vector2f& resolution)
 {
 	m_world = world;
 	m_resolution = resolution;
@@ -17,7 +23,7 @@ SpriteManager::~SpriteManager()
 	DestroyAllShapes();
 }
 
-void SpriteManager::PushShape(const ShapeType type, const sf::Vector2f& position)
+void SpriteManager::PushShape(const ShapeType type, const Vector2f& position)
 {
 	switch (type)
 	{
@@ -44,13 +50,13 @@ void SpriteManager::PushShape(const ShapeType type, const sf::Vector2f& position
 	}
 }
 
-void SpriteManager::HandleInput(const sf::Event& event, sf::RenderWindow& window)
+void SpriteManager::HandleInput(const Event& event, RenderWindow& window)
 {
 	// Handle wireframe toggle for custom polygons
-	if (event.type == sf::Event::KeyReleased)
+	if (event.type == Event::KeyReleased)
     {
 		// W key: toggle custom polygon wireframe
-		if (event.key.code == sf::Keyboard::W)
+		if (event.key.code == Keyboard::W)
 		{
 			m_wireframeMode = !m_wireframeMode;
 
@@ -63,9 +69,9 @@ void SpriteManager::HandleInput(const sf::Event& event, sf::RenderWindow& window
 	}
 
 	// Handle test point
-	if (event.type == sf::Event::MouseButtonPressed)
+	if (event.type == Event::MouseButtonPressed)
 	{
-		if (event.mouseButton.button == sf::Mouse::Right &&
+		if (event.mouseButton.button == Mouse::Right &&
 			EditorSettings::mode == RMBMode::TestPointMode)
 		{
 			m_rmbPressed = true;
@@ -73,7 +79,7 @@ void SpriteManager::HandleInput(const sf::Event& event, sf::RenderWindow& window
 		}
 	}
 
-	if (event.type == sf::Event::MouseMoved)
+	if (event.type == Event::MouseMoved)
 	{
 		if (m_rmbPressed &&
 			EditorSettings::mode == RMBMode::TestPointMode)
@@ -82,20 +88,12 @@ void SpriteManager::HandleInput(const sf::Event& event, sf::RenderWindow& window
 		}
 	}
 
-	if (event.type == sf::Event::MouseButtonReleased)
+	if (event.type == Event::MouseButtonReleased)
 	{
-		if (event.mouseButton.button == sf::Mouse::Right &&
+		if (event.mouseButton.button == Mouse::Right &&
 			EditorSettings::mode == RMBMode::TestPointMode)
 		{
-			m_rmbPressed = false;
-
-			for (auto& shape : m_debugShapes)
-			{
-				if (DebugBox* box = dynamic_cast<DebugBox*>(shape))
-				{
-					box->ResetTestPoint();
-				}
-			}
+			ResetTestPoint();
 		}
 	}
 
@@ -109,6 +107,35 @@ void SpriteManager::DoTestPoint(RenderWindow& window)
 		if (DebugBox* box = dynamic_cast<DebugBox*>(shape))
 		{
 			box->DoTestPoint(GetMousePosition(window));
+		}
+		else if (DebugCircle* circle = dynamic_cast<DebugCircle*>(shape))
+		{
+			circle->DoTestPoint(GetMousePosition(window));
+		}
+		else if (CustomPolygon* polygon = dynamic_cast<CustomPolygon*>(shape))
+		{
+			polygon->DoTestPoint(GetMousePosition(window));
+		}
+	}
+}
+
+void SpriteManager::ResetTestPoint()
+{
+	m_rmbPressed = false;
+
+	for (auto& shape : m_debugShapes)
+	{
+		if (DebugBox* box = dynamic_cast<DebugBox*>(shape))
+		{
+			box->ResetTestPoint();
+		}
+		else if (DebugCircle* circle = dynamic_cast<DebugCircle*>(shape))
+		{
+			circle->ResetTestPoint();
+		}
+		else if (CustomPolygon* polygon = dynamic_cast<CustomPolygon*>(shape))
+		{
+			polygon->ResetTestPoint();
 		}
 	}
 }
@@ -155,7 +182,7 @@ void SpriteManager::Update()
 
 		// Mark shapes for removal
 		float offset = 50.f;
-		sf::Vector2f pos;
+		Vector2f pos;
 
 		// Custom polygon requires b2Body to get its world position
 		if (CustomPolygon* polygon = dynamic_cast<CustomPolygon*>(shape))
@@ -207,7 +234,7 @@ void SpriteManager::Update()
 		m_debugShapes.end());
 }
 
-void SpriteManager::Draw(sf::RenderWindow& window)
+void SpriteManager::Draw(RenderWindow& window)
 {
 	for (auto& shape : m_debugShapes)
 	{

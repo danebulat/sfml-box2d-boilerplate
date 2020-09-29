@@ -29,6 +29,9 @@ public:
 	virtual void Draw(sf::RenderWindow& window) override;
 
 	std::string* GetUserData();
+
+	void DoTestPoint(const sf::Vector2f& point);
+	void ResetTestPoint();
 };
 
 #endif

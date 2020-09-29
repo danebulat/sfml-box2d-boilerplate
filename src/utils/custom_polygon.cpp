@@ -159,3 +159,36 @@ void CustomPolygon::Draw(RenderWindow& window)
 {
 	window.draw(m_vertexArray);
 }
+
+void CustomPolygon::DoTestPoint(const Vector2f& point)
+{
+	if (m_body->GetType() == b2_dynamicBody)
+	{
+		b2Fixture* fixture = m_body->GetFixtureList();
+
+		if (fixture != NULL)
+		{
+			b2Vec2 scaledPoint(point.x/SCALE, point.y/SCALE);
+
+			if (fixture->TestPoint(scaledPoint))
+			{
+				SetVertexColor(Color::Green);
+			}
+			else
+			{
+				SetVertexColor(Color::Magenta);
+			}
+		}
+	}
+}
+
+void CustomPolygon::ResetTestPoint()
+{
+	SetVertexColor(Color::Magenta);
+}
+
+void CustomPolygon::SetVertexColor(const Color& color)
+{
+	for (int i = 0; i < m_vertexCount; ++i)
+		m_vertexArray[i].color = color;
+}
