@@ -124,24 +124,24 @@ void DoRayCast(b2Fixture* fixture, sf::Vector2f& rayEndPoint, sf::RenderWindow& 
 	}
 }
 
-/** CreateCustomPolygon
+/** (Deprecated) CreateCustomPolygon
  * 	Create a CustomPolygon object and add to vector.
  */
 
-void CreateCustomPolygon(b2World* world,
-	std::vector<CustomPolygon>& collection,
-	bool wireframe,
-	unsigned int& counter,
-	sf::RenderWindow& window)
-{
-	sf::Vector2f mousePos = GetMousePosition(window);
-	CustomPolygon polygon;
-	polygon.SetTag("custom");
-	polygon.SetWireframe(wireframe);
-	polygon.Init(demo_data::customPolygonCoords, mousePos, world);
-	collection.push_back(polygon);
-	++counter;
-}
+// void CreateCustomPolygon(b2World* world,
+// 	std::vector<CustomPolygon>& collection,
+// 	bool wireframe,
+// 	unsigned int& counter,
+// 	sf::RenderWindow& window)
+// {
+// 	sf::Vector2f mousePos = GetMousePosition(window);
+// 	CustomPolygon polygon;
+// 	polygon.SetTag("custom");
+// 	polygon.SetWireframe(wireframe);
+// 	polygon.Init(demo_data::customPolygonCoords, mousePos, world);
+// 	collection.push_back(polygon);
+// 	++counter;
+// }
 
 /** CreateBox
  * 	Create a dynamic body with an associated box polgyon shape and add
@@ -227,27 +227,27 @@ void CreateGround(b2World& world, float x, float y)
 	body->CreateFixture(&fixtureDef);
 }
 
-/** RemoveExpiredCustomPolygons
+/** (Deprecated) RemoveExpiredCustomPolygons
  * 	Deletes expired CustomPolygon objects and destroys their
  *  associated Box2D object.
  */
 
-void RemoveExpiredCustomPolygons(
-	std::vector<CustomPolygon>& polygons, b2World* world, unsigned int& counter)
-{
-	// Remove expired polygons
-	auto newEnd = std::remove_if(polygons.begin(), polygons.end(),
-		[&counter](CustomPolygon& polygon) -> bool {
-			if (polygon.IsExpired())
-				--counter;
-			return polygon.IsExpired();
-		});
+// void RemoveExpiredCustomPolygons(
+// 	std::vector<CustomPolygon>& polygons, b2World* world, unsigned int& counter)
+// {
+// 	// Remove expired polygons
+// 	auto newEnd = std::remove_if(polygons.begin(), polygons.end(),
+// 		[&counter](CustomPolygon& polygon) -> bool {
+// 			if (polygon.IsExpired())
+// 				--counter;
+// 			return polygon.IsExpired();
+// 		});
 
-	// Resize vector appropriately
-	polygons.erase(newEnd, polygons.end());
-}
+// 	// Resize vector appropriately
+// 	polygons.erase(newEnd, polygons.end());
+// }
 
-/** RemoveDynamicBodies
+/** (Deprecated) RemoveDynamicBodies
  *
  * 	Destroys all dynamic bodies in the b2World, including
  *  CustomPolygon objects.
@@ -281,13 +281,13 @@ void RemoveDynamicBodies(
 	}
 
 	// Delete custom polygons
-	if (customPolygons.size() > 0)
-	{
-		for (auto& polygon : customPolygons)
-			polygon.Delete(world);
+	// if (customPolygons.size() > 0)
+	// {
+	// 	for (auto& polygon : customPolygons)
+	// 		polygon.Delete(world);
 
-		customPolygons.clear();
-	}
+	// 	customPolygons.clear();
+	// }
 
 	// Reset dynamic body count
 	counter = 0;

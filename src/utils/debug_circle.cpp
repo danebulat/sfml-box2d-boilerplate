@@ -25,15 +25,12 @@ DebugCircle::DebugCircle(const Vector2f& position,
 
 DebugCircle::~DebugCircle()
 {
-	SafeDelete(m_tag);
-
 	if (m_body != nullptr)
 	{
 		m_world->DestroyBody(m_body);
 		m_body = nullptr;
 	}
 
-	--ShapeBodyCount;
 	--DebugCircleCount;
 
 	cout << "--BodyCount (DebugCirle)\n";

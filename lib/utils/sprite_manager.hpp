@@ -4,12 +4,14 @@
 #include <SFML/Graphics.hpp>
 #include "utils/debug_box.hpp"
 #include "utils/debug_circle.hpp"
+#include "utils/custom_polygon.hpp"
 #include "utils/box2d_utils.hpp"
 
 enum class ShapeType
 {
 	DebugBox = 1,
-	DebugCircle
+	DebugCircle,
+	CustomPolygon
 };
 
 class SpriteManager

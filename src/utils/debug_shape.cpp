@@ -1,4 +1,5 @@
 #include "utils/debug_shape.hpp"
+#include "utils/box2d_utils.hpp"
 
 using sf::Vector2f;
 using std::string;
@@ -6,6 +7,7 @@ using std::string;
 unsigned int DebugShape::ShapeBodyCount = 0;
 unsigned int DebugShape::DebugBoxCount = 0;
 unsigned int DebugShape::DebugCircleCount = 0;
+unsigned int DebugShape::CustomPolygonCount = 0;
 
 DebugShape::DebugShape(const Vector2f& position,const string& tag)
 {
@@ -16,7 +18,10 @@ DebugShape::DebugShape(const Vector2f& position,const string& tag)
 }
 
 DebugShape::~DebugShape()
-{}
+{
+	SafeDelete(m_tag);
+	--ShapeBodyCount;
+}
 
 void DebugShape::MarkForDelete(bool flag)
 {

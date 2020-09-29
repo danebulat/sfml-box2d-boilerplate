@@ -35,7 +35,6 @@ DebugBox::~DebugBox()
 		m_body = nullptr;
 	}
 
-	--ShapeBodyCount;
 	--DebugBoxCount;
 
 	cout << "--BodyCount (DebugBox)\n";

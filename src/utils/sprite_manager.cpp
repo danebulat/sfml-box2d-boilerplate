@@ -31,6 +31,12 @@ void SpriteManager::PushShape(const ShapeType type, const sf::Vector2f& position
 		);
 		++DynamicBodiesCount;
 		break;
+	case ShapeType::CustomPolygon:
+		m_debugShapes.push_back(
+			dynamic_cast<DebugShape*>(new CustomPolygon(position,
+				demo_data::customPolygonCoords, m_world)));
+		++DynamicBodiesCount;
+		break;
 	default:
 		break;
 	}
@@ -57,10 +63,21 @@ void SpriteManager::Update()
 		{
 			circle->Update();
 		}
+		else if (CustomPolygon* polygon = dynamic_cast<CustomPolygon*>(shape))
+		{
+			polygon->Update();
+		}
 
 		// Mark shapes for removal
 		float offset = 50.f;
-		sf::Vector2f pos = shape->GetPosition();
+		sf::Vector2f pos;
+
+		// Custom polygon requires b2Body to get its world position
+		if (CustomPolygon* polygon = dynamic_cast<CustomPolygon*>(shape))
+			pos = polygon->GetBodyPosition();
+		else
+			pos = shape->GetPosition();
+
 		if (pos.x < 0.f || pos.x > (m_resolution.x + offset) ||
 			pos.y < 0.f || pos.y > (m_resolution.y + offset))
 		{
@@ -89,6 +106,11 @@ void SpriteManager::Update()
 						SafeDelete(circle);
 						return true;
 					}
+					else if (CustomPolygon* polygon = dynamic_cast<CustomPolygon*>(shape))
+					{
+						SafeDelete(polygon);
+						return true;
+					}
 					else {
 						SafeDelete(shape);
 						return true;
@@ -108,9 +130,13 @@ void SpriteManager::Draw(sf::RenderWindow& window)
 		{
 			box->Draw(window);
 		}
-		if (DebugCircle* box = dynamic_cast<DebugCircle*>(shape))
+		else if (DebugCircle* box = dynamic_cast<DebugCircle*>(shape))
 		{
 			box->Draw(window);
+		}
+		else if (CustomPolygon* polygon = dynamic_cast<CustomPolygon*>(shape))
+		{
+			polygon->Draw(window);
 		}
 	}
 }
@@ -128,6 +154,10 @@ void SpriteManager::DestroyAllShapes()
 		else if (DebugCircle* circle = dynamic_cast<DebugCircle*>(shape))
 		{
 			SafeDelete(circle);
+		}
+		else if (CustomPolygon* polygon = dynamic_cast<CustomPolygon*>(shape))
+		{
+			SafeDelete(polygon);
 		}
 		else
 		{

@@ -139,7 +139,8 @@ int main(int argc, char** argv)
 				// Space key: add new custom polygon
 				if (event.key.code == sf::Keyboard::Space)
 				{
-					CreateCustomPolygon(&world, customPolygons, wireframe, count_dynamicBodies, window);
+					//CreateCustomPolygon(&world, customPolygons, wireframe, count_dynamicBodies, window);
+					spriteManager->PushShape(ShapeType::CustomPolygon, GetMousePosition(window));
 				}
 			}
 
@@ -460,14 +461,14 @@ int main(int argc, char** argv)
 		spriteManager->Update();
 
 		/* Update polygons and draw if not marked as expired */
-		for (auto& polygon : customPolygons)
-		{
-			polygon.Update(&world);
-			polygon.Draw(window);
-		}
+		// for (auto& polygon : customPolygons)
+		// {
+		// 	polygon.Update(&world);
+		// 	polygon.Draw(window);
+		// }
 
 		/* Remove marked expired polygons and resize vector */
-		RemoveExpiredCustomPolygons(customPolygons, &world, count_dynamicBodies);
+		//RemoveExpiredCustomPolygons(customPolygons, &world, count_dynamicBodies);
 
 		/* Draw objects */
 		spriteManager->Draw(window);
