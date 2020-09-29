@@ -96,7 +96,6 @@ void DoRayCast(b2Fixture* fixture, sf::Vector2f& rayEndPoint, sf::RenderWindow& 
 		shape = dynamic_cast<b2CircleShape*>(fixture->GetShape());
 	}
 
-
 	// Set up ray cast data
 	b2Transform transform = fixture->GetBody()->GetTransform();
 	b2RayCastInput input;

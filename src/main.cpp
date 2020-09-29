@@ -38,7 +38,6 @@ int main(int argc, char** argv)
 	ImGui::SFML::Init(window);
 
 	// Mouse data
-	bool holdingRMB = false;
 	sf::Font font;
 	font.loadFromFile("content/DroidSansMono.ttf");
 	sf::Text mouseLabel;
@@ -46,22 +45,6 @@ int main(int argc, char** argv)
 	mouseLabel.setColor(sf::Color::Black);
 	mouseLabel.setString("(X,Y)");
 	mouseLabel.setCharacterSize(12);
-
-	// Circle data for clicking
-	sf::Vector2f clickPos;
-	bool drawClickPoint = false;
-	sf::CircleShape circle;
-	circle.setRadius(5.f);
-	circle.setFillColor(sf::Color::Red);
-	circle.setOrigin(sf::Vector2(5.f, 5.f));
-
-	// Line data for ray cast
-	sf::Vector2f rayEndPoint;
-	sf::VertexArray line(sf::LinesStrip, 2);
-	line[0].position = sf::Vector2f(0.f, 600.f);
-	line[0].color = sf::Color::Red;
-	line[1].position = sf::Vector2f(0.f, 600.f);
-	line[1].color = sf::Color::Red;
 
 	/** Prepare the world */
 	b2Vec2 gravity(0.f, 9.8f);
@@ -147,7 +130,7 @@ int main(int argc, char** argv)
 				}
 				else if (event.mouseButton.button == sf::Mouse::Right)
 				{
-					holdingRMB = false;
+					//holdingRMB = false;
 
 					// Spawn a box
 					if (EditorSettings::mode == RMBMode::BoxSpawnMode)
@@ -161,37 +144,11 @@ int main(int argc, char** argv)
 				}
 			}
 
-			if (event.type == sf::Event::MouseButtonPressed)
-			{
-				if (event.mouseButton.button == sf::Mouse::Right)
-				{
-					holdingRMB = true;
-				}
-			}
-			else
-			{
-				drawClickPoint = false;
-			}
-
 			// Handle manager inputs
 			edgeChainManager->HandleInput(event, window);
 			spriteManager->HandleInput(event, window);
 
 		}// end window.poll(event)
-
-		if (holdingRMB && EditorSettings::mode == RMBMode::RayCastMode)
-		{
-			rayEndPoint = GetMousePosition(window);
-
-			line[1].position.x = rayEndPoint.x;
-			line[1].position.y = rayEndPoint.y;
-		}
-		else if (holdingRMB && EditorSettings::mode == RMBMode::TestPointMode)
-		{
-			drawClickPoint = true;
-			clickPos = GetMousePosition(window);
-			circle.setPosition(clickPos);
-		}
 
 		/* Update ImGui */
 		ImGui::SFML::Update(window, dt);
@@ -371,99 +328,16 @@ int main(int argc, char** argv)
 		/** Update Box2D */
 		world.Step(1/60.f, 8, 3);
 
+		/* Update managers */
+		edgeChainManager->Update(window);
+		spriteManager->Update();
+
 		/* Draw */
 		window.clear(sf::Color::White);
-
-		//int bodyCount = 0;
-		for (b2Body* body = world.GetBodyList(); body != 0; body = body->GetNext())
-		{
-			if (body->GetType() == b2_dynamicBody)
-			{
-				// Skip rendering body if it has custom data
-				b2BodyUserData ud = body->GetUserData();
-				if (ud.pointer != 0)
-				{
-					continue; // draws independently
-				}
-
-				// Get fixture to perform point and ray cast checks
-				b2Fixture* fixture = body->GetFixtureList();
-
-				// Get fixture type
-				// https://stackoverflow.com/questions/5873309/box2d-get-shape-of-my-bodies
-				while (fixture != NULL)
-				{
-					switch (fixture->GetType())
-					{
-						case b2Shape::e_polygon:
-						{
-							// sf::RectangleShape sprite;
-							// sprite.setSize(sf::Vector2f(SQUARE_SIZE, SQUARE_SIZE));
-							// sprite.setPosition(SCALE * body->GetPosition().x, SCALE * body->GetPosition().y);
-							// sprite.setRotation(body->GetAngle() * 180/b2_pi);
-							// sprite.setOrigin(16.f, 16.f);
-							// sprite.setOutlineColor(sf::Color::Black);
-							// sprite.setOutlineThickness(2.f);
-							// sprite.setFillColor(sf::Color::White);
-							// ++bodyCount;
-
-							// // Check if shape is clicked on
-							// if (drawClickPoint)
-							// 	DoTestPoint(fixture, clickPos, sprite);
-
-							// window.draw(sprite);
-							break;
-						}
-						case b2Shape::e_circle:
-						{
-							// sf::CircleShape sprite;
-							// sprite.setRadius(CIRCLE_RADIUS);
-							// sprite.setPosition(SCALE * body->GetPosition().x, SCALE * body->GetPosition().y);
-							// sprite.setRotation(body->GetAngle() * 180/b2_pi);
-							// sprite.setOrigin(CIRCLE_RADIUS, CIRCLE_RADIUS);
-							// sprite.setOutlineColor(sf::Color::Black);
-							// sprite.setOutlineThickness(2.f);
-							// sprite.setFillColor(sf::Color::White);
-							// ++bodyCount;
-
-							// // Check if shape is clicked on
-							// if (drawClickPoint)
-							// 	DoTestPoint(fixture, clickPos, sprite);
-
-							// window.draw(sprite);
-							break;
-						}
-						default:
-							continue;
-					}
-
-					// Draw raycast
-					if (EditorSettings::mode == RMBMode::RayCastMode)
-						DoRayCast(fixture, rayEndPoint, window);
-
-					fixture = fixture->GetNext();
-				}// while (fixture != NULL)
-			}
-		}
-
-		/* Delete bodies that are off screen */
-		RemoveOffScreenDynamicBodies(&world, count_dynamicBodies);
-
-		/* Update edge chains */
-		edgeChainManager->Update(window);
-
-		/* Update sprites */
-		spriteManager->Update();
 
 		/* Draw objects */
 		spriteManager->Draw(window);
 		edgeChainManager->Draw(window);
-
-		if (drawClickPoint)
-			window.draw(circle);
-
-		if (EditorSettings::mode == RMBMode::RayCastMode)
-			window.draw(line);
 
 		if (renderMouseCoords)
 			window.draw(mouseLabel);

@@ -98,6 +98,8 @@ void SpriteManager::HandleInput(const Event& event, RenderWindow& window)
 	}
 
 	// TODO: Handle ray cast
+	// I.e., Update line and do ray cast if RMB is being held and
+	// editor is in RayCastMode
 }
 
 void SpriteManager::DoTestPoint(RenderWindow& window)
