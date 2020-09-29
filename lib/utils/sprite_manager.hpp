@@ -22,6 +22,8 @@ private:
 	b2World* 					m_world;
 	bool						m_destroyFlag;
 
+	bool 						m_wireframeMode;
+
 public:
 	static unsigned int DynamicBodiesCount;
 
@@ -33,11 +35,15 @@ public:
 
 	void PushShape(const ShapeType type, const sf::Vector2f& position);
 
+	void HandleInput(const sf::Event& event);
 	void Update();
 	void Draw(sf::RenderWindow& window);
 
 	void DestroyAllShapes();
 	void SetDestroryFlag(bool flag);
+
+	bool* GetWireframeFlag();
+	void ToggleWireframe();
 };
 
 #endif

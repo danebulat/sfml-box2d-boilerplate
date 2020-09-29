@@ -128,14 +128,6 @@ int main(int argc, char** argv)
 					edgeChainManager->ToggleEnable();
 				}
 
-				// W key: toggle custom polygon wireframe
-				if (event.key.code == sf::Keyboard::W)
-				{
-					wireframe = !wireframe;
-					for (auto& polygon : customPolygons)
-						polygon.SetWireframe(wireframe);
-				}
-
 				// Space key: add new custom polygon
 				if (event.key.code == sf::Keyboard::Space)
 				{
@@ -186,8 +178,9 @@ int main(int argc, char** argv)
 				drawClickPoint = false;
 			}
 
-			// Handle edge chain input
+			// Handle manager inputs
 			edgeChainManager->HandleInput(event, window);
+			spriteManager->HandleInput(event);
 
 		}// end window.poll(event)
 
@@ -233,10 +226,9 @@ int main(int argc, char** argv)
 			ImGui::AlignTextToFramePadding();
             ImGui::Text("Wireframe"); ImGui::SameLine(195);
             ImGui::SetNextItemWidth(-1);
-			if (ImGui::Checkbox("##Wireframe", &wireframe))
+			if(ImGui::Checkbox("##Wireframe", spriteManager->GetWireframeFlag()))
 			{
-				for (auto& polygon : customPolygons)
-					polygon.SetWireframe(wireframe);
+				spriteManager->ToggleWireframe();
 			}
 
 			ImGui::AlignTextToFramePadding();
@@ -459,16 +451,6 @@ int main(int argc, char** argv)
 
 		/* Update sprites */
 		spriteManager->Update();
-
-		/* Update polygons and draw if not marked as expired */
-		// for (auto& polygon : customPolygons)
-		// {
-		// 	polygon.Update(&world);
-		// 	polygon.Draw(window);
-		// }
-
-		/* Remove marked expired polygons and resize vector */
-		//RemoveExpiredCustomPolygons(customPolygons, &world, count_dynamicBodies);
 
 		/* Draw objects */
 		spriteManager->Draw(window);

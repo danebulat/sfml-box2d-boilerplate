@@ -8,6 +8,7 @@ SpriteManager::SpriteManager(b2World* world, const sf::Vector2f& resolution)
 	m_world = world;
 	m_resolution = resolution;
 	m_destroyFlag = false;
+	m_wireframeMode = false;
 }
 
 SpriteManager::~SpriteManager()
@@ -39,6 +40,43 @@ void SpriteManager::PushShape(const ShapeType type, const sf::Vector2f& position
 		break;
 	default:
 		break;
+	}
+}
+
+void SpriteManager::HandleInput(const sf::Event& event)
+{
+	// TODO: Handle wireframe toggle for custom polygons
+	if (event.type == sf::Event::KeyReleased)
+    {
+		// W key: toggle custom polygon wireframe
+		if (event.key.code == sf::Keyboard::W)
+		{
+			m_wireframeMode = !m_wireframeMode;
+
+			for (auto& shape : m_debugShapes)
+			{
+				if (CustomPolygon* polygon = dynamic_cast<CustomPolygon*>(shape))
+					polygon->SetWireframe(m_wireframeMode);
+			}
+		}
+	}
+
+	// TODO: Handle test point
+
+	// TODO: Handle ray cast
+}
+
+bool* SpriteManager::GetWireframeFlag()
+{
+	return &m_wireframeMode;
+}
+
+void SpriteManager::ToggleWireframe()
+{
+	for (auto& shape : m_debugShapes)
+	{
+		if (CustomPolygon* polygon = dynamic_cast<CustomPolygon*>(shape))
+			polygon->SetWireframe(m_wireframeMode);
 	}
 }
 

@@ -1,10 +1,17 @@
 #include "utils/custom_polygon.hpp"
 
-CustomPolygon::CustomPolygon(const sf::Vector2f& position, const std::vector<sf::Vector2f>& vertices, b2World* world)
+using sf::Vector2f;
+using sf::RenderWindow;
+using sf::Color;
+using std::vector;
+using std::size_t;
+using std::cout;
+
+CustomPolygon::CustomPolygon(const Vector2f& position, const vector<Vector2f>& vertices, b2World* world)
 	: DebugShape(position, "custom_polygon")
 {
 	m_world = world;
-	m_color = sf::Color::Magenta;
+	m_color = Color::Magenta;
 	m_wireframe = false;
 	m_body = nullptr;
 
@@ -16,7 +23,7 @@ CustomPolygon::CustomPolygon(const sf::Vector2f& position, const std::vector<sf:
 					m_vertexArray.setPrimitiveType(sf::TriangleFan);
 
 	m_vertexArray.resize(m_vertexCount + 1);
-	for (std::size_t i = 0; i < m_vertexCount + 1; ++i)
+	for (size_t i = 0; i < m_vertexCount + 1; ++i)
 	{
 		m_vertexArray[i].position = m_vertices[i];
 		m_vertexArray[i].color = m_color;
@@ -35,7 +42,7 @@ CustomPolygon::~CustomPolygon()
 
 	--CustomPolygonCount;
 
-	std::cout << "--BodyCount (CustomPolygon)\n";
+	cout << "--BodyCount (CustomPolygon)\n";
 }
 
 void CustomPolygon::CreateBody()
@@ -43,7 +50,7 @@ void CustomPolygon::CreateBody()
 	// Initialise b2Body vertices
 	b2Vec2 scaledVertices[m_vertexCount];
 
-	for (std::size_t i = 0; i < m_vertexCount; ++i)
+	for (size_t i = 0; i < m_vertexCount; ++i)
 		scaledVertices[i].Set(m_vertices[i].x / SCALE, m_vertices[i].y / SCALE);
 
 	// Create body
@@ -75,7 +82,7 @@ void CustomPolygon::CreateBody()
 	m_body->CreateFixture(&fixtureDef);
 }
 
-void CustomPolygon::SetColor(const sf::Color& color)
+void CustomPolygon::SetColor(const Color& color)
 {
 	m_color = color;
 }
@@ -120,16 +127,16 @@ void CustomPolygon::Update()
 						dynamic_cast<b2PolygonShape*>(fixture->GetShape());
 
 					// Update SFML vertex array
-					for (std::size_t i = 0; i < m_vertexCount; ++i)
+					for (size_t i = 0; i < m_vertexCount; ++i)
 					{
 						b2Vec2 point = m_body->GetWorldPoint(shape->m_vertices[i]);
-						m_vertexArray[i].position = sf::Vector2f(point.x*SCALE, point.y*SCALE);
+						m_vertexArray[i].position = Vector2f(point.x*SCALE, point.y*SCALE);
 					}
 
 					// Connect last vertex with first vertex for a closed shape
 					b2Vec2 firstPoint = m_body->GetWorldPoint(shape->m_vertices[0]);
 					m_vertexArray[m_vertexCount].position =
-						sf::Vector2f(firstPoint.x*SCALE, firstPoint.y*SCALE);
+						Vector2f(firstPoint.x*SCALE, firstPoint.y*SCALE);
 
 					break;
 				}
@@ -142,13 +149,13 @@ void CustomPolygon::Update()
 	}
 }
 
-sf::Vector2f CustomPolygon::GetBodyPosition() const
+Vector2f CustomPolygon::GetBodyPosition() const
 {
 	b2Vec2 pos = m_body->GetWorldCenter();
-	return sf::Vector2f(pos.x*SCALE, pos.y*SCALE);
+	return Vector2f(pos.x*SCALE, pos.y*SCALE);
 }
 
-void CustomPolygon::Draw(sf::RenderWindow& window)
+void CustomPolygon::Draw(RenderWindow& window)
 {
 	window.draw(m_vertexArray);
 }

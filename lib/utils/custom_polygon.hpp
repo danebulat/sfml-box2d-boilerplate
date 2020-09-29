@@ -16,7 +16,7 @@ private:
 	sf::Color       		  m_color;
 
 	unsigned int 		      m_vertexCount;
-	bool					  m_wireframe;
+	bool					  m_wireframe;	// TODO: Hook up to SpriteManager::HandleInput
 	b2Body* 				  m_body;
 	b2World* 				  m_world;
 
