@@ -59,10 +59,7 @@ int main(int argc, char** argv)
 	/* Vector for custom polygon objects */
 	std::vector<CustomPolygon> customPolygons;
 
-	bool wireframe = false;
 	sf::Clock clock;
-
-	unsigned int count_dynamicBodies = 0;
 
 	while (window.isOpen())
 	{
@@ -236,7 +233,6 @@ int main(int argc, char** argv)
 		{
 			sf::Vector2f shapeStartPos(RESOLUTION.x * .25f, RESOLUTION.y * .25f);
 			float windowWidth = ImGui::GetWindowContentRegionWidth();
-			float pad = windowWidth*.25f;
 			float btnwidth = (windowWidth*.25f) - ((windowWidth*.225f)*.05f);
 
 			ImGui::Separator();
@@ -289,7 +285,6 @@ int main(int argc, char** argv)
 			ImGui::SetNextTreeNodeOpen(true, ImGuiTreeNodeFlags_DefaultOpen);
 			if (ImGui::TreeNode("Level"))
 			{
-				float windowWidth = ImGui::GetWindowContentRegionWidth();
 				ImVec4 lightBlue(.6f, .8f, 1.f, 1.f);
 
 				ImGui::Text("Dynamic Bodies:");
@@ -305,7 +300,6 @@ int main(int argc, char** argv)
 			ImGui::SetNextTreeNodeOpen(true, ImGuiTreeNodeFlags_DefaultOpen);
 			if (ImGui::TreeNode("Debug Shapes"))
 			{
-				float windowWidth = ImGui::GetWindowContentRegionWidth();
 				ImVec4 lightBlue(.6f, .8f, 1.f, 1.f);
 
 				ImGui::SameLine();
@@ -341,12 +335,12 @@ int main(int argc, char** argv)
 
 				ImGui::Text("Chains:");
 				ImGui::SameLine();
-				ImGui::TextColored(ImVec4(0.6f, 0.8f, 1.0f, 1.0f), "%d", *edgeChainManager->GetEdgeChainCount());
+				ImGui::TextColored(ImVec4(0.6f, 0.8f, 1.0f, 1.0f), "%d", (int)*edgeChainManager->GetEdgeChainCount());
 
 				ImGui::SameLine();
 				ImGui::Text(" Vertices:");
 				ImGui::SameLine();
-				ImGui::TextColored(ImVec4(0.6f, 0.8f, 1.0f, 1.0f), "%d", *edgeChainManager->GetEdgeChainVertexCount());
+				ImGui::TextColored(ImVec4(0.6f, 0.8f, 1.0f, 1.0f), "%d", (int)*edgeChainManager->GetEdgeChainVertexCount());
 				ImGui::TreePop();
 			}
 

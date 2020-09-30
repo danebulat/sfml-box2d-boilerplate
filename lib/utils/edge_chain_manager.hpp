@@ -5,7 +5,7 @@
 #include "utils/static_edge_chain.hpp"
 #include "utils/box2d_utils.hpp"
 
-class EdgeChainManager : public ChainManagerController
+class EdgeChainManager final : public ChainManagerController
 {
 private:
 	std::vector<StaticEdgeChain>	m_chains;
@@ -23,7 +23,7 @@ private:
 
 public:
 	EdgeChainManager(b2World* world);
-	~EdgeChainManager();
+	virtual ~EdgeChainManager();
 
 	EdgeChainManager(const EdgeChainManager&) = delete;
 	EdgeChainManager& operator== (const EdgeChainManager&) = delete;

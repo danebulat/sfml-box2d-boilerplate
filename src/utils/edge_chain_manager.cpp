@@ -99,11 +99,14 @@ void EdgeChainManager::PopChain()
 
 		// Remove chain b2Body and remove chain from m_chains
 		auto chain = m_chains.begin() + m_currSelectedIndex;
+
+		// Update vertex count before erasing chain
+		m_edgeChainVertexCount -= chain->GetVertexCount();
+		--m_edgeChainCount;
+
 		chain->SetEditable(false);
 		chain->DeleteBody(m_world);
 		m_chains.erase(chain);
-		--m_edgeChainCount;
-		m_edgeChainVertexCount -= chain->GetVertexCount();
 
 		// Update indexes
 		if (m_chains.size() > 0)
