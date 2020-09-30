@@ -50,8 +50,8 @@ public:
 
 	/* For ImGui */
 	std::vector<std::string>& GetChainLabels();
-	bool& GetEnableFlag();
-	bool& GetDrawBBFlag();
+	bool* GetEnableFlag();
+	bool* GetDrawBBFlag();
 
 	/* ChainManagerController Interface Implementaiton */
 	virtual void IncrementEdgeChainCount(unsigned long n) override;

@@ -1,15 +1,16 @@
-#include "Platform/Platform.hpp"
 #include <SFML/Graphics.hpp>
-#include <string>
-#include <algorithm>
 #include "box2d/box2d.h"
-#include "editor/debug/custom_polygon.hpp"
-#include "editor/mouse_utils.hpp"
-#include "editor/managers/edge_chain_manager.hpp"
-#include "editor/managers/sprite_manager.hpp"
-
 #include "imgui.h"
 #include "imgui-SFML.h"
+
+#include "Platform/Platform.hpp"
+#include "editor/managers/edge_chain_manager.hpp"
+#include "editor/managers/sprite_manager.hpp"
+#include "editor/debug/custom_polygon.hpp"
+#include "editor/mouse_utils.hpp"
+#include <string>
+#include <algorithm>
+
 #include "imgui/imgui_utils.hpp"
 #include "imgui/imgui_demos.hpp"
 
@@ -177,208 +178,114 @@ int main(int argc, char** argv)
 		if (ImGui::CollapsingHeader("Display", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			ImGui::Separator();
+			ImGui::HalfWidthLabelCheckoxLeft("Mouse Coords", "##MouseCoords",
+				"Display mouse coordinates next to mouse pointer.", &renderMouseCoords);
 
-			float windowWidth = ImGui::GetWindowContentRegionWidth();
-
-			ImGui::AlignTextToFramePadding();
-            ImGui::Text("Mouse Coords");
-
-			ImGui::SameLine();
-			ImGui::HelpMarker("Display mouse coordinates next to mouse pointer.");
-
-			ImGui::SameLine((windowWidth/2) * 0.8f);
-			ImGui::Checkbox("##MouseCoords", &renderMouseCoords);
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::SameLine(windowWidth/2);
-            ImGui::Text("Wireframe");
-
-			ImGui::SameLine();
-			ImGui::HelpMarker("Render custom polygons in a wireframe mode.");
-
-			ImGui::SetNextItemWidth(-1);
-			ImGui::SameLine(windowWidth - 20.f);
-			if(ImGui::Checkbox("##Wireframe", spriteManager->GetWireframeFlag()))
-			{
+			if (ImGui::HalfWidthLabelCheckoxRight("Wireframe", "##Wireframe",
+				"Render custom polygons in a wireframe mode.", spriteManager->GetWireframeFlag())) {
 				spriteManager->ToggleWireframe();
 			}
 
-			ImGui::AlignTextToFramePadding();
-            ImGui::Text("Bounding Boxes");
+			ImGui::HalfWidthLabelCheckoxLeft("Bounding Boxes",
+				"##BoundingBoxes", "Display bounding boxes around the selected edge chain.", edgeChainManager->GetDrawBBFlag());
 
-			ImGui::SameLine();
-			ImGui::HelpMarker("Display bounding boxes around the selected edge chain.");
-
-            ImGui::SetNextItemWidth(-1);
-			ImGui::SameLine((windowWidth/2) * 0.8f);
-			ImGui::Checkbox("##BoundingBoxes", &edgeChainManager->GetDrawBBFlag());
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::SameLine(windowWidth/2);
-            ImGui::Text("Labels");
-
-			ImGui::SameLine();
-			ImGui::HelpMarker("TODO: Display edge labels.");
-
-			bool labelBool = true;
-			ImGui::SetNextItemWidth(-1);
-			ImGui::SameLine(windowWidth - 20.f);
-			ImGui::Checkbox("##Labels", &labelBool);
-
+			bool tmp = true;
+			ImGui::HalfWidthLabelCheckoxRight("Labels", "##Labels",
+				"TODO: Display edge labels.", &tmp);
 			ImGui::Separator();
 		}
 
 		/* Bodies Settings */
 		if (ImGui::CollapsingHeader("Bodies", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			sf::Vector2f shapeStartPos(RESOLUTION.x * .25f, RESOLUTION.y * .25f);
+			sf::Vector2f      shapeStartPos(RESOLUTION.x * .25f, RESOLUTION.y * .25f);
 			float windowWidth = ImGui::GetWindowContentRegionWidth();
-			float btnwidth = (windowWidth*.25f) - ((windowWidth*.225f)*.05f);
+			float btnwidth    = (windowWidth*.25f) - ((windowWidth*.225f)*.05f);
 
 			ImGui::Separator();
 
-			// Clear all
-            int i = 0;
-            ImGui::PushID(i+10);
-			ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, 0.7f, 0.7f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));
-			if (ImGui::Button("Clear All", ImVec2(btnwidth, 30)))
+			// Clear all (red)
+			if (ImGui::StartColorButton(1, 0, "Clear All", btnwidth, 30.f, false))
 				spriteManager->SetDestroryFlag(true);
-			ImGui::PopStyleColor(3);
-            ImGui::PopID();
+			ImGui::StopColorButton();
 
-			// Add
-			i = 4;
-            ImGui::PushID(i+11);
-			ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, 0.7f, 0.7f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));
-			ImGui::SameLine();
-			if (ImGui::Button("+Box", ImVec2(btnwidth, 30)))
+			// +Box (blue)
+			if (ImGui::StartColorButton(2, 4, "+Box", btnwidth, 30.f, true))
 				spriteManager->PushShape(ShapeType::DebugBox, shapeStartPos);
-			ImGui::PopStyleColor(3);
-            ImGui::PopID();
+			ImGui::StopColorButton();
 
-			ImGui::PushID(i+12);
-			ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, 0.7f, 0.7f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));
-			ImGui::SameLine();
-			if (ImGui::Button("+Circle", ImVec2(btnwidth, 30)))
+			// +Circle (blue)
+			if (ImGui::StartColorButton(3, 4, "+Circle", btnwidth, 30.f, true))
 				spriteManager->PushShape(ShapeType::DebugCircle, shapeStartPos);
-			ImGui::PopStyleColor(3);
-            ImGui::PopID();
+			ImGui::StopColorButton();
 
-			ImGui::PushID(i+13);
-			ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, 0.7f, 0.7f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));
-			ImGui::SameLine();
-			if (ImGui::Button("+Polygon", ImVec2(btnwidth, 30)))
+			// +Polygon (blue)
+			if (ImGui::StartColorButton(4, 4, "+Polygon", btnwidth, 30.f, true))
 				spriteManager->PushShape(ShapeType::CustomPolygon, shapeStartPos);
-			ImGui::PopStyleColor(3);
-            ImGui::PopID();
+			ImGui::StopColorButton();
 
+			/* Dynamic bodies count */
 			ImGui::Separator();
-
 			ImGui::SetNextTreeNodeOpen(true, ImGuiTreeNodeFlags_DefaultOpen);
 			if (ImGui::TreeNode("Level"))
 			{
 				ImVec4 lightBlue(.6f, .8f, 1.f, 1.f);
-
 				ImGui::Text("Dynamic Bodies:");
 
 				ImGui::SameLine();
 				ImGui::TextColored(lightBlue, "%d", SpriteManager::DynamicBodiesCount);
-
 				ImGui::TreePop();
 			}
 
+			/* Debug bodies count */
 			ImGui::Separator();
-
 			ImGui::SetNextTreeNodeOpen(true, ImGuiTreeNodeFlags_DefaultOpen);
 			if (ImGui::TreeNode("Debug Shapes"))
 			{
 				ImVec4 lightBlue(.6f, .8f, 1.f, 1.f);
-
 				ImGui::SameLine();
 				ImGui::HelpMarker("Statistics for debug shape objects.");
 
-				ImGui::Text("Boxes:");
-				ImGui::SameLine();
-				ImGui::TextColored(lightBlue, "%d", DebugShape::DebugBoxCount);
-				ImGui::SameLine();
-				ImGui::Text(" Circles:");
-				ImGui::SameLine();
-				ImGui::TextColored(lightBlue, "%d", DebugShape::DebugCircleCount);
-
-				ImGui::SameLine();
-				ImGui::Text(" Polygons:");
-				ImGui::SameLine();
-				ImGui::TextColored(lightBlue, "%d", DebugShape::CustomPolygonCount);
-
-				ImGui::SameLine();
-				ImGui::Text("Total:");
-				ImGui::SameLine();
-				ImGui::TextColored(lightBlue, "%d", DebugShape::ShapeBodyCount);
+				ImGui::LabelWithColoredFloat("Boxes:", lightBlue, DebugShape::DebugBoxCount, false);
+				ImGui::LabelWithColoredFloat(" Circles:", lightBlue, DebugShape::DebugCircleCount, true);
+				ImGui::LabelWithColoredFloat(" Polygons:", lightBlue, DebugShape::CustomPolygonCount, true);
+				ImGui::LabelWithColoredFloat("Total:", lightBlue, DebugShape::ShapeBodyCount, false);
 				ImGui::TreePop();
 			}
 
+			/* Edge chain and vertex count */
 			ImGui::Separator();
-
 			ImGui::SetNextTreeNodeOpen(true, ImGuiTreeNodeFlags_DefaultOpen);
 			if (ImGui::TreeNode("Edge Chains"))
 			{
+				ImVec4 lightBlue(.6f, .8f, 1.f, 1.f);
 				ImGui::SameLine();
 				ImGui::HelpMarker("Statistics for edge chain objects.");
 
-				ImGui::Text("Chains:");
-				ImGui::SameLine();
-				ImGui::TextColored(ImVec4(0.6f, 0.8f, 1.0f, 1.0f), "%d", (int)*edgeChainManager->GetEdgeChainCount());
-
-				ImGui::SameLine();
-				ImGui::Text(" Vertices:");
-				ImGui::SameLine();
-				ImGui::TextColored(ImVec4(0.6f, 0.8f, 1.0f, 1.0f), "%d", (int)*edgeChainManager->GetEdgeChainVertexCount());
+				ImGui::LabelWithColoredFloat("Chains:", lightBlue, (int)*edgeChainManager->GetEdgeChainCount(), false);
+				ImGui::LabelWithColoredFloat(" Vertices:", lightBlue, (int)*edgeChainManager->GetEdgeChainVertexCount(), true);
 				ImGui::TreePop();
 			}
-
 			ImGui::Separator();
 		}
 
 		if (ImGui::CollapsingHeader("Edge Chains", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			ImGui::Separator();
-
 			float windowWidth = ImGui::GetWindowContentRegionWidth();
 
 			// Add new edge chain
-            int i = 4;
-            ImGui::PushID(i);
-
-			ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, 0.7f, 0.7f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));
-
-			if (ImGui::Button("Add Edge Chain", ImVec2(windowWidth, 30)))
+			if (ImGui::StartColorButton(11, 4, "Add Edge Chain", windowWidth, 30.f, false))
 				edgeChainManager->PushChain();
+			ImGui::StopColorButton();
 
-			ImGui::PopStyleColor(3);
-            ImGui::PopID();
 			ImGui::Separator();
 
 			// Enable edge chains
-			ImGui::AlignTextToFramePadding();
-            ImGui::Text("Enable");
-
-			ImGui::SameLine();
-			ImGui::HelpMarker("Toggle edge chain collisions on and off.");
-
-            ImGui::SetNextItemWidth(-1);
-			ImGui::SameLine((windowWidth/2) * 0.8f);
-			if (ImGui::Checkbox("##EnableEdgeChains", &edgeChainManager->GetEnableFlag()))
+			if (ImGui::HalfWidthLabelCheckoxLeft("Enable", "##EnableEdgeChains",
+				"Toggle edge chain collisions on and off.", edgeChainManager->GetEnableFlag())) {
 				edgeChainManager->SyncEnable();
+			}
 
 			// Select edge chain
 			ImGui::AlignTextToFramePadding();
@@ -408,71 +315,29 @@ int main(int argc, char** argv)
 				ImGui::TextColored(subColor, "Selected Edge Chain Options");
 
 				// Delete selected edge chain
-				i = 0;
-				ImGui::PushID(i+21);
-				ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f));
-				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, 0.7f, 0.7f));
-				ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));
-				if (ImGui::Button("Delete Selected Chain", ImVec2(windowWidth, buttonHeight)))
+				if (ImGui::StartColorButton(21, 0, "Delete Selected Chain", windowWidth, buttonHeight, false))
 					edgeChainManager->PopChain();
-				ImGui::PopStyleColor(3);
-				ImGui::PopID();
+				ImGui::StopColorButton();
 
-				// Add Vertex
 				float buttonWidth = (windowWidth*0.475f);
 
-				i = 4;
-				ImGui::PushID(i+22);
-				ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f));
-				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, 0.7f, 0.7f));
-				ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));
-				if (ImGui::Button("Add Vertex", ImVec2(buttonWidth, buttonHeight)))
+				// Add Vertex
+				if (ImGui::StartColorButton(22, 4, "Add Vertex", buttonWidth, buttonHeight, false))
 					edgeChainManager->AddVertexToSelectedChain();
-				ImGui::PopStyleColor(3);
-				ImGui::PopID();
+				ImGui::StopColorButton();
 
 				// Remove Vertex
-				ImGui::PushID(i+23);
-				ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f));
-				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, 0.7f, 0.7f));
-				ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));
-				ImGui::SameLine(windowWidth*.525f);
-				if (ImGui::Button("Remove Vertex", ImVec2(buttonWidth, buttonHeight)))
+				if (ImGui::StartColorButton(23, 4, "Remove Vertex", buttonWidth, buttonHeight, true))
 					edgeChainManager->RemoveVertexFromSelectedChain();
-				ImGui::PopStyleColor(3);
-				ImGui::PopID();
+				ImGui::StopColorButton();
 
 				ImGui::EndChild();
 				ImGui::PopStyleVar();
 			}
 		}
 
-		if (ImGui::CollapsingHeader("Controls", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			std::vector<std::pair<std::string, std::string>> controls =
-			{
-				std::make_pair("Space", "Spawn custom polygon"),
-				std::make_pair("Enter", "Cycle RMB modes"),
-				std::make_pair("E", 	"Toggle edge chain active state"),
-				std::make_pair("W", 	"Toggle wireframe rendering mode"),
-				std::make_pair("Esc", 	"Close window"),
-				std::make_pair("\nMMB", "\nSpawn circle rigid body"),
-				std::make_pair("RMB", 	"Perform selected RMB mode"),
-			};
-
-			ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 3.0f);
-			ImGui::BeginChild("ControlsChild", ImVec2(0, 145.f), true, ImGuiWindowFlags_None);
-
-			for (auto& control : controls)
-			{
-				ImVec4 itemColor(1.f, 1.f, .4f, 1.f);
-				ImGui::TextColored(itemColor, control.first.data());
-				ImGui::SameLine(80);
-				ImGui::Text(control.second.data());
-			}
-
-			ImGui::EndChild();
-			ImGui::PopStyleVar();
+		if (ImGui::CollapsingHeader("Controls", ImGuiTreeNodeFlags_DefaultOpen)) {
+			ImGui::RenderEditorControls();
         }
 
 		ImGui::End();

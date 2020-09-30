@@ -179,9 +179,9 @@ std::vector<std::string>& EdgeChainManager::GetChainLabels()
 	return m_guiLabels;
 }
 
-bool& EdgeChainManager::GetEnableFlag()
+bool* EdgeChainManager::GetEnableFlag()
 {
-	return m_guiEnable;
+	return &m_guiEnable;
 }
 
 void EdgeChainManager::SyncEnable()
@@ -197,9 +197,9 @@ void EdgeChainManager::ToggleEnable()
 	m_guiEnable = !m_guiEnable;
 }
 
-bool& EdgeChainManager::GetDrawBBFlag()
+bool* EdgeChainManager::GetDrawBBFlag()
 {
-	return m_guiDrawBB;
+	return &m_guiDrawBB;
 }
 
 // ----------------------------------------------------------------------
