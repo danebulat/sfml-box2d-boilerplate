@@ -3,10 +3,10 @@
 #include <string>
 #include <algorithm>
 #include "box2d/box2d.h"
-#include "utils/custom_polygon.hpp"
-#include "utils/mouse_utils.hpp"
-#include "utils/edge_chain_manager.hpp"
-#include "utils/sprite_manager.hpp"
+#include "editor/debug/custom_polygon.hpp"
+#include "editor/mouse_utils.hpp"
+#include "editor/managers/edge_chain_manager.hpp"
+#include "editor/managers/sprite_manager.hpp"
 
 #include "imgui.h"
 #include "imgui-SFML.h"

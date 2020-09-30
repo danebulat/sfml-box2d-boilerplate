@@ -4,8 +4,8 @@
 #include <SFML/Graphics.hpp>
 #include <box2d/box2d.h>
 #include <vector>
-#include "utils/debug_shape.hpp"
-#include "utils/constants.hpp"
+#include "editor/debug/debug_shape.hpp"
+#include "editor/constants.hpp"
 
 class CustomPolygon : public DebugShape
 {

@@ -5,10 +5,10 @@
 #include <vector>
 #include <memory>
 #include "box2d/box2d.h"
-#include "utils/bounding_box.hpp"
-#include "utils/move_handle.hpp"
-#include "utils/vertex_handle.hpp"
-#include "utils/chain_manager_controller.hpp"
+#include "editor/chains/bounding_box.hpp"
+#include "editor/chains/move_handle.hpp"
+#include "editor/chains/vertex_handle.hpp"
+#include "editor/managers/chain_manager_controller.hpp"
 
 /* Static edge chain */
 class StaticEdgeChain

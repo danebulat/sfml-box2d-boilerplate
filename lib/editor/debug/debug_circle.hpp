@@ -2,9 +2,9 @@
 #define DEBUG_CIRCLE_HPP
 
 #include <box2d/box2d.h>
-#include "utils/debug_shape.hpp"
-#include "utils/constants.hpp"
-#include "utils/box2d_utils.hpp"
+#include "editor/debug/debug_shape.hpp"
+#include "editor/constants.hpp"
+#include "editor/box2d_utils.hpp"
 
 class DebugCircle : public DebugShape
 {

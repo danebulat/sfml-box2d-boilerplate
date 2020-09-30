@@ -2,8 +2,8 @@
 #define EDGE_CHAIN_MANAGER
 
 #include <SFML/Graphics.hpp>
-#include "utils/static_edge_chain.hpp"
-#include "utils/box2d_utils.hpp"
+#include "editor/chains/static_edge_chain.hpp"
+#include "editor/box2d_utils.hpp"
 
 class EdgeChainManager final : public ChainManagerController
 {

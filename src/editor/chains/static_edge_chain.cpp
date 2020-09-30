@@ -1,7 +1,7 @@
-#include "utils/static_edge_chain.hpp"
-#include "utils/mouse_utils.hpp"
-#include "utils/constants.hpp"
-#include "utils/edge_chain_manager.hpp"
+#include "editor/chains/static_edge_chain.hpp"
+#include "editor/managers/edge_chain_manager.hpp"
+#include "editor/mouse_utils.hpp"
+#include "editor/constants.hpp"
 
 using sf::Color;
 using sf::Vector2f;

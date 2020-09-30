@@ -1,4 +1,4 @@
-#include "utils/mouse_utils.hpp"
+#include "editor/mouse_utils.hpp"
 
 using sf::Mouse;
 using sf::RenderWindow;

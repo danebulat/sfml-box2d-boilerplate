@@ -1,4 +1,4 @@
-#include "utils/bounding_box.hpp"
+#include "editor/chains/bounding_box.hpp"
 
 using sf::Color;
 using sf::FloatRect;

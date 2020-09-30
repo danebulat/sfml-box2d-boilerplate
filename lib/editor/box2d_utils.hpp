@@ -4,9 +4,9 @@
 #include <SFML/Graphics.hpp>
 #include <algorithm>
 #include "box2d/box2d.h"
-#include "utils/constants.hpp"
-#include "utils/mouse_utils.hpp"
-#include "utils/custom_polygon.hpp"
+#include "editor/constants.hpp"
+#include "editor/mouse_utils.hpp"
+#include "editor/debug/custom_polygon.hpp"
 
 using sf::Vector2f;
 using sf::RectangleShape;

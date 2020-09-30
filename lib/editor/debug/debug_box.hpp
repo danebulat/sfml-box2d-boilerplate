@@ -2,7 +2,7 @@
 #define DEBUG_BOX_HPP
 
 #include <box2d/box2d.h>
-#include "utils/debug_shape.hpp"
+#include "editor/debug/debug_shape.hpp"
 
 class DebugBox : public DebugShape
 {

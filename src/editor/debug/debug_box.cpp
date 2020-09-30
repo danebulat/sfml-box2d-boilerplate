@@ -1,21 +1,23 @@
-#include "utils/debug_circle.hpp"
+#include "editor/debug/debug_box.hpp"
+#include "editor/constants.hpp"
+#include "editor/box2d_utils.hpp"
 
 using sf::Vector2f;
-using sf::Color;
 using sf::RenderWindow;
+using sf::Color;
 using std::string;
 using std::cout;
 
-DebugCircle::DebugCircle(const Vector2f& position,
-	b2World* world) : DebugShape(position, "debug_circle")
+DebugBox::DebugBox(const Vector2f& position,
+	b2World* world) : DebugShape(position, "debug_box")
 {
-	++DebugCircleCount;
-	m_radius = 18.f;
+	++DebugBoxCount;
+	m_size = 32.f;
 	m_world = world;
 
 	m_sprite.setPosition(m_position);
-	m_sprite.setRadius(m_radius);
-	m_sprite.setOrigin(m_radius, m_radius);
+	m_sprite.setSize(Vector2f(m_size, m_size));
+	m_sprite.setOrigin(m_size/2, m_size/2);
 	m_sprite.setFillColor(Color::White);
 	m_sprite.setOutlineColor(Color::Black);
 	m_sprite.setOutlineThickness(2);
@@ -23,20 +25,22 @@ DebugCircle::DebugCircle(const Vector2f& position,
 	CreateBody();
 }
 
-DebugCircle::~DebugCircle()
+DebugBox::~DebugBox()
 {
+	SafeDelete(m_tag);
+
 	if (m_body != nullptr)
 	{
 		m_world->DestroyBody(m_body);
 		m_body = nullptr;
 	}
 
-	--DebugCircleCount;
+	--DebugBoxCount;
 
-	cout << "--BodyCount (DebugCirle)\n";
+	cout << "--BodyCount (DebugBox)\n";
 }
 
-void DebugCircle::CreateBody()
+void DebugBox::CreateBody()
 {
 	b2BodyDef bodyDef;
 	bodyDef.position = b2Vec2(m_position.x/SCALE, m_position.y/SCALE);
@@ -52,8 +56,8 @@ void DebugCircle::CreateBody()
 	m_body = m_world->CreateBody(&bodyDef);
 
 	// Define shape and body physical properties with b2FixtureDef
-	b2CircleShape shape;
-	shape.m_radius = m_radius / SCALE;
+	b2PolygonShape shape;
+	shape.SetAsBox((m_size/2)/SCALE, (m_size/2)/SCALE);
 
 	b2FixtureDef fixtureDef;
 	fixtureDef.density = 1.f;
@@ -62,7 +66,7 @@ void DebugCircle::CreateBody()
 	m_body->CreateFixture(&fixtureDef);
 }
 
-void DebugCircle::DeleteBody()
+void DebugBox::DeleteBody()
 {
 	if (m_body != nullptr)
 	{
@@ -71,7 +75,7 @@ void DebugCircle::DeleteBody()
 	}
 }
 
-void DebugCircle::Update()
+void DebugBox::Update()
 {
 	if (m_body->GetType() == b2_dynamicBody)
 	{
@@ -81,7 +85,7 @@ void DebugCircle::Update()
 		{
 			switch (fixture->GetType())
 			{
-				case b2Shape::e_circle:
+				case b2Shape::e_polygon:
 				{
 					m_position.x = m_body->GetPosition().x * SCALE;
 					m_position.y = m_body->GetPosition().y * SCALE;
@@ -98,12 +102,12 @@ void DebugCircle::Update()
 	}
 }
 
-void DebugCircle::Draw(RenderWindow& window)
+void DebugBox::Draw(RenderWindow& window)
 {
 	window.draw(m_sprite);
 }
 
-string* DebugCircle::GetUserData()
+string* DebugBox::GetUserData()
 {
 	b2BodyUserData data = m_body->GetUserData();
 
@@ -115,7 +119,7 @@ string* DebugCircle::GetUserData()
 	return nullptr;
 }
 
-void DebugCircle::DoTestPoint(const sf::Vector2f& point)
+void DebugBox::DoTestPoint(const Vector2f& point)
 {
 	if (m_body->GetType() == b2_dynamicBody)
 	{
@@ -127,17 +131,17 @@ void DebugCircle::DoTestPoint(const sf::Vector2f& point)
 
 			if (fixture->TestPoint(scaledPoint))
 			{
-				m_sprite.setFillColor(sf::Color::Red);
+				m_sprite.setFillColor(Color::Blue);
 			}
 			else
 			{
-				m_sprite.setFillColor(sf::Color::White);
+				m_sprite.setFillColor(Color::White);
 			}
 		}
 	}
 }
 
-void DebugCircle::ResetTestPoint()
+void DebugBox::ResetTestPoint()
 {
 	m_sprite.setFillColor(Color::White);
 }

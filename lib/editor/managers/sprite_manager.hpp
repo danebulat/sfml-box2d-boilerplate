@@ -2,10 +2,10 @@
 #define SPRITE_MANAGER_HPP
 
 #include <SFML/Graphics.hpp>
-#include "utils/debug_box.hpp"
-#include "utils/debug_circle.hpp"
-#include "utils/custom_polygon.hpp"
-#include "utils/box2d_utils.hpp"
+#include "editor/debug/debug_box.hpp"
+#include "editor/debug/debug_circle.hpp"
+#include "editor/debug/custom_polygon.hpp"
+#include "editor/box2d_utils.hpp"
 
 enum class ShapeType
 {

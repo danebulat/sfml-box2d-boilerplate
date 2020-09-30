@@ -1,4 +1,4 @@
-#include "utils/vertex_handle.hpp"
+#include "editor/chains/vertex_handle.hpp"
 
 using sf::Vector2f;
 using sf::Color;

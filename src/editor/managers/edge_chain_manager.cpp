@@ -1,4 +1,4 @@
-#include "utils/edge_chain_manager.hpp"
+#include "editor/managers/edge_chain_manager.hpp"
 
 EdgeChainManager::EdgeChainManager(b2World* world)
 {

@@ -1,5 +1,5 @@
-#include "utils/sprite_manager.hpp"
-#include "utils/constants.hpp"
+#include "editor/managers/sprite_manager.hpp"
+#include "editor/constants.hpp"
 
 using sf::Vector2f;
 using sf::Event;

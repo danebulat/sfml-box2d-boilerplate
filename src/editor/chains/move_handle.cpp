@@ -1,5 +1,5 @@
-#include "utils/move_handle.hpp"
-#include "utils/font_store.hpp"
+#include "editor/chains/move_handle.hpp"
+#include "editor/font_store.hpp"
 
 using sf::Color;
 using sf::FloatRect;

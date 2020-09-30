@@ -2,7 +2,7 @@
 #define MOVE_HANDLE_HPP
 
 #include <SFML/Graphics.hpp>
-#include "utils/bounding_box.hpp"
+#include "editor/chains/bounding_box.hpp"
 
 class MoveHandle
 {

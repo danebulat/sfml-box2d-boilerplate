@@ -1,5 +1,5 @@
-#include "utils/debug_shape.hpp"
-#include "utils/box2d_utils.hpp"
+#include "editor/debug/debug_shape.hpp"
+#include "editor/box2d_utils.hpp"
 
 using sf::Vector2f;
 using std::string;
