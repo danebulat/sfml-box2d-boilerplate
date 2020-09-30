@@ -13,25 +13,25 @@ namespace demo_data
 
 	// edge chain central
 	std::vector<sf::Vector2f> coords =  {
-		sf::Vector2f(20.f,  540.f),
-		sf::Vector2f(150.f, 470.f),
-		sf::Vector2f(360.f, 507.f),
-		sf::Vector2f(617.f, 435.f),
-		sf::Vector2f(750.f, 540.f)
+		sf::Vector2f(70.f,  590.f),
+		sf::Vector2f(200.f, 520.f),
+		sf::Vector2f(410.f, 557.f),
+		sf::Vector2f(670.f, 485.f),
+		sf::Vector2f(800.f, 590.f)
 	};
 
 	// edge chain left
 	std::vector<sf::Vector2f> coordsLeft = {
-		sf::Vector2f(22.f,  35.f),
-		sf::Vector2f(55.f, 230.f),
-		sf::Vector2f(20.f, 540.f)
+		sf::Vector2f(72.f,  85.f),
+		sf::Vector2f(105.f, 280.f),
+		sf::Vector2f(70.f, 590.f)
 	};
 
 	// edge chain right
 	std::vector<sf::Vector2f> coordsRight = {
-		sf::Vector2f(750.f, 540.f),
-		sf::Vector2f(722.f, 230.f),
-		sf::Vector2f(778.f,  35.f)
+		sf::Vector2f(800.f, 590.f),
+		sf::Vector2f(772.f, 280.f),
+		sf::Vector2f(828.f, 85.f)
 	};
 
 	// custom polygon

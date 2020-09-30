@@ -10,6 +10,8 @@ using std::cout;
 CustomPolygon::CustomPolygon(const Vector2f& position, const vector<Vector2f>& vertices, b2World* world)
 	: DebugShape(position, "custom_polygon")
 {
+	++CustomPolygonCount;
+
 	m_world = world;
 	m_color = Color::Magenta;
 	m_wireframe = false;

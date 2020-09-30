@@ -109,7 +109,6 @@ int main(int argc, char** argv)
 				// Space key: add new custom polygon
 				if (event.key.code == sf::Keyboard::Space)
 				{
-					//CreateCustomPolygon(&world, customPolygons, wireframe, count_dynamicBodies, window);
 					spriteManager->PushShape(ShapeType::CustomPolygon, GetMousePosition(window));
 				}
 			}
@@ -130,8 +129,6 @@ int main(int argc, char** argv)
 				}
 				else if (event.mouseButton.button == sf::Mouse::Right)
 				{
-					//holdingRMB = false;
-
 					// Spawn a box
 					if (EditorSettings::mode == RMBMode::BoxSpawnMode)
 					{
@@ -158,68 +155,202 @@ int main(int argc, char** argv)
          ----------------------------------------------------------------------*/
 		ImGui::Begin("Box2D Boilerplate");
 
+		/* Demo Settings */
 		if (ImGui::CollapsingHeader("Demo Settings", ImGuiTreeNodeFlags_DefaultOpen))
 		{
+			ImGui::Separator();
+
 			ImGui::Text("RMB Mode:");
 			if (ImGui::RadioButton("Spawn Box", &e, 1))
 				EditorSettings::mode = RMBMode::BoxSpawnMode;
 
 			ImGui::SameLine();
 			if (ImGui::RadioButton("Test Point", &e, 2))
-			{
 				EditorSettings::mode = RMBMode::TestPointMode;
-			}
 
+			// ImGui::SameLine();
+			// if (ImGui::RadioButton("Ray Cast", &e, 3))
+			// 	EditorSettings::mode = RMBMode::RayCastMode;
 
-			ImGui::SameLine();
-			if (ImGui::RadioButton("Ray Cast", &e, 3))
-				EditorSettings::mode = RMBMode::RayCastMode;
+			ImGui::Separator();
 		}
 
-		if (ImGui::CollapsingHeader("Rendering", ImGuiTreeNodeFlags_DefaultOpen))
+		/* Display Settings */
+		if (ImGui::CollapsingHeader("Display", ImGuiTreeNodeFlags_DefaultOpen))
 		{
+			ImGui::Separator();
+
+			float windowWidth = ImGui::GetWindowContentRegionWidth();
+
 			ImGui::AlignTextToFramePadding();
-            ImGui::Text("Wireframe"); ImGui::SameLine(195);
-            ImGui::SetNextItemWidth(-1);
+            ImGui::Text("Mouse Coords");
+
+			ImGui::SameLine();
+			ImGui::HelpMarker("Display mouse coordinates next to mouse pointer.");
+
+			ImGui::SameLine((windowWidth/2) * 0.8f);
+			ImGui::Checkbox("##MouseCoords", &renderMouseCoords);
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::SameLine(windowWidth/2);
+            ImGui::Text("Wireframe");
+
+			ImGui::SameLine();
+			ImGui::HelpMarker("Render custom polygons in a wireframe mode.");
+
+			ImGui::SetNextItemWidth(-1);
+			ImGui::SameLine(windowWidth - 20.f);
 			if(ImGui::Checkbox("##Wireframe", spriteManager->GetWireframeFlag()))
 			{
 				spriteManager->ToggleWireframe();
 			}
 
 			ImGui::AlignTextToFramePadding();
-            ImGui::Text("Selection Bounding Box"); ImGui::SameLine(195);
+            ImGui::Text("Bounding Boxes");
+
+			ImGui::SameLine();
+			ImGui::HelpMarker("Display bounding boxes around the selected edge chain.");
+
             ImGui::SetNextItemWidth(-1);
+			ImGui::SameLine((windowWidth/2) * 0.8f);
 			ImGui::Checkbox("##BoundingBoxes", &edgeChainManager->GetDrawBBFlag());
 
 			ImGui::AlignTextToFramePadding();
-            ImGui::Text("Mouse Coords"); ImGui::SameLine(195);
-            ImGui::SetNextItemWidth(-1);
-			ImGui::Checkbox("##MouseCoords", &renderMouseCoords);
+			ImGui::SameLine(windowWidth/2);
+            ImGui::Text("Labels");
+
+			ImGui::SameLine();
+			ImGui::HelpMarker("TODO: Display edge labels.");
+
+			bool labelBool = true;
+			ImGui::SetNextItemWidth(-1);
+			ImGui::SameLine(windowWidth - 20.f);
+			ImGui::Checkbox("##Labels", &labelBool);
+
+			ImGui::Separator();
 		}
 
-		if (ImGui::CollapsingHeader("Box2D Bodies", ImGuiTreeNodeFlags_DefaultOpen))
+		/* Bodies Settings */
+		if (ImGui::CollapsingHeader("Bodies", ImGuiTreeNodeFlags_DefaultOpen))
 		{
+			sf::Vector2f shapeStartPos(RESOLUTION.x * .25f, RESOLUTION.y * .25f);
 			float windowWidth = ImGui::GetWindowContentRegionWidth();
-            int i = 0;
-            ImGui::PushID(i);
+			float pad = windowWidth*.25f;
+			float btnwidth = (windowWidth*.25f) - ((windowWidth*.225f)*.05f);
 
+			ImGui::Separator();
+
+			// Clear all
+            int i = 0;
+            ImGui::PushID(i+10);
 			ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f));
 			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, 0.7f, 0.7f));
 			ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));
-
-			if (ImGui::Button("Clear All Dynamic Bodies", ImVec2(windowWidth, 30)))
-			{
-				//clearAllBodies = true;
+			if (ImGui::Button("Clear All", ImVec2(btnwidth, 30)))
 				spriteManager->SetDestroryFlag(true);
-			}
-
 			ImGui::PopStyleColor(3);
             ImGui::PopID();
 
-			ImGui::Text("Dynamic Bodies: %d", SpriteManager::DynamicBodiesCount);
-			ImGui::Text("Debub Shapes: %d", DebugShape::ShapeBodyCount);
-			ImGui::Text("Debub Boxes: %d", DebugShape::DebugBoxCount);
-			ImGui::Text("Debub Circles: %d", DebugShape::DebugCircleCount);
+			// Add
+			i = 4;
+            ImGui::PushID(i+11);
+			ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, 0.7f, 0.7f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));
+			ImGui::SameLine();
+			if (ImGui::Button("+Box", ImVec2(btnwidth, 30)))
+				spriteManager->PushShape(ShapeType::DebugBox, shapeStartPos);
+			ImGui::PopStyleColor(3);
+            ImGui::PopID();
+
+			ImGui::PushID(i+12);
+			ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, 0.7f, 0.7f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));
+			ImGui::SameLine();
+			if (ImGui::Button("+Circle", ImVec2(btnwidth, 30)))
+				spriteManager->PushShape(ShapeType::DebugCircle, shapeStartPos);
+			ImGui::PopStyleColor(3);
+            ImGui::PopID();
+
+			ImGui::PushID(i+13);
+			ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, 0.7f, 0.7f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));
+			ImGui::SameLine();
+			if (ImGui::Button("+Polygon", ImVec2(btnwidth, 30)))
+				spriteManager->PushShape(ShapeType::CustomPolygon, shapeStartPos);
+			ImGui::PopStyleColor(3);
+            ImGui::PopID();
+
+			ImGui::Separator();
+
+			ImGui::SetNextTreeNodeOpen(true, ImGuiTreeNodeFlags_DefaultOpen);
+			if (ImGui::TreeNode("Level"))
+			{
+				float windowWidth = ImGui::GetWindowContentRegionWidth();
+				ImVec4 lightBlue(.6f, .8f, 1.f, 1.f);
+
+				ImGui::Text("Dynamic Bodies:");
+
+				ImGui::SameLine();
+				ImGui::TextColored(lightBlue, "%d", SpriteManager::DynamicBodiesCount);
+
+				ImGui::Separator();
+				ImGui::TreePop();
+			}
+
+
+			ImGui::SetNextTreeNodeOpen(true, ImGuiTreeNodeFlags_DefaultOpen);
+			if (ImGui::TreeNode("Debug Shapes"))
+			{
+				float windowWidth = ImGui::GetWindowContentRegionWidth();
+				ImVec4 lightBlue(.6f, .8f, 1.f, 1.f);
+
+				ImGui::SameLine();
+				ImGui::HelpMarker("Statistics for debug shape objects.");
+
+				//ImGui::SameLine();
+				ImGui::Text("Boxes:");
+				ImGui::SameLine();
+				ImGui::TextColored(lightBlue, "%d", DebugShape::DebugBoxCount);
+				ImGui::SameLine();
+				ImGui::Text(" Circles:");
+				ImGui::SameLine();
+				ImGui::TextColored(lightBlue, "%d", DebugShape::DebugCircleCount);
+
+				ImGui::SameLine();
+				ImGui::Text(" Polygons:");
+				ImGui::SameLine();
+				ImGui::TextColored(lightBlue, "%d", DebugShape::CustomPolygonCount);
+
+				ImGui::SameLine();
+				ImGui::Text("Total:");
+				ImGui::SameLine();
+				ImGui::TextColored(lightBlue, "%d", DebugShape::ShapeBodyCount);
+				ImGui::TreePop();
+			}
+
+			ImGui::Separator();
+
+			ImGui::SetNextTreeNodeOpen(true, ImGuiTreeNodeFlags_DefaultOpen);
+			if (ImGui::TreeNode("Edge Chains"))
+			{
+				ImGui::SameLine();
+				ImGui::HelpMarker("Statistics for edge chain objects.");
+
+				ImGui::Text("Chains:");
+				ImGui::SameLine();
+				ImGui::TextColored(ImVec4(0.6f, 0.8f, 1.0f, 1.0f), "%d", 3); // TODO
+
+				ImGui::SameLine();
+				ImGui::Text(" Vertices:");
+				ImGui::SameLine();
+				ImGui::TextColored(ImVec4(0.6f, 0.8f, 1.0f, 1.0f), "%d", 3); // TODO
+				ImGui::TreePop();
+			}
+
+			ImGui::Separator();
 		}
 
 		if (ImGui::CollapsingHeader("Static Edge Chains", ImGuiTreeNodeFlags_DefaultOpen))

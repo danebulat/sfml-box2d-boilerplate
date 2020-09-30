@@ -81,8 +81,7 @@ void SpriteManager::HandleInput(const Event& event, RenderWindow& window)
 
 	if (event.type == Event::MouseMoved)
 	{
-		if (m_rmbPressed &&
-			EditorSettings::mode == RMBMode::TestPointMode)
+		if (m_rmbPressed && EditorSettings::mode == RMBMode::TestPointMode)
 		{
 			DoTestPoint(window);
 		}
