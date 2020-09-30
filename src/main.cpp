@@ -154,7 +154,7 @@ int main(int argc, char** argv)
 		/*----------------------------------------------------------------------
          Start ImGui
          ----------------------------------------------------------------------*/
-		ImGui::Begin("Box2D Boilerplate");
+		ImGui::Begin("Box2D Level Editor");
 
 		/* Demo Settings */
 		if (ImGui::CollapsingHeader("Editor Settings", ImGuiTreeNodeFlags_DefaultOpen))
@@ -341,12 +341,12 @@ int main(int argc, char** argv)
 
 				ImGui::Text("Chains:");
 				ImGui::SameLine();
-				ImGui::TextColored(ImVec4(0.6f, 0.8f, 1.0f, 1.0f), "%d", 3); // TODO
+				ImGui::TextColored(ImVec4(0.6f, 0.8f, 1.0f, 1.0f), "%d", *edgeChainManager->GetEdgeChainCount());
 
 				ImGui::SameLine();
 				ImGui::Text(" Vertices:");
 				ImGui::SameLine();
-				ImGui::TextColored(ImVec4(0.6f, 0.8f, 1.0f, 1.0f), "%d", 3); // TODO
+				ImGui::TextColored(ImVec4(0.6f, 0.8f, 1.0f, 1.0f), "%d", *edgeChainManager->GetEdgeChainVertexCount());
 				ImGui::TreePop();
 			}
 

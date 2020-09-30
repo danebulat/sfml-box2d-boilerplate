@@ -1,6 +1,7 @@
 #include "utils/static_edge_chain.hpp"
 #include "utils/mouse_utils.hpp"
 #include "utils/constants.hpp"
+#include "utils/edge_chain_manager.hpp"
 
 using sf::Color;
 using sf::Vector2f;
@@ -66,12 +67,13 @@ sf::Vector2f StaticEdgeChain::GetNextAddedVertexPosition(vector<Vector2f>& verti
 // Initialisation
 // --------------------------------------------------------------------------------
 
-StaticEdgeChain::StaticEdgeChain()
+StaticEdgeChain::StaticEdgeChain(ChainManagerController* manager)
 	: m_vertexCount(0)
 	, m_color(Color::Blue)
 	, m_drawBoundingBox(false)
 	, m_updateBoundingBox(false)
 	, m_body(nullptr)
+	, m_manager(manager)
 	, m_mouseMoved(false)
 	, m_leftMouseDown(false)
 	, m_selectedHandle(nullptr)
@@ -81,13 +83,15 @@ StaticEdgeChain::StaticEdgeChain()
 	, m_removeVertex(false)
 {}
 
-StaticEdgeChain::StaticEdgeChain(std::vector<Vector2f>& vertices, const string& tag, b2World* world)
+StaticEdgeChain::StaticEdgeChain(std::vector<Vector2f>& vertices,
+	const string& tag, b2World* world, ChainManagerController* manager)
 	: m_tag(tag)
 	, m_vertexCount(0)
 	, m_color(Color::Blue)
 	, m_drawBoundingBox(false)
 	, m_updateBoundingBox(false)
 	, m_body(nullptr)
+	, m_manager(manager)
 	, m_mouseMoved(false)
 	, m_leftMouseDown(false)
 	, m_selectedHandle(nullptr)
@@ -183,6 +187,8 @@ void StaticEdgeChain::AddVertex(b2World* world)
 	// Update m_vertices vector with new vertex
 	m_vertices.push_back(position);
 	++m_vertexCount;
+	dynamic_cast<EdgeChainManager*>(m_manager)->
+		IncrementEdgeChainVertexCount(1);
 
 	// Delete body and rebuild it
 	b2Vec2 pos = m_body->GetWorldCenter();
@@ -207,6 +213,8 @@ void StaticEdgeChain::RemoveVertex(b2World* world)
 	{
 		m_vertices.pop_back();
 		--m_vertexCount;
+		dynamic_cast<EdgeChainManager*>(m_manager)
+			->IncrementEdgeChainVertexCount(-1);
 
 		// Delete body and rebuild it
 		b2Vec2 pos = m_body->GetWorldCenter();
@@ -289,6 +297,11 @@ void StaticEdgeChain::SetAddVertexFlag(bool flag)
 void StaticEdgeChain::SetRemoveVertexFlag(bool flag)
 {
 	m_removeVertex = flag;
+}
+
+long StaticEdgeChain::GetVertexCount()
+{
+	return m_vertexCount;
 }
 
 // --------------------------------------------------------------------------------

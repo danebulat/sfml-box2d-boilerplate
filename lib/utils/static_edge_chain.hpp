@@ -8,6 +8,7 @@
 #include "utils/bounding_box.hpp"
 #include "utils/move_handle.hpp"
 #include "utils/vertex_handle.hpp"
+#include "utils/chain_manager_controller.hpp"
 
 /* Static edge chain */
 class StaticEdgeChain
@@ -25,6 +26,9 @@ private:
 	bool 					  		m_updateBoundingBox;
 
 	b2Body*					 		m_body;
+
+	// Manager
+	ChainManagerController*			m_manager;
 
 	// Handle data
 	sf::Vector2f 			  		m_prevMousePosition;
@@ -56,8 +60,9 @@ private:
 	void BuildBody(b2World* world, const sf::Vector2f& position);
 
 public:
-	StaticEdgeChain();
-	StaticEdgeChain(std::vector<sf::Vector2f>& vertices, const std::string& tag, b2World* world);
+	StaticEdgeChain(ChainManagerController* manager);
+	StaticEdgeChain(std::vector<sf::Vector2f>& vertices, const std::string& tag,
+		b2World* world, ChainManagerController* manager);
 	~StaticEdgeChain();
 
 	void Init(std::vector<sf::Vector2f>& vertices, b2World* world);
@@ -82,6 +87,8 @@ public:
 
 	void SetAddVertexFlag(bool flag);
 	void SetRemoveVertexFlag(bool flag);
+
+	long GetVertexCount();
 
 	void Update(sf::RenderWindow& window, b2World* world);
 	void Draw(sf::RenderWindow& window);

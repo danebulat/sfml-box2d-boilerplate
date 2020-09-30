@@ -5,7 +5,7 @@
 #include "utils/static_edge_chain.hpp"
 #include "utils/box2d_utils.hpp"
 
-class EdgeChainManager
+class EdgeChainManager : public ChainManagerController
 {
 private:
 	std::vector<StaticEdgeChain>	m_chains;
@@ -17,6 +17,9 @@ private:
 	int 					m_prevSelectedIndex;
 
 	b2World* 						m_world;
+
+	unsigned long			m_edgeChainCount;
+	unsigned long 			m_edgeChainVertexCount;
 
 public:
 	EdgeChainManager(b2World* world);
@@ -49,6 +52,13 @@ public:
 	std::vector<std::string>& GetChainLabels();
 	bool& GetEnableFlag();
 	bool& GetDrawBBFlag();
+
+	/* ChainManagerController Interface Implementaiton */
+	virtual void IncrementEdgeChainCount(unsigned long n) override;
+	virtual unsigned long* GetEdgeChainCount() override;
+
+	virtual void IncrementEdgeChainVertexCount(unsigned long n) override;
+	virtual unsigned long* GetEdgeChainVertexCount() override;
 };
 
 #endif

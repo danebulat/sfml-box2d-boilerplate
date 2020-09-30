@@ -2,13 +2,24 @@
 
 EdgeChainManager::EdgeChainManager(b2World* world)
 {
+	m_edgeChainCount = 0;
+	m_edgeChainVertexCount = 0;
+
 	m_guiEnable = true;	// Enable all chains
 	m_guiDrawBB = true;	// Draw bounding box on selected chain
 
 	m_world = world;
-	m_chains.push_back(StaticEdgeChain(demo_data::coords, "EC1", m_world));
-	m_chains.push_back(StaticEdgeChain(demo_data::coordsLeft, "EC2", m_world));
-	m_chains.push_back(StaticEdgeChain(demo_data::coordsRight, "EC3", m_world));
+
+	// TMP - Add test chains
+	m_chains.push_back(StaticEdgeChain(demo_data::coords, "EC1", m_world, this));
+	m_chains.push_back(StaticEdgeChain(demo_data::coordsLeft, "EC2", m_world, this));
+	m_chains.push_back(StaticEdgeChain(demo_data::coordsRight, "EC3", m_world, this));
+
+	m_edgeChainCount = 3;
+	m_edgeChainVertexCount += demo_data::coords.size();
+	m_edgeChainVertexCount += demo_data::coordsLeft.size();
+	m_edgeChainVertexCount += demo_data::coordsRight.size();
+	// END TMP
 
 	m_chains[0].SetEditable(true);
 	m_chains[0].DrawBoundingBox(true);
@@ -69,8 +80,10 @@ void EdgeChainManager::PushChain()
 		tag = tag.substr(0,2) + std::to_string(++n);
 	}
 
-	m_chains.push_back(StaticEdgeChain(demo_data::newChainCoords, tag, m_world));
+	m_chains.push_back(StaticEdgeChain(demo_data::newChainCoords, tag, m_world, this));
 	m_guiLabels.push_back(tag);
+	++m_edgeChainCount;
+	m_edgeChainVertexCount += demo_data::newChainCoords.size();
 
 	m_currSelectedIndex = m_chains.size()-1;
 	SelectCurrentChain();
@@ -89,6 +102,8 @@ void EdgeChainManager::PopChain()
 		chain->SetEditable(false);
 		chain->DeleteBody(m_world);
 		m_chains.erase(chain);
+		--m_edgeChainCount;
+		m_edgeChainVertexCount -= chain->GetVertexCount();
 
 		// Update indexes
 		if (m_chains.size() > 0)
@@ -182,4 +197,28 @@ void EdgeChainManager::ToggleEnable()
 bool& EdgeChainManager::GetDrawBBFlag()
 {
 	return m_guiDrawBB;
+}
+
+// ----------------------------------------------------------------------
+// ChainManagerController Interface Implementaiton
+// ----------------------------------------------------------------------
+
+void EdgeChainManager::IncrementEdgeChainCount(unsigned long n)
+{
+	m_edgeChainCount += n;
+}
+
+unsigned long* EdgeChainManager::GetEdgeChainCount()
+{
+	return &m_edgeChainCount;
+}
+
+void EdgeChainManager::IncrementEdgeChainVertexCount(unsigned long n)
+{
+	m_edgeChainVertexCount += n;
+}
+
+unsigned long* EdgeChainManager::GetEdgeChainVertexCount()
+{
+	return &m_edgeChainVertexCount;
 }
