@@ -88,7 +88,7 @@ int main(int argc, char** argv)
 				if (event.key.code == sf::Keyboard::Enter)
 				{
 					int mode = (static_cast<int>(EditorSettings::mode) + 1);
-					if (mode > 3)
+					if (mode > 2)
 					{
 						EditorSettings::mode = RMBMode::BoxSpawnMode;
 						e = 1;
@@ -104,6 +104,7 @@ int main(int argc, char** argv)
 				if (event.key.code == sf::Keyboard::E)
 				{
 					edgeChainManager->ToggleEnable();
+					edgeChainManager->SyncEnable();
 				}
 
 				// Space key: add new custom polygon
@@ -156,7 +157,7 @@ int main(int argc, char** argv)
 		ImGui::Begin("Box2D Boilerplate");
 
 		/* Demo Settings */
-		if (ImGui::CollapsingHeader("Demo Settings", ImGuiTreeNodeFlags_DefaultOpen))
+		if (ImGui::CollapsingHeader("Editor Settings", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			ImGui::Separator();
 
@@ -296,10 +297,10 @@ int main(int argc, char** argv)
 				ImGui::SameLine();
 				ImGui::TextColored(lightBlue, "%d", SpriteManager::DynamicBodiesCount);
 
-				ImGui::Separator();
 				ImGui::TreePop();
 			}
 
+			ImGui::Separator();
 
 			ImGui::SetNextTreeNodeOpen(true, ImGuiTreeNodeFlags_DefaultOpen);
 			if (ImGui::TreeNode("Debug Shapes"))
@@ -310,7 +311,6 @@ int main(int argc, char** argv)
 				ImGui::SameLine();
 				ImGui::HelpMarker("Statistics for debug shape objects.");
 
-				//ImGui::SameLine();
 				ImGui::Text("Boxes:");
 				ImGui::SameLine();
 				ImGui::TextColored(lightBlue, "%d", DebugShape::DebugBoxCount);
@@ -353,35 +353,14 @@ int main(int argc, char** argv)
 			ImGui::Separator();
 		}
 
-		if (ImGui::CollapsingHeader("Static Edge Chains", ImGuiTreeNodeFlags_DefaultOpen))
+		if (ImGui::CollapsingHeader("Edge Chains", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			ImGui::AlignTextToFramePadding();
-            ImGui::Text("Enable"); ImGui::SameLine(130);
-            ImGui::SetNextItemWidth(-1);
-			if (ImGui::Checkbox("##EnableEdgeChains", &edgeChainManager->GetEnableFlag()))
-			{
-				edgeChainManager->SyncEnable();
-			}
+			ImGui::Separator();
 
-			ImGui::AlignTextToFramePadding();
-            ImGui::Text("Selected"); ImGui::SameLine(130);
-            ImGui::SetNextItemWidth(-1);
-
-			if (edgeChainManager->GetChainCount() > 0)
-			{
-				if (ImGui::Combo("##SelectedEdgeChain", &edgeChainManager->GetSelectedChainIndex(), edgeChainManager->GetChainLabels()))
-				{
-					edgeChainManager->SelectCurrentChain();
-				}
-			}
-			else
-			{
-				ImGui::Text("--");
-			}
-
-			/* Add new edge chain */
 			float windowWidth = ImGui::GetWindowContentRegionWidth();
-            int i = 3;
+
+			// Add new edge chain
+            int i = 4;
             ImGui::PushID(i);
 
 			ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f));
@@ -389,66 +368,117 @@ int main(int argc, char** argv)
 			ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));
 
 			if (ImGui::Button("Add Edge Chain", ImVec2(windowWidth, 30)))
-			{
 				edgeChainManager->PushChain();
-			}
 
 			ImGui::PopStyleColor(3);
             ImGui::PopID();
+			ImGui::Separator();
 
-			/* Delete selected edge chain */
-			i = 3;
-            ImGui::PushID(i+1);
+			// Enable edge chains
+			ImGui::AlignTextToFramePadding();
+            ImGui::Text("Enable");
 
-			ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, 0.7f, 0.7f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));
+			ImGui::SameLine();
+			ImGui::HelpMarker("Toggle edge chain collisions on and off.");
 
-			if (ImGui::Button("Delete Selected Chain", ImVec2(windowWidth, 30)))
-			{
-				edgeChainManager->PopChain();
+            ImGui::SetNextItemWidth(-1);
+			ImGui::SameLine((windowWidth/2) * 0.8f);
+			if (ImGui::Checkbox("##EnableEdgeChains", &edgeChainManager->GetEnableFlag()))
+				edgeChainManager->SyncEnable();
+
+			// Select edge chain
+			ImGui::AlignTextToFramePadding();
+            ImGui::Text("Selected");
+
+			ImGui::SameLine();
+			ImGui::HelpMarker("Select an edge chain that exits in the level.");
+
+            ImGui::SetNextItemWidth(-1);
+			ImGui::SameLine((windowWidth/2) * 0.8f);
+			if (edgeChainManager->GetChainCount() > 0) {
+				if (ImGui::Combo("##SelectedEdgeChain", &edgeChainManager->GetSelectedChainIndex(), edgeChainManager->GetChainLabels())) {
+					edgeChainManager->SelectCurrentChain();
+				}
+			}
+			else {
+				ImGui::Text("--");
 			}
 
-			ImGui::PopStyleColor(3);
-            ImGui::PopID();
-
-			ImGui::PushItemWidth((windowWidth/2) + 10.f);
-			if (ImGui::Button("Add Vertex", ImVec2((windowWidth/2), 20)))
 			{
-				edgeChainManager->AddVertexToSelectedChain();
-			}
+				float buttonHeight = 27.5f;
 
-			ImGui::SameLine((windowWidth/2)+15);
-			if (ImGui::Button("Remove Vertex", ImVec2((windowWidth/2)-8.f, 20)))
-			{
-				edgeChainManager->RemoveVertexFromSelectedChain();
-			}
+				ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 3.0f);
+				ImGui::BeginChild("SelectedChainChild", ImVec2(0, 94.f), true, ImGuiWindowFlags_None);
 
-			if (ImGui::Button("Add Circle"))
-			{
-				spriteManager->PushShape(ShapeType::DebugCircle, sf::Vector2f(100.f,100.f));
+				ImVec4 subColor(.45f,.45f,.45f,1.f);
+				ImGui::TextColored(subColor, "Selected Edge Chain Options");
+
+				// Delete selected edge chain
+				i = 0;
+				ImGui::PushID(i+21);
+				ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f));
+				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, 0.7f, 0.7f));
+				ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));
+				if (ImGui::Button("Delete Selected Chain", ImVec2(windowWidth, buttonHeight)))
+					edgeChainManager->PopChain();
+				ImGui::PopStyleColor(3);
+				ImGui::PopID();
+
+				// Add Vertex
+				float buttonWidth = (windowWidth*0.475f);
+
+				i = 4;
+				ImGui::PushID(i+22);
+				ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f));
+				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, 0.7f, 0.7f));
+				ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));
+				if (ImGui::Button("Add Vertex", ImVec2(buttonWidth, buttonHeight)))
+					edgeChainManager->AddVertexToSelectedChain();
+				ImGui::PopStyleColor(3);
+				ImGui::PopID();
+
+				// Remove Vertex
+				ImGui::PushID(i+23);
+				ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f));
+				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, 0.7f, 0.7f));
+				ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));
+				ImGui::SameLine(windowWidth*.525f);
+				if (ImGui::Button("Remove Vertex", ImVec2(buttonWidth, buttonHeight)))
+					edgeChainManager->RemoveVertexFromSelectedChain();
+				ImGui::PopStyleColor(3);
+				ImGui::PopID();
+
+				ImGui::EndChild();
+				ImGui::PopStyleVar();
 			}
 		}
 
-		std::vector<std::pair<std::string, std::string>> controls =
-		{
-			std::make_pair("Space", "Spawn custom polygon"),
-			std::make_pair("Enter", "Cycle RMB modes"),
-			std::make_pair("E", 	"Toggle edge chain active state"),
-			std::make_pair("W", 	"Toggle wireframe rendering mode"),
-			std::make_pair("Esc", 	"Close window"),
-			std::make_pair("\nMMB", "\nSpawn circle rigid body"),
-			std::make_pair("RMB", 	"Perform selected RMB mode"),
-		};
-
 		if (ImGui::CollapsingHeader("Controls", ImGuiTreeNodeFlags_DefaultOpen))
 		{
+			std::vector<std::pair<std::string, std::string>> controls =
+			{
+				std::make_pair("Space", "Spawn custom polygon"),
+				std::make_pair("Enter", "Cycle RMB modes"),
+				std::make_pair("E", 	"Toggle edge chain active state"),
+				std::make_pair("W", 	"Toggle wireframe rendering mode"),
+				std::make_pair("Esc", 	"Close window"),
+				std::make_pair("\nMMB", "\nSpawn circle rigid body"),
+				std::make_pair("RMB", 	"Perform selected RMB mode"),
+			};
+
+			ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 3.0f);
+			ImGui::BeginChild("ControlsChild", ImVec2(0, 145.f), true, ImGuiWindowFlags_None);
+
 			for (auto& control : controls)
 			{
-				ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), control.first.data());
+				ImVec4 itemColor(1.f, 1.f, .4f, 1.f);
+				ImGui::TextColored(itemColor, control.first.data());
 				ImGui::SameLine(80);
 				ImGui::Text(control.second.data());
 			}
+
+			ImGui::EndChild();
+			ImGui::PopStyleVar();
         }
 
 		ImGui::End();
