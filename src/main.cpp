@@ -8,6 +8,7 @@
 #include "editor/managers/sprite_manager.hpp"
 #include "editor/debug/custom_polygon.hpp"
 #include "editor/mouse_utils.hpp"
+#include "editor/grid.hpp"
 #include <string>
 #include <algorithm>
 
@@ -59,6 +60,9 @@ int main(int argc, char** argv)
 
 	/* Vector for custom polygon objects */
 	std::vector<CustomPolygon> customPolygons;
+
+	/* The grid */
+	std::unique_ptr<Grid> grid(new Grid(RESOLUTION));
 
 	sf::Clock clock;
 
@@ -341,8 +345,9 @@ int main(int argc, char** argv)
         }
 
 		ImGui::End();
+
 		/*----------------------------------------------------------------------
-         End ImGui
+         Update
          ----------------------------------------------------------------------*/
 
 		/** Update Box2D */
@@ -352,8 +357,14 @@ int main(int argc, char** argv)
 		edgeChainManager->Update(window);
 		spriteManager->Update();
 
-		/* Draw */
+		/*----------------------------------------------------------------------
+         Draw
+         ----------------------------------------------------------------------*/
+
 		window.clear(sf::Color::White);
+
+		/* Draw grid */
+		grid->Draw(window);
 
 		/* Draw objects */
 		spriteManager->Draw(window);

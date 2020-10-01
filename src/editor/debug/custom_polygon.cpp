@@ -44,7 +44,7 @@ CustomPolygon::~CustomPolygon()
 
 	--CustomPolygonCount;
 
-	cout << "--BodyCount (CustomPolygon)\n";
+	//cout << "--BodyCount (CustomPolygon)\n";
 }
 
 void CustomPolygon::CreateBody()

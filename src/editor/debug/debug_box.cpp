@@ -37,7 +37,7 @@ DebugBox::~DebugBox()
 
 	--DebugBoxCount;
 
-	cout << "--BodyCount (DebugBox)\n";
+	//cout << "--BodyCount (DebugBox)\n";
 }
 
 void DebugBox::CreateBody()

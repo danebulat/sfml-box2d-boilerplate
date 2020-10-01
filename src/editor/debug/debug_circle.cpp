@@ -33,7 +33,7 @@ DebugCircle::~DebugCircle()
 
 	--DebugCircleCount;
 
-	cout << "--BodyCount (DebugCirle)\n";
+	//cout << "--BodyCount (DebugCirle)\n";
 }
 
 void DebugCircle::CreateBody()

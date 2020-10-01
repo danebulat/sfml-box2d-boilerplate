@@ -98,6 +98,8 @@ StaticEdgeChain::StaticEdgeChain(std::vector<Vector2f>& vertices,
 	, m_editable(false)
 	, m_hoveringOnHandle(false)
 	, m_hoveringOnMoveHandle(false)
+	, m_addVertex(false)
+	, m_removeVertex(false)
 {
 	Init(vertices, world);
 }
