@@ -114,6 +114,16 @@ int main(int argc, char** argv)
 				{
 					spriteManager->PushShape(ShapeType::CustomPolygon, GetMousePosition(window));
 				}
+
+				// TMP - GRID
+				if (event.key.code == sf::Keyboard::Up)
+				{
+					grid->IncrementUnitSize(2.f);
+				}
+				if (event.key.code == sf::Keyboard::Down)
+				{
+					grid->IncrementUnitSize(-2.f);
+				}
 			}
 
 			// Mouse move

@@ -12,9 +12,14 @@ private:
 	sf::VertexArray		m_vertexArrayY;
 	float 				m_unitSize;
 
+	static constexpr float MIN_UNIT_SIZE = 1.f;
+	static constexpr float MAX_UNIT_SIZE = 250.f;
+
 private:
 	void BuildVertexArrayX()
 	{
+		m_vertexArrayX.clear();
+
 		// Resize vertex array X
 		uint gridLinesX = (m_resolution.x / m_unitSize) + 1;
 		uint vertexCountX = gridLinesX * 2;
@@ -38,6 +43,8 @@ private:
 
 	void BuildVertexArrayY()
 	{
+		m_vertexArrayY.clear();
+
 		// Resize vertex array Y
 		uint gridLinesY = (m_resolution.y / m_unitSize) + 1;
 		uint vertexCountY = gridLinesY * 2;
@@ -81,6 +88,31 @@ public:
 		// Draw vertex arrays
 		window.draw(m_vertexArrayX);
 		window.draw(m_vertexArrayY);
+	}
+
+	void SetUnitSize(float size)
+	{
+		if (size <= MAX_UNIT_SIZE && size >= MIN_UNIT_SIZE)
+		{
+			m_unitSize = size;
+			BuildVertexArrayX();
+			BuildVertexArrayY();
+		}
+	}
+
+	void IncrementUnitSize(float size)
+	{
+		if ((m_unitSize + size) <= MAX_UNIT_SIZE && (m_unitSize + size) >= MIN_UNIT_SIZE)
+		{
+			m_unitSize += size;
+			BuildVertexArrayX();
+			BuildVertexArrayY();
+		}
+	}
+
+	float GetUnitSize() const
+	{
+		return m_unitSize;
 	}
 };
 
