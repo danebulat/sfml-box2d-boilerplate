@@ -2,6 +2,7 @@
 #define GRID_HPP
 
 #include <SFML/Graphics.hpp>
+#include "editor/font_store.hpp"
 
 class Grid
 {
@@ -11,6 +12,9 @@ private:
 	sf::VertexArray		m_vertexArrayX;
 	sf::VertexArray		m_vertexArrayY;
 	float 				m_unitSize;
+
+	sf::View			m_gridHud;
+	sf::Text			m_labelText;
 
 	static constexpr float MIN_UNIT_SIZE = 1.f;
 	static constexpr float MAX_UNIT_SIZE = 250.f;
@@ -66,12 +70,24 @@ private:
 		}
 	}
 
+	std::string GetLabelString()
+	{
+		return ("Grid Unit Size: " + std::to_string(m_unitSize).substr(0,4));
+	}
+
 public:
 	Grid(const sf::Vector2f& resolution)
 		: m_resolution(resolution)
 		, m_color(sf::Color(194.f, 194.f, 214.f, 96.f))
 		, m_unitSize(20.f)
 	{
+		m_gridHud.setSize(m_resolution);
+		m_gridHud.setCenter(m_resolution.x * .5f, m_resolution.y * .5f);
+		m_labelText.setFont(FontStore::GetInstance()->GetFont("Menlo-Regular.ttf"));
+		m_labelText.setFillColor(sf::Color::Black);
+		m_labelText.setCharacterSize(12);
+		m_labelText.setPosition(5.f, 5.f);
+		m_labelText.setString(GetLabelString());
 
 		BuildVertexArrayX();
 		BuildVertexArrayY();
@@ -88,6 +104,9 @@ public:
 		// Draw vertex arrays
 		window.draw(m_vertexArrayX);
 		window.draw(m_vertexArrayY);
+
+		window.setView(m_gridHud);
+		window.draw(m_labelText);
 	}
 
 	void SetUnitSize(float size)
@@ -97,6 +116,8 @@ public:
 			m_unitSize = size;
 			BuildVertexArrayX();
 			BuildVertexArrayY();
+
+			m_labelText.setString(GetLabelString());
 		}
 	}
 
@@ -107,6 +128,8 @@ public:
 			m_unitSize += size;
 			BuildVertexArrayX();
 			BuildVertexArrayY();
+
+			m_labelText.setString(GetLabelString());
 		}
 	}
 

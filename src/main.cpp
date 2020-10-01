@@ -29,10 +29,10 @@ int main(int argc, char** argv)
 	util::Platform platform;
 
 	/** Prepare the window */
-	RESOLUTION.x = VideoMode::getDesktopMode().width;
-    RESOLUTION.y = VideoMode::getDesktopMode().height;
+	RESOLUTION.x = VideoMode::getDesktopMode().width * .9f;
+    RESOLUTION.y = VideoMode::getDesktopMode().height * .75f;
 
-	sf::RenderWindow window(sf::VideoMode(RESOLUTION.x * .9f, RESOLUTION.y * .75f, 32),
+	sf::RenderWindow window(sf::VideoMode(RESOLUTION.x, RESOLUTION.y, 32),
 		"SFML - Box2D Boilerplate", sf::Style::Default);
 	window.setFramerateLimit(60);
 
@@ -65,6 +65,11 @@ int main(int argc, char** argv)
 	std::unique_ptr<Grid> grid(new Grid(RESOLUTION));
 
 	sf::Clock clock;
+	sf::View view;
+	view.setSize(RESOLUTION.x, RESOLUTION.y);
+	view.setCenter(RESOLUTION.x * .5f, RESOLUTION.y * .5f);
+
+	std::cout << "(" << RESOLUTION.x  << "," << RESOLUTION.y << ")\n";
 
 	while (window.isOpen())
 	{
@@ -377,6 +382,7 @@ int main(int argc, char** argv)
 		grid->Draw(window);
 
 		/* Draw objects */
+		window.setView(view);
 		spriteManager->Draw(window);
 		edgeChainManager->Draw(window);
 
