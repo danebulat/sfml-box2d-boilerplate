@@ -20,8 +20,11 @@ using namespace physics;
 // ImGui variabless
 static int e = 1;
 
-static int gridStyle = 1;
+static int gridStyle = 0;
 static bool showGridSettingsWindow = true;
+static float grid_unit_size = 2.5f;
+static float grid_color[4] = {1.f,0.f,0.f,0.f};
+bool show_grid = true;
 
 bool renderMouseCoords = true;
 
@@ -67,6 +70,13 @@ int main(int argc, char** argv)
 
 	/* The grid */
 	std::unique_ptr<Grid> grid(new Grid(RESOLUTION));
+	grid_unit_size = grid->GetUnitSize();
+	sf::Color gridc = grid->GetLineColor();
+	grid_color[0] = gridc.r / 255.f;
+	grid_color[1] = gridc.g / 255.f;
+	grid_color[2] = gridc.b / 255.f;
+	grid_color[3] = gridc.a / 255.f;
+	show_grid = grid->IsVisible();
 
 	sf::Clock clock;
 	sf::View view;
@@ -379,42 +389,38 @@ int main(int argc, char** argv)
 		 */
 
 		// TMP data
-		bool show_grid_settings = true;
-		bool show_grid = true;
-		float grid_unit_size = 2.5f;
-		float grid_color[4] = {1.f,0.f,0.f,0.f};
-
 		if (showGridSettingsWindow) // window toggle flag
 		{
-			if (!ImGui::Begin("Grid Settings", &showGridSettingsWindow))
-			{
+			if (!ImGui::Begin("Grid Settings", &showGridSettingsWindow)) {
 				ImGui::End();
 			}
 			else
 			{
 				ImGui::Separator();
 				ImGui::SetWindowSize(ImVec2(300.f, 210.f));
-				ImGui::FullWidthLabelCheckox("Display",
-					"##GridDisplay", "Toggle visibility of the grid", &show_grid);
+				if (ImGui::FullWidthLabelCheckox("Display",
+					"##GridDisplay", "Toggle visibility of the grid", &show_grid)) {
+					grid->IsVisible(show_grid);
+				}
 
 				ImGui::Separator();
 				ImGui::AlignTextToFramePadding();
 				ImGui::Text("Grid Style:   ");
 
 				ImGui::SameLine();
-				if (ImGui::RadioButton("Standard", &gridStyle, 1))
-					std::cout << "> standard mode\n";
+				if (ImGui::RadioButton("Standard", &gridStyle, 0))
+					grid->SetType(static_cast<GridType>(gridStyle));
 
 				ImGui::SameLine();
-				if (ImGui::RadioButton("Crosshair", &gridStyle, 2))
-					std::cout << "> crosshair mode\n";
+				if (ImGui::RadioButton("Crosshair", &gridStyle, 1))
+					grid->SetType(static_cast<GridType>(gridStyle));
 
 				ImGui::Separator();
 				ImGui::AlignTextToFramePadding();
 				ImGui::Text("Unit Size:    ");
 				ImGui::SameLine();
-				if (ImGui::SliderFloat("float", &grid_unit_size, 1.f, 250.f))
-					std::cout << "> change unit size\n";
+				if (ImGui::SliderFloat("float", &grid_unit_size, 10.f, 250.f))
+					grid->SetUnitSize(grid_unit_size);
 
 				ImGui::Separator();
 				ImGui::AlignTextToFramePadding();
@@ -423,17 +429,21 @@ int main(int argc, char** argv)
 				ImGui::SetNextItemWidth(-1);
 				if (ImGui::ColorEdit3("##GridLineColor", grid_color, ImGuiColorEditFlags_PickerHueWheel))
 				{
-						// static_cast<sf::Uint8>(player1Col[0] * 255.f),
-						// static_cast<sf::Uint8>(player1Col[1] * 255.f),
-						// static_cast<sf::Uint8>(player1Col[2] * 255.f)));
-						std::cout << "> change grid color\n";
+						sf::Color c;
+						c.r = static_cast<sf::Uint8>(grid_color[0] * 255.f);
+						c.g = static_cast<sf::Uint8>(grid_color[1] * 255.f);
+						c.b = static_cast<sf::Uint8>(grid_color[2] * 255.f);
+						c.a = 96.f;
+						grid->SetLineColor(c);
 				}
 				ImGui::Separator();
 
 				// Reset grid settings
 				float width = ImGui::GetWindowContentRegionWidth();
-				if (ImGui::StartColorButton(31, 4, "Reset Settings", width, 30.f, false))
-					std::cout << "> reset grid settings\n";
+				if (ImGui::StartColorButton(31, 4, "Reset Settings", width, 30.f, false)) {
+					grid->Reset();
+				}
+
 				ImGui::StopColorButton();
 
 				ImGui::Separator();
