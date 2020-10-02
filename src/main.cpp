@@ -442,6 +442,11 @@ int main(int argc, char** argv)
 				float width = ImGui::GetWindowContentRegionWidth();
 				if (ImGui::StartColorButton(31, 4, "Reset Settings", width, 30.f, false)) {
 					grid->Reset();
+					sf::Color c = grid->GetLineColor();
+					grid_color[0] = c.r / 255.f;
+					grid_color[1] = c.g / 255.f;
+					grid_color[2] = c.b / 255.f;
+					grid_color[3] = c.a / 255.f;
 				}
 
 				ImGui::StopColorButton();
