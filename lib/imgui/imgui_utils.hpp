@@ -74,6 +74,23 @@ static bool HalfWidthLabelCheckoxRight(const char* label, const char* label_id, 
 	return ImGui::Checkbox(label_id, ptr_bool);
 }
 
+/* Util: Renders a label & checkbox on right half of window */
+static bool FullWidthLabelCheckox(const char* label, const char* label_id, const char* help,
+	bool* ptr_bool)
+{
+	float windowWidth = ImGui::GetWindowContentRegionWidth();
+
+	ImGui::AlignTextToFramePadding();
+    ImGui::Text(label);
+
+	ImGui::SameLine();
+	ImGui::HelpMarker(help);
+
+	ImGui::SetNextItemWidth(-1);
+	ImGui::SameLine(windowWidth - 20.f);
+	return ImGui::Checkbox(label_id, ptr_bool);
+}
+
 /* Util: Renders a colors button with custom text label and button width */
 static bool StartColorButton(int id, int col, const char* label, float btn_width, float btn_height, bool same_line)
 {

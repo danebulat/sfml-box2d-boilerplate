@@ -19,6 +19,10 @@ using namespace physics;
 
 // ImGui variabless
 static int e = 1;
+
+static int gridStyle = 1;
+static bool showGridSettingsWindow = true;
+
 bool renderMouseCoords = true;
 
 // Set initial editor mode
@@ -189,6 +193,19 @@ int main(int argc, char** argv)
 			// 	EditorSettings::mode = RMBMode::RayCastMode;
 
 			ImGui::Separator();
+
+			// Grid Options (blue)
+			float width = ImGui::GetWindowContentRegionWidth()-6.f;
+			if (ImGui::StartColorButton(41, 4, "Grid Options", width/2, 30.f, false))
+				showGridSettingsWindow = !showGridSettingsWindow;
+			ImGui::StopColorButton();
+
+			// Camera Options (blue)
+			if (ImGui::StartColorButton(42, 4, "Camera Options", width/2, 30.f, true))
+				;
+			ImGui::StopColorButton();
+
+			ImGui::Separator();
 		}
 
 		/* Display Settings */
@@ -356,6 +373,73 @@ int main(int argc, char** argv)
 		if (ImGui::CollapsingHeader("Controls", ImGuiTreeNodeFlags_DefaultOpen)) {
 			ImGui::RenderEditorControls();
         }
+
+
+		/** Grid Settings Panel
+		 */
+
+		// TMP data
+		bool show_grid_settings = true;
+		bool show_grid = true;
+		float grid_unit_size = 2.5f;
+		float grid_color[4] = {1.f,0.f,0.f,0.f};
+
+		if (showGridSettingsWindow) // window toggle flag
+		{
+			if (!ImGui::Begin("Grid Settings", &showGridSettingsWindow))
+			{
+				ImGui::End();
+			}
+			else
+			{
+				ImGui::Separator();
+				ImGui::SetWindowSize(ImVec2(300.f, 210.f));
+				ImGui::FullWidthLabelCheckox("Display",
+					"##GridDisplay", "Toggle visibility of the grid", &show_grid);
+
+				ImGui::Separator();
+				ImGui::AlignTextToFramePadding();
+				ImGui::Text("Grid Style:   ");
+
+				ImGui::SameLine();
+				if (ImGui::RadioButton("Standard", &gridStyle, 1))
+					std::cout << "> standard mode\n";
+
+				ImGui::SameLine();
+				if (ImGui::RadioButton("Crosshair", &gridStyle, 2))
+					std::cout << "> crosshair mode\n";
+
+				ImGui::Separator();
+				ImGui::AlignTextToFramePadding();
+				ImGui::Text("Unit Size:    ");
+				ImGui::SameLine();
+				if (ImGui::SliderFloat("float", &grid_unit_size, 1.f, 250.f))
+					std::cout << "> change unit size\n";
+
+				ImGui::Separator();
+				ImGui::AlignTextToFramePadding();
+				ImGui::Text("Line Color:   ");
+
+				ImGui::SetNextItemWidth(-1);
+				if (ImGui::ColorEdit3("##GridLineColor", grid_color, ImGuiColorEditFlags_PickerHueWheel))
+				{
+						// static_cast<sf::Uint8>(player1Col[0] * 255.f),
+						// static_cast<sf::Uint8>(player1Col[1] * 255.f),
+						// static_cast<sf::Uint8>(player1Col[2] * 255.f)));
+						std::cout << "> change grid color\n";
+				}
+				ImGui::Separator();
+
+				// Reset grid settings
+				float width = ImGui::GetWindowContentRegionWidth();
+				if (ImGui::StartColorButton(31, 4, "Reset Settings", width, 30.f, false))
+					std::cout << "> reset grid settings\n";
+				ImGui::StopColorButton();
+
+				ImGui::Separator();
+				ImGui::End();
+			}
+		}
 
 		ImGui::End();
 
