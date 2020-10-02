@@ -69,8 +69,6 @@ int main(int argc, char** argv)
 	view.setSize(RESOLUTION.x, RESOLUTION.y);
 	view.setCenter(RESOLUTION.x * .5f, RESOLUTION.y * .5f);
 
-	std::cout << "(" << RESOLUTION.x  << "," << RESOLUTION.y << ")\n";
-
 	while (window.isOpen())
 	{
 		sf::Time dt = clock.restart();
