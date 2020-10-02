@@ -7,9 +7,10 @@ using sf::Vector2f;
 Grid::Grid(const Vector2f& resolution)
 	: m_resolution(resolution)
 	, m_color(Color(194.f, 194.f, 214.f, 96.f))
-	, m_type(GridType::CROSS_HAIR)
+	, m_type(GridType::STANDARD)
 	, m_unitSize(30.f)
 	, m_crossHairSize(5.f)
+	, m_visible(true)
 {
 	m_gridHud.setSize(m_resolution);
 	m_gridHud.setCenter(m_resolution.x * .5f, m_resolution.y * .5f);
@@ -20,6 +21,15 @@ Grid::Grid(const Vector2f& resolution)
 
 Grid::~Grid()
 {}
+
+void Grid::Reset()
+{
+	m_color = Color(194.f, 194.f, 214.f, 96.f);
+	m_type = GridType::STANDARD;
+	m_unitSize = 30.f;
+	m_visible = true;
+	BuildGrid();
+}
 
 void Grid::InitLabels()
 {
@@ -42,13 +52,16 @@ void Grid::Update()
 
 void Grid::Draw(RenderWindow& window)
 {
-	// Draw vertex array
-	window.draw(m_vertexArray);
+	if (m_visible)
+	{
+		// Draw vertex array
+		window.draw(m_vertexArray);
 
-	// Draw HUD
-	window.setView(m_gridHud);
-	window.draw(m_xLabel);
-	window.draw(m_yLabel);
+		// Draw HUD
+		window.setView(m_gridHud);
+		window.draw(m_xLabel);
+		window.draw(m_yLabel);
+	}
 }
 
 // --------------------------------------------------------------------------------
@@ -76,6 +89,33 @@ void Grid::IncrementUnitSize(float size)
 		m_unitSize += size;
 		BuildGrid();
 	}
+}
+
+void Grid::SetType(GridType type)
+{
+	m_type = type;
+	BuildGrid();
+}
+
+sf::Color Grid::GetLineColor() const
+{
+	return m_color;
+}
+
+void Grid::SetLineColor(const sf::Color& color)
+{
+	m_color = color;
+	BuildGrid();
+}
+
+void Grid::IsVisible(bool flag)
+{
+	m_visible = flag;
+}
+
+bool Grid::IsVisible() const
+{
+	return m_visible;
 }
 
 // --------------------------------------------------------------------------------
