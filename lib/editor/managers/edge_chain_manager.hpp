@@ -59,6 +59,9 @@ public:
 
 	virtual void IncrementEdgeChainVertexCount(unsigned long n) override;
 	virtual unsigned long* GetEdgeChainVertexCount() override;
+
+	// To access the selected edge chain's data, such as position for the camera
+	const StaticEdgeChain& GetSelectedEdgeChain() const;
 };
 
 #endif

@@ -202,6 +202,8 @@ bool* EdgeChainManager::GetDrawBBFlag()
 	return &m_guiDrawBB;
 }
 
+
+
 // ----------------------------------------------------------------------
 // ChainManagerController Interface Implementaiton
 // ----------------------------------------------------------------------
@@ -224,4 +226,8 @@ void EdgeChainManager::IncrementEdgeChainVertexCount(unsigned long n)
 unsigned long* EdgeChainManager::GetEdgeChainVertexCount()
 {
 	return &m_edgeChainVertexCount;
+}
+
+const StaticEdgeChain& EdgeChainManager::GetSelectedEdgeChain() const {
+	return m_chains[m_currSelectedIndex];
 }

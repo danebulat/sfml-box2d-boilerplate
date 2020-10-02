@@ -9,6 +9,9 @@
 #include "editor/debug/custom_polygon.hpp"
 #include "editor/mouse_utils.hpp"
 #include "editor/grid.hpp"
+
+#include "editor/animation/camera.hpp"
+
 #include <string>
 #include <algorithm>
 
@@ -69,7 +72,7 @@ int main(int argc, char** argv)
 	std::vector<CustomPolygon> customPolygons;
 
 	/* The grid */
-	std::unique_ptr<Grid> grid(new Grid(RESOLUTION));
+	std::unique_ptr<Grid> grid(new Grid(sf::Vector2f(RESOLUTION.x * 2.f, RESOLUTION.y * 2.f)));
 	grid_unit_size = grid->GetUnitSize();
 	sf::Color gridc = grid->GetLineColor();
 	grid_color[0] = gridc.r / 255.f;
@@ -78,10 +81,16 @@ int main(int argc, char** argv)
 	grid_color[3] = gridc.a / 255.f;
 	show_grid = grid->IsVisible();
 
+	/* The camera */
+	sf::View view(sf::FloatRect(0, 0, RESOLUTION.x, RESOLUTION.y));
+	sf::Vector2f cameraTarget(RESOLUTION.x/2, RESOLUTION.y/2);
+	sf::Vector2u levelSize((uint)RESOLUTION.x * 2.f, (uint)RESOLUTION.y * 2.f);
+
+	std::unique_ptr<Camera> camera(new Camera(cameraTarget, levelSize, RESOLUTION, true));
+	camera->SetDuration(.5f);
+	camera->SetInterpolation(InterpFunc::ExpoEaseOut);
+
 	sf::Clock clock;
-	sf::View view;
-	view.setSize(RESOLUTION.x, RESOLUTION.y);
-	view.setCenter(RESOLUTION.x * .5f, RESOLUTION.y * .5f);
 
 	while (window.isOpen())
 	{
@@ -140,6 +149,36 @@ int main(int argc, char** argv)
 				if (event.key.code == sf::Keyboard::Down)
 				{
 					grid->IncrementUnitSize(-2.f);
+				}
+			}
+
+			if (event.type == sf::Event::KeyPressed)
+			{
+				float MOVE_SPEED = 25.f;
+
+				// TMP - CAMERA
+				if (event.key.code == sf::Keyboard::W)
+				{
+					cameraTarget.y -= MOVE_SPEED;
+					std::cout << "(" << cameraTarget.x << "," << cameraTarget.y << ")\n";
+				}
+
+				if (event.key.code == sf::Keyboard::S)
+				{
+					cameraTarget.y += MOVE_SPEED;
+					std::cout << "(" << cameraTarget.x << "," << cameraTarget.y << ")\n";
+				}
+
+				if (event.key.code == sf::Keyboard::A)
+				{
+					cameraTarget.x -= MOVE_SPEED;
+					std::cout << "(" << cameraTarget.x << "," << cameraTarget.y << ")\n";
+				}
+
+				if (event.key.code == sf::Keyboard::D)
+				{
+					cameraTarget.x += MOVE_SPEED;
+					std::cout << "(" << cameraTarget.x << "," << cameraTarget.y << ")\n";
 				}
 			}
 
@@ -343,6 +382,11 @@ int main(int argc, char** argv)
 			if (edgeChainManager->GetChainCount() > 0) {
 				if (ImGui::Combo("##SelectedEdgeChain", &edgeChainManager->GetSelectedChainIndex(), edgeChainManager->GetChainLabels())) {
 					edgeChainManager->SelectCurrentChain();
+
+					/* Animate camera towards selected chain */
+					sf::Vector2f pos = edgeChainManager->GetSelectedEdgeChain().GetPosition();
+					std::cout << "(" << pos.x << "," << pos.y << ")\n";
+					camera->AnimateTo(pos);
 				}
 			}
 			else {
@@ -388,7 +432,6 @@ int main(int argc, char** argv)
 		/** Grid Settings Panel
 		 */
 
-		// TMP data
 		if (showGridSettingsWindow) // window toggle flag
 		{
 			if (!ImGui::Begin("Grid Settings", &showGridSettingsWindow)) {
@@ -461,6 +504,8 @@ int main(int argc, char** argv)
 		/*----------------------------------------------------------------------
          Update
          ----------------------------------------------------------------------*/
+		/** Update camera */
+		camera->Update(dt.asSeconds(), cameraTarget);
 
 		/** Update Box2D */
 		world.Step(1/60.f, 8, 3);
@@ -478,8 +523,14 @@ int main(int argc, char** argv)
 		/* Draw grid */
 		grid->Draw(window);
 
-		/* Draw objects */
+		/* Center view on camera position */
+		if (camera->IsAnimating())
+			cameraTarget = camera->GetPosition();
+
+		view.setCenter(camera->GetPosition());
 		window.setView(view);
+
+		/* Draw objects */
 		spriteManager->Draw(window);
 		edgeChainManager->Draw(window);
 

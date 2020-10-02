@@ -89,6 +89,7 @@ public:
 	void SetRemoveVertexFlag(bool flag);
 
 	long GetVertexCount();
+	const sf::Vector2f GetPosition() const;
 
 	void Update(sf::RenderWindow& window, b2World* world);
 	void Draw(sf::RenderWindow& window);

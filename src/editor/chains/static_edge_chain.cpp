@@ -306,6 +306,10 @@ long StaticEdgeChain::GetVertexCount()
 	return m_vertexCount;
 }
 
+const sf::Vector2f StaticEdgeChain::GetPosition() const {
+	return m_moveHandle->GetPosition();
+}
+
 // --------------------------------------------------------------------------------
 // Input
 // --------------------------------------------------------------------------------

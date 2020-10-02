@@ -70,7 +70,7 @@ public:
 	void AnimateTo(const sf::Vector2f& target);
 	void ClampTo(const sf::Vector2u& backgroundSize, const sf::Vector2f& resolution);
 	bool IsAnimating() const;
-	void Update(float dt, const sf::Vector2f& target);
+	void Update(float dt, sf::Vector2f& target);
 	void IncrementDuration(float i);
 
 	/** Accessors

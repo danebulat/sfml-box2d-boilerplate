@@ -173,7 +173,7 @@ bool Camera::IsAnimating() const {
 	return (m_tweenXActive || m_tweenYActive);
 }
 
-void Camera::Update(float dt, const sf::Vector2f& target) {
+void Camera::Update(float dt, sf::Vector2f& target) {
 
 	// Deallocate tweens if it has finished animating, otherwise call update()
 	if (m_tweenXActive && (!m_tweenX->IsAnimating())) {
@@ -239,12 +239,30 @@ void Camera::Update(float dt, const sf::Vector2f& target) {
 		if (playerY < m_minY)	   clampOnMinY = true;
 		else if (playerY > m_maxY) clampOnMaxY = true;
 
-		if (clampOnMinX)      m_position.x = m_minX;
-		else if (clampOnMaxX) m_position.x = m_maxX;
-		else 				  m_position.x = playerX;
+		if (clampOnMinX)
+		{
+			m_position.x = m_minX;
+			target.x = m_minX;
+		}
+		else if (clampOnMaxX)
+		{
+			m_position.x = m_maxX;
+			target.x = m_maxX;
 
-		if (clampOnMinY) 	  m_position.y = m_minY;
-		else if (clampOnMaxY) m_position.y = m_maxY;
-		else 				  m_position.y = playerY;
+		}
+		else
+			m_position.x = playerX;
+
+		if (clampOnMinY) {
+			m_position.y = m_minY;
+			target.y = m_minY;
+		}
+		else if (clampOnMaxY)
+		{
+			m_position.y = m_maxY;
+			target.y = m_maxY;
+		}
+		else
+			m_position.y = playerY;
 	}
 }
