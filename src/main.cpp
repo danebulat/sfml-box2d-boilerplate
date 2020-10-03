@@ -9,7 +9,6 @@
 #include "editor/debug/custom_polygon.hpp"
 #include "editor/mouse_utils.hpp"
 #include "editor/grid.hpp"
-
 #include "editor/animation/camera.hpp"
 
 #include <string>
@@ -22,17 +21,23 @@ using namespace physics;
 
 // ImGui variabless
 static int e = 1;
+static bool renderMouseCoords = true;
 
-static int gridStyle = 0;
-static bool showGridSettingsWindow = true;
+static int   gridStyle = 0;
+static bool  showGridSettingsWindow = true;
 static float grid_unit_size = 2.5f;
 static float grid_color[4] = {1.f,0.f,0.f,0.f};
-bool show_grid = true;
+static bool  show_grid = true;
 
-bool renderMouseCoords = true;
+sf::Vector2f currMousePos;
+sf::Vector2f prevMousePos;
+sf::Vector2f prevIncrement;
+sf::Vector2f moveIncrement;
+bool rmbPressed = false;
+bool panCamera = false;
 
 // Set initial editor mode
-RMBMode EditorSettings::mode = RMBMode::BoxSpawnMode;
+RMBMode EditorSettings::mode = RMBMode::PanCameraMode;
 
 int main(int argc, char** argv)
 {
@@ -113,12 +118,12 @@ int main(int argc, char** argv)
                     window.close();
 
 				// Enter key: toggle demo
-				if (event.key.code == sf::Keyboard::Enter)
+				if (event.key.code == sf::Keyboard::Space)
 				{
 					int mode = (static_cast<int>(EditorSettings::mode) + 1);
-					if (mode > 2)
+					if (mode > 3)
 					{
-						EditorSettings::mode = RMBMode::BoxSpawnMode;
+						EditorSettings::mode = RMBMode::PanCameraMode;
 						e = 1;
 					}
 					else
@@ -136,7 +141,7 @@ int main(int argc, char** argv)
 				}
 
 				// Space key: add new custom polygon
-				if (event.key.code == sf::Keyboard::Space)
+				if (event.key.code == sf::Keyboard::Enter)
 				{
 					spriteManager->PushShape(ShapeType::CustomPolygon, GetMousePosition(window));
 				}
@@ -152,33 +157,13 @@ int main(int argc, char** argv)
 				}
 			}
 
-			if (event.type == sf::Event::KeyPressed)
+			// Mouse Button Pressed
+			if (event.type == sf::Event::MouseButtonPressed)
 			{
-				float MOVE_SPEED = 25.f;
-
-				// TMP - CAMERA
-				if (event.key.code == sf::Keyboard::W)
+				if (event.mouseButton.button == sf::Mouse::Right)
 				{
-					cameraTarget.y -= MOVE_SPEED;
-					std::cout << "(" << cameraTarget.x << "," << cameraTarget.y << ")\n";
-				}
-
-				if (event.key.code == sf::Keyboard::S)
-				{
-					cameraTarget.y += MOVE_SPEED;
-					std::cout << "(" << cameraTarget.x << "," << cameraTarget.y << ")\n";
-				}
-
-				if (event.key.code == sf::Keyboard::A)
-				{
-					cameraTarget.x -= MOVE_SPEED;
-					std::cout << "(" << cameraTarget.x << "," << cameraTarget.y << ")\n";
-				}
-
-				if (event.key.code == sf::Keyboard::D)
-				{
-					cameraTarget.x += MOVE_SPEED;
-					std::cout << "(" << cameraTarget.x << "," << cameraTarget.y << ")\n";
+					if (EditorSettings::mode == RMBMode::PanCameraMode)
+						rmbPressed = true;
 				}
 			}
 
@@ -186,6 +171,12 @@ int main(int argc, char** argv)
 			if (event.type == sf::Event::MouseMoved)
 			{
 				SetMouseLabel(mouseLabel, window);
+
+				// Handle camera pan
+				if (EditorSettings::mode == RMBMode::PanCameraMode && rmbPressed)
+				{
+					panCamera = true;
+				}
 			}
 
 			// Left and right button release
@@ -198,6 +189,9 @@ int main(int argc, char** argv)
 				}
 				else if (event.mouseButton.button == sf::Mouse::Right)
 				{
+					rmbPressed = false;
+					panCamera = false;
+
 					// Spawn a box
 					if (EditorSettings::mode == RMBMode::BoxSpawnMode)
 					{
@@ -230,11 +224,15 @@ int main(int argc, char** argv)
 			ImGui::Separator();
 
 			ImGui::Text("RMB Mode:");
-			if (ImGui::RadioButton("Spawn Box", &e, 1))
+			if (ImGui::RadioButton("Pan Camera", &e, 1))
+				EditorSettings::mode = RMBMode::PanCameraMode;
+
+			ImGui::SameLine();
+			if (ImGui::RadioButton("Spawn Box", &e, 2))
 				EditorSettings::mode = RMBMode::BoxSpawnMode;
 
 			ImGui::SameLine();
-			if (ImGui::RadioButton("Test Point", &e, 2))
+			if (ImGui::RadioButton("Test Point", &e, 3))
 				EditorSettings::mode = RMBMode::TestPointMode;
 
 			// ImGui::SameLine();
@@ -504,8 +502,54 @@ int main(int argc, char** argv)
 		/*----------------------------------------------------------------------
          Update
          ----------------------------------------------------------------------*/
+		/** Update variables */
+
+		/* WEIRD CODE ****************************************************************/
+		// By simply calculating the increment of the current/previous mouse position
+		// each frame results in strange behavior due to the way the view is centered
+		// every frame.
+		// The following solution updates the current mouse position WITH THE INCREMENT
+		// value BEFORE copying it over to the previous frame mouse position.
+		sf::Vector2f mousePos = GetMousePosition(window);
+
+		if (panCamera)
+		{
+			float incX = abs(mousePos.x - prevMousePos.x);
+			float incY = abs(mousePos.y - prevMousePos.y);
+			std::cout << incX << "\n";
+
+			if (mousePos.x < prevMousePos.x) {
+				cameraTarget.x += incX;
+				mousePos.x += incX;
+			}
+			else {
+				// move negative x
+				cameraTarget.x -= incX;
+				mousePos.x -= incX;
+			}
+
+			if (mousePos.y < prevMousePos.y) {
+				cameraTarget.y += incY;
+				mousePos.y += incY;
+			}
+			else {
+				// move negative y
+				cameraTarget.y -= incY;
+				mousePos.y -= incY;
+			}
+		}
+
+		prevMousePos = mousePos;
+		/* END WEIRD CODE ************************************************************/
+
+		/* Center view on camera position */
+		if (camera->IsAnimating())
+			cameraTarget = camera->GetPosition();
+
 		/** Update camera */
 		camera->Update(dt.asSeconds(), cameraTarget);
+
+		view.setCenter(camera->GetPosition());
 
 		/** Update Box2D */
 		world.Step(1/60.f, 8, 3);
@@ -523,11 +567,6 @@ int main(int argc, char** argv)
 		/* Draw grid */
 		grid->Draw(window);
 
-		/* Center view on camera position */
-		if (camera->IsAnimating())
-			cameraTarget = camera->GetPosition();
-
-		view.setCenter(camera->GetPosition());
 		window.setView(view);
 
 		/* Draw objects */

@@ -221,23 +221,21 @@ void Camera::Update(float dt, sf::Vector2f& target) {
 	}
 
 	// Update camera position based on the player if it's not animating
-	if (!m_tweenXActive && !m_tweenYActive) {
-		// float playerX = player.getCenter().x;
-		// float playerY = player.getCenter().y;
-
-		float playerX = target.x;
-		float playerY = target.y;
+	if (!m_tweenXActive && !m_tweenYActive)
+	{
+		float targetX = target.x;
+		float targetY = target.y;
 
 		bool clampOnMinX = false;
 		bool clampOnMaxX = false;
 		bool clampOnMinY = false;
 		bool clampOnMaxY = false;
 
-		if (playerX < m_minX)      clampOnMinX = true;
-		else if (playerX > m_maxX) clampOnMaxX = true;
+		if (targetX < m_minX)      clampOnMinX = true;
+		else if (targetX > m_maxX) clampOnMaxX = true;
 
-		if (playerY < m_minY)	   clampOnMinY = true;
-		else if (playerY > m_maxY) clampOnMaxY = true;
+		if (targetY < m_minY)	   clampOnMinY = true;
+		else if (targetY > m_maxY) clampOnMaxY = true;
 
 		if (clampOnMinX)
 		{
@@ -248,10 +246,9 @@ void Camera::Update(float dt, sf::Vector2f& target) {
 		{
 			m_position.x = m_maxX;
 			target.x = m_maxX;
-
 		}
 		else
-			m_position.x = playerX;
+			m_position.x = targetX;
 
 		if (clampOnMinY) {
 			m_position.y = m_minY;
@@ -263,6 +260,6 @@ void Camera::Update(float dt, sf::Vector2f& target) {
 			target.y = m_maxY;
 		}
 		else
-			m_position.y = playerY;
+			m_position.y = targetY;
 	}
 }

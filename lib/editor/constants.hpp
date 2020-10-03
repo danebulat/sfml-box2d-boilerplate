@@ -11,7 +11,8 @@ static sf::Vector2f RESOLUTION;
 
 enum class RMBMode
 {
-	BoxSpawnMode = 1,
+	PanCameraMode = 1,
+	BoxSpawnMode,
 	TestPointMode,
 	RayCastMode
 };

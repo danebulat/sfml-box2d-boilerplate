@@ -125,8 +125,8 @@ static void RenderEditorControls()
 {
 	std::vector<std::pair<std::string, std::string>> controls =
 	{
-		std::make_pair("Space", "Spawn custom polygon"),
-		std::make_pair("Enter", "Cycle RMB modes"),
+		std::make_pair("Enter", "Spawn custom polygon"),
+		std::make_pair("Space", "Cycle RMB modes"),
 		std::make_pair("E", 	"Toggle edge chain active state"),
 		std::make_pair("W", 	"Toggle wireframe rendering mode"),
 		std::make_pair("Esc", 	"Close window"),
