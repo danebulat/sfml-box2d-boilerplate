@@ -241,12 +241,12 @@ void ImGuiManager::UpdateMainWindow()
 
 		// Grid Options (blue)
 		float width = ImGui::GetWindowContentRegionWidth()-6.f;
-		if (ImGui::StartColorButton(41, 4, "Grid Options", width/2, 30.f, false))
+		if (ImGui::StartColorButton(41, 4, "Grid Settings", width/2, 30.f, false))
 			show_grid_settings = !show_grid_settings;
 		ImGui::StopColorButton();
 
 		// Camera Options (blue)
-		if (ImGui::StartColorButton(42, 4, "Camera Options", width/2, 30.f, true))
+		if (ImGui::StartColorButton(42, 4, "Camera Settings", width/2, 30.f, true))
 			show_camera_settings = !show_camera_settings;
 		ImGui::StopColorButton();
 		ImGui::Separator();

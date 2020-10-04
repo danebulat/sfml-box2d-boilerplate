@@ -14,6 +14,7 @@ class Grid
 {
 private:
 	sf::Vector2f		m_resolution;
+	sf::Vector2f 		m_levelSize;
 	sf::Color 			m_color;
 	sf::VertexArray		m_vertexArray;
 
@@ -36,7 +37,7 @@ private:
 	void InitLabels();
 
 public:
-	Grid(const sf::Vector2f& resolution);
+	Grid(const sf::Vector2f& resolution, const sf::Vector2f& levelSize);
 	~Grid();
 
 	void Reset();

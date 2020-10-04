@@ -54,7 +54,7 @@ int main(int argc, char** argv)
 	std::shared_ptr<SpriteManager> spriteManager(new SpriteManager(&world));
 
 	/* The grid */
-	std::shared_ptr<Grid> grid(new Grid(levelSize));
+	std::shared_ptr<Grid> grid(new Grid(res, levelSize));
 
 	/* The camera */
 	sf::View view(sf::FloatRect(0, 0, res.x, res.y));

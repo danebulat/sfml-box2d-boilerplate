@@ -4,8 +4,9 @@ using sf::Color;
 using sf::RenderWindow;
 using sf::Vector2f;
 
-Grid::Grid(const Vector2f& resolution)
+Grid::Grid(const Vector2f& resolution, const Vector2f& levelSize)
 	: m_resolution(resolution)
+	, m_levelSize(levelSize)
 	, m_color(Color(194.f, 194.f, 214.f, 96.f))
 	, m_type(GridType::STANDARD)
 	, m_unitSize(30.f)
@@ -141,8 +142,8 @@ void Grid::BuildStandardGrid()
 	m_vertexArray.clear();
 	m_vertexArray.setPrimitiveType(sf::Lines);
 
-	uint pointsX = (m_resolution.x / m_unitSize) + 1;
-	uint pointsY = (m_resolution.y / m_unitSize) + 1;
+	uint pointsX = (m_levelSize.x / m_unitSize) + 1;
+	uint pointsY = (m_levelSize.y / m_unitSize) + 1;
 
 	m_vertexArray.resize((pointsX * 2) + (pointsY * 2));
 
@@ -153,7 +154,7 @@ void Grid::BuildStandardGrid()
 		m_vertexArray[i].position = position;
 		m_vertexArray[i++].color = m_color;
 
-		position.y = m_resolution.y;
+		position.y = m_levelSize.y;
 
 		m_vertexArray[i].position = position;
 		m_vertexArray[i++].color = m_color;
@@ -165,7 +166,7 @@ void Grid::BuildStandardGrid()
 		m_vertexArray[i].position = position;
 		m_vertexArray[i++].color = m_color;
 
-		position.x = m_resolution.x;
+		position.x = m_levelSize.x;
 
 		m_vertexArray[i].position = position;
 		m_vertexArray[i++].color = m_color;
@@ -177,8 +178,8 @@ void Grid::BuildCrossHairGrid()
 	m_vertexArray.clear();
 	m_vertexArray.setPrimitiveType(sf::Lines);
 
-	uint pointsX = (m_resolution.x / m_unitSize) + 1;
-	uint pointsY = (m_resolution.y / m_unitSize) + 1;
+	uint pointsX = (m_levelSize.x / m_unitSize) + 1;
+	uint pointsY = (m_levelSize.y / m_unitSize) + 1;
 
 	m_vertexArray.resize((pointsX * pointsY) * 4);
 
