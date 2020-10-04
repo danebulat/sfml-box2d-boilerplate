@@ -165,6 +165,16 @@ void Camera::SetDuration(float duration) {
 	m_duration = duration;
 }
 
+bool Camera::ClampEnabled() const
+{
+	return m_clampToBackground;
+}
+
+void Camera::ClampEnabled(bool flag)
+{
+	m_clampToBackground = flag;
+}
+
 // ----------------------------------------------------------------------
 // Update
 // ----------------------------------------------------------------------
@@ -231,35 +241,44 @@ void Camera::Update(float dt, sf::Vector2f& target) {
 		bool clampOnMinY = false;
 		bool clampOnMaxY = false;
 
-		if (targetX < m_minX)      clampOnMinX = true;
-		else if (targetX > m_maxX) clampOnMaxX = true;
-
-		if (targetY < m_minY)	   clampOnMinY = true;
-		else if (targetY > m_maxY) clampOnMaxY = true;
-
-		if (clampOnMinX)
+		if (m_clampToBackground)
 		{
-			m_position.x = m_minX;
-			target.x = m_minX;
-		}
-		else if (clampOnMaxX)
-		{
-			m_position.x = m_maxX;
-			target.x = m_maxX;
+			if (targetX < m_minX)      clampOnMinX = true;
+			else if (targetX > m_maxX) clampOnMaxX = true;
+
+			if (targetY < m_minY)	   clampOnMinY = true;
+			else if (targetY > m_maxY) clampOnMaxY = true;
+
+			if (clampOnMinX)
+			{
+				m_position.x = m_minX;
+				target.x = m_minX;
+			}
+			else if (clampOnMaxX)
+			{
+				m_position.x = m_maxX;
+				target.x = m_maxX;
+			}
+			else
+				m_position.x = targetX;
+
+			if (clampOnMinY) {
+				m_position.y = m_minY;
+				target.y = m_minY;
+			}
+			else if (clampOnMaxY)
+			{
+				m_position.y = m_maxY;
+				target.y = m_maxY;
+			}
+			else
+				m_position.y = targetY;
 		}
 		else
-			m_position.x = targetX;
-
-		if (clampOnMinY) {
-			m_position.y = m_minY;
-			target.y = m_minY;
-		}
-		else if (clampOnMaxY)
 		{
-			m_position.y = m_maxY;
-			target.y = m_maxY;
+			// If clamping turned off
+			m_position = target;
 		}
-		else
-			m_position.y = targetY;
+
 	}
 }

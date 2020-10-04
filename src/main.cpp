@@ -19,6 +19,43 @@
 
 using namespace physics;
 
+/** Inserts easing function label strings into the passed vector.
+*/
+void InitEasingLabels(std::vector<std::string>& vec) {
+	vec = {
+		"Linear",
+		"Quad Ease In",
+		"Quad Ease Out",
+		"Quad Ease In Out",
+		"Cubic Ease In",
+		"Cubic Ease Out",
+		"Cubic Ease In Out",
+		"Quart Ease In",
+		"Quart Ease Out",
+		"Quart Ease In Out",
+		"Quint Ease In",
+		"Quint Ease Out",
+		"Quint Ease In Out",
+		"Sine Ease In",
+		"Sine Ease Out",
+		"Sine Ease In Out",
+		"Expo Ease In",
+		"Expo Ease Out",
+		"Expo Ease In Out",
+		"Circ Ease In",
+		"Circ Ease Out",
+		"Circ Ease In Out",
+		"Back Ease In",
+		"Back Ease Out",
+		"Back Ease In Out",
+		"Elastic Ease In",
+		"Elastic Ease Out",
+		"Elastic Ease In Out",
+		"Bounce Ease In",
+		"Bounce Ease Out",
+		"Bounce Ease In Out" };
+}
+
 // ImGui variabless
 static int e = 1;
 static bool renderMouseCoords = true;
@@ -29,12 +66,13 @@ static float grid_unit_size = 2.5f;
 static float grid_color[4] = {1.f,0.f,0.f,0.f};
 static bool  show_grid = true;
 
-sf::Vector2f currMousePos;
 sf::Vector2f prevMousePos;
-sf::Vector2f prevIncrement;
-sf::Vector2f moveIncrement;
 bool rmbPressed = false;
 bool panCamera = false;
+
+static bool showCameraSettingsWindow = true;
+static bool enable_clamp = true;
+static std::vector<std::string> easing_labels;
 
 // Set initial editor mode
 RMBMode EditorSettings::mode = RMBMode::PanCameraMode;
@@ -94,6 +132,11 @@ int main(int argc, char** argv)
 	std::unique_ptr<Camera> camera(new Camera(cameraTarget, levelSize, RESOLUTION, true));
 	camera->SetDuration(.5f);
 	camera->SetInterpolation(InterpFunc::ExpoEaseOut);
+	enable_clamp = camera->ClampEnabled();
+
+	int comboIndex = static_cast<int>(camera->GetInterpolation());
+    float tweenDuration = camera->GetDuration();
+	InitEasingLabels(easing_labels);
 
 	sf::Clock clock;
 
@@ -249,7 +292,7 @@ int main(int argc, char** argv)
 
 			// Camera Options (blue)
 			if (ImGui::StartColorButton(42, 4, "Camera Options", width/2, 30.f, true))
-				;
+				showCameraSettingsWindow = !showCameraSettingsWindow;
 			ImGui::StopColorButton();
 
 			ImGui::Separator();
@@ -438,7 +481,7 @@ int main(int argc, char** argv)
 			else
 			{
 				ImGui::Separator();
-				ImGui::SetWindowSize(ImVec2(300.f, 210.f));
+				ImGui::SetWindowSize(ImVec2(300.f, 205.f));
 				if (ImGui::FullWidthLabelCheckox("Display",
 					"##GridDisplay", "Toggle visibility of the grid", &show_grid)) {
 					grid->IsVisible(show_grid);
@@ -489,7 +532,59 @@ int main(int argc, char** argv)
 					grid_color[2] = c.b / 255.f;
 					grid_color[3] = c.a / 255.f;
 				}
+				ImGui::StopColorButton();
 
+				ImGui::Separator();
+				ImGui::End();
+			}
+		}
+
+		/** Grid Settings Panel
+		 */
+
+		if (showCameraSettingsWindow) // window toggle flag
+		{
+			if (!ImGui::Begin("Camera Settings", &showCameraSettingsWindow)) {
+				ImGui::End();
+			}
+			else
+			{
+				ImGui::Separator();
+				ImGui::SetWindowSize(ImVec2(300.f, 190.f));
+
+				if (ImGui::FullWidthLabelCheckox("Clamp to Level Size",
+					"##CameraClamping", "If enabled, the camera will not scroll past the level size", &enable_clamp)) {
+					camera->ClampEnabled(enable_clamp);
+				}
+
+				ImGui::AlignTextToFramePadding();
+				ImGui::Text("Easing Function"); ImGui::SameLine();
+				ImGui::HelpMarker("Easing function applied to the camera animation when moving to a newly selected object.");
+				ImGui::SetNextItemWidth(-1);
+				if (ImGui::Combo("##CameraEasingFunction", &comboIndex, easing_labels)) {
+					camera->SetInterpolation(static_cast<InterpFunc>(comboIndex));
+				}
+
+				ImGui::AlignTextToFramePadding();
+				ImGui::Text("Tween Duration"); ImGui::SameLine();
+				ImGui::HelpMarker("How long in seconds camera will animate to a newly selected object.");
+				ImGui::SetNextItemWidth(-1);
+				if (ImGui::SliderFloat("##CameraTweenDuration", &tweenDuration, 0.2f, 15.f, "%.1f secs")) {
+					camera->SetDuration(tweenDuration);
+				}
+
+				// Reset grid settings
+				float width = ImGui::GetWindowContentRegionWidth();
+				if (ImGui::StartColorButton(31, 4, "Reset Settings", width, 30.f, false)) {
+					tweenDuration = .5f;
+					camera->SetDuration(tweenDuration);
+
+					enable_clamp = true;
+					camera->ClampEnabled(enable_clamp);
+
+					comboIndex = static_cast<int>(InterpFunc::ExpoEaseOut);
+					camera->SetInterpolation(InterpFunc::ExpoEaseOut);
+				}
 				ImGui::StopColorButton();
 
 				ImGui::Separator();
@@ -516,7 +611,6 @@ int main(int argc, char** argv)
 		{
 			float incX = abs(mousePos.x - prevMousePos.x);
 			float incY = abs(mousePos.y - prevMousePos.y);
-			std::cout << incX << "\n";
 
 			if (mousePos.x < prevMousePos.x) {
 				cameraTarget.x += incX;

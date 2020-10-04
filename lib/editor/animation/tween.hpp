@@ -2,47 +2,47 @@
 #define TWEEN_HPP
 
 enum class InterpFunc {
-	Linear = 1,
+	Linear = 0,
 
-	QuadEaseIn = 2,
-	QuadEaseOut = 3,
-	QuadEaseInOut = 4,
+	QuadEaseIn = 1,
+	QuadEaseOut = 2,
+	QuadEaseInOut = 3,
 
-	CubicEaseIn = 5,
-	CubicEaseOut = 6,
-	CubicEaseInOut = 7,
+	CubicEaseIn = 4,
+	CubicEaseOut = 5,
+	CubicEaseInOut = 6,
 
-	QuartEaseIn = 8,
-	QuartEaseOut = 9,
-	QuartEaseInOut = 10,
+	QuartEaseIn = 7,
+	QuartEaseOut = 8,
+	QuartEaseInOut = 9,
 
-	QuintEaseIn = 11,
-	QuintEaseOut = 12,
-	QuintEaseInOut = 13,
+	QuintEaseIn = 10,
+	QuintEaseOut = 11,
+	QuintEaseInOut = 12,
 
-	SineEaseIn = 14,
-	SineEaseOut = 15,
-	SineEaseInOut = 16,
+	SineEaseIn = 13,
+	SineEaseOut = 14,
+	SineEaseInOut = 15,
 
-	ExpoEaseIn = 17,
-	ExpoEaseOut = 18,
-	ExpoEaseInOut = 19,
+	ExpoEaseIn = 16,
+	ExpoEaseOut = 17,
+	ExpoEaseInOut = 18,
 
-	CircEaseIn = 20,
-	CircEaseOut = 21,
-	CircEaseInOut = 22,
+	CircEaseIn = 19,
+	CircEaseOut = 20,
+	CircEaseInOut = 21,
 
-	BackEaseIn = 23,
-	BackEaseOut = 24,
-	BackEaseInOut = 25,
+	BackEaseIn = 22,
+	BackEaseOut = 23,
+	BackEaseInOut = 24,
 
-	ElasticEaseIn = 26,
-	ElasticEaseOut = 27,
-	ElasticEaseInOut = 28,
+	ElasticEaseIn = 25,
+	ElasticEaseOut = 26,
+	ElasticEaseInOut = 27,
 
-	BounceEaseIn = 29,
-	BounceEaseOut = 30,
-	BounceEaseInOut = 31
+	BounceEaseIn = 28,
+	BounceEaseOut = 29,
+	BounceEaseInOut = 30
 };
 
 class Tween {

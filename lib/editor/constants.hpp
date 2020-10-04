@@ -22,4 +22,5 @@ struct EditorSettings
 	static RMBMode mode;
 };
 
+
 #endif

@@ -83,6 +83,9 @@ public:
 
 	float GetDuration() const;
 	void SetDuration(float duration);
+
+	bool ClampEnabled() const;
+	void ClampEnabled(bool flag);
 };
 
 #endif
