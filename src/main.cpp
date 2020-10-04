@@ -34,11 +34,9 @@ int main(int argc, char** argv)
 	ImGui::SFML::Init(window);
 
 	// Mouse data
-	sf::Font font;
-	font.loadFromFile("content/DroidSansMono.ttf");
 	sf::Text mouseLabel;
-	mouseLabel.setFont(font);
-	mouseLabel.setColor(sf::Color::Black);
+	mouseLabel.setFont(FontStore::GetInstance()->GetFont("DroidSansMono.ttf"));
+	mouseLabel.setFillColor(sf::Color::Black);
 	mouseLabel.setString("(X,Y)");
 	mouseLabel.setCharacterSize(12);
 

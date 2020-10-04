@@ -57,15 +57,16 @@ private:
 	static sf::Vector2f GetNextAddedVertexPosition(
 		std::vector<sf::Vector2f>& vertices);
 
-	void BuildBody(b2World* world, const sf::Vector2f& position);
+	void BuildBody(b2World* world);
 
 public:
 	StaticEdgeChain(ChainManagerController* manager);
-	StaticEdgeChain(std::vector<sf::Vector2f>& vertices, const std::string& tag,
+	StaticEdgeChain(std::vector<sf::Vector2f>& vertices, const sf::Vector2f& worldPos, const std::string& tag,
 		b2World* world, ChainManagerController* manager);
 	~StaticEdgeChain();
 
-	void Init(std::vector<sf::Vector2f>& vertices, b2World* world);
+	void Init(std::vector<sf::Vector2f>& vertices, b2World* world,
+		const sf::Vector2f& worldPos);
 	void DeleteBody(b2World* world);
 
 	void AddVertex(b2World* world);

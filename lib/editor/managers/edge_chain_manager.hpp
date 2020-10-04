@@ -31,7 +31,7 @@ public:
 	void CheckChainClicked(sf::RenderWindow& window);
 	void SelectCurrentChain();
 
-	void PushChain();
+	void PushChain(const Vector2f& startPos);
 	void PopChain();
 
 	void AddVertexToSelectedChain();

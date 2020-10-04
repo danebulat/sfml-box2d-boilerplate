@@ -11,9 +11,9 @@ EdgeChainManager::EdgeChainManager(b2World* world)
 	m_world = world;
 
 	// TMP - Add test chains
-	m_chains.push_back(StaticEdgeChain(demo_data::coords, "EC1", m_world, this));
-	m_chains.push_back(StaticEdgeChain(demo_data::coordsLeft, "EC2", m_world, this));
-	m_chains.push_back(StaticEdgeChain(demo_data::coordsRight, "EC3", m_world, this));
+	m_chains.push_back(StaticEdgeChain(demo_data::coords, Vector2f(0,0), "EC1", m_world, this));
+	m_chains.push_back(StaticEdgeChain(demo_data::coordsLeft, Vector2f(0,0), "EC2", m_world, this));
+	m_chains.push_back(StaticEdgeChain(demo_data::coordsRight, Vector2f(0,0), "EC3", m_world, this));
 
 	m_edgeChainCount = 3;
 	m_edgeChainVertexCount += demo_data::coords.size();
@@ -67,11 +67,8 @@ void EdgeChainManager::SelectCurrentChain()
 }
 
 /* Create a new StaticEdgeChain object */
-void EdgeChainManager::PushChain()
+void EdgeChainManager::PushChain(const Vector2f& startPos)
 {
-	// TODO: Pass starting position
-	sf::Vector2f startPos(400.f, 300.f);
-
 	// Generate a unique label for the new chain
 	unsigned int n = m_chains.size() + 1;
 	std::string tag = "EC" + std::to_string(n);
@@ -80,7 +77,9 @@ void EdgeChainManager::PushChain()
 		tag = tag.substr(0,2) + std::to_string(++n);
 	}
 
-	m_chains.push_back(StaticEdgeChain(demo_data::newChainCoords, tag, m_world, this));
+	m_chains.push_back(StaticEdgeChain(
+		demo_data::newChainCoords, startPos, tag, m_world, this));
+
 	m_guiLabels.push_back(tag);
 	++m_edgeChainCount;
 	m_edgeChainVertexCount += demo_data::newChainCoords.size();

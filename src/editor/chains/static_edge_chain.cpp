@@ -84,7 +84,8 @@ StaticEdgeChain::StaticEdgeChain(ChainManagerController* manager)
 {}
 
 StaticEdgeChain::StaticEdgeChain(std::vector<Vector2f>& vertices,
-	const string& tag, b2World* world, ChainManagerController* manager)
+		const Vector2f& worldPos, const string& tag, b2World* world,
+		ChainManagerController* manager)
 	: m_tag(tag)
 	, m_vertexCount(0)
 	, m_color(Color::Blue)
@@ -101,13 +102,17 @@ StaticEdgeChain::StaticEdgeChain(std::vector<Vector2f>& vertices,
 	, m_addVertex(false)
 	, m_removeVertex(false)
 {
-	Init(vertices, world);
+	Init(vertices, world, worldPos);
 }
 
-void StaticEdgeChain::Init(std::vector<Vector2f>& vertices, b2World* world)
+void StaticEdgeChain::Init(std::vector<Vector2f>& vertices,
+	b2World* world, const Vector2f& worldPos)
 {
 	m_vertexCount = vertices.size();
-	m_vertices = vertices;
+	m_vertices.resize(m_vertexCount);
+
+	for (std::size_t i = 0; i < m_vertexCount; ++i)
+		m_vertices[i] = vertices[i] + worldPos;
 
 	// Initialise SFML vertex array
 	m_vertexArray.setPrimitiveType(LineStrip);
@@ -119,8 +124,7 @@ void StaticEdgeChain::Init(std::vector<Vector2f>& vertices, b2World* world)
 	}
 
 	// Build b2Body
-	Vector2f p(0.f, 0.f);
-	BuildBody(world, p);
+	BuildBody(world);
 
 	// Instantiate world bounding box
 	m_boundingBox.reset(new BoundingBox(m_vertices));
@@ -145,7 +149,7 @@ void StaticEdgeChain::DeleteBody(b2World* world)
 	}
 }
 
-void StaticEdgeChain::BuildBody(b2World* world, const Vector2f& position)
+void StaticEdgeChain::BuildBody(b2World* world)
 {
 	if (m_body != nullptr)
 	{
@@ -153,15 +157,13 @@ void StaticEdgeChain::BuildBody(b2World* world, const Vector2f& position)
 		m_body = nullptr;
 	}
 
-	b2Vec2 worldPos(position.x/SCALE, position.y/SCALE);
-
 	// Scale vertices
 	vector<b2Vec2> scaled(m_vertexCount);
 
 	for (int i = 0; i < scaled.size(); ++i)
 	{
-		scaled[i].x = m_vertices[i].x / SCALE;
-		scaled[i].y = m_vertices[i].y / SCALE;
+		scaled[i].x = (m_vertices[i].x) / SCALE;
+		scaled[i].y = (m_vertices[i].y) / SCALE;
 	}
 
 	// Create fixture and body
@@ -175,7 +177,7 @@ void StaticEdgeChain::BuildBody(b2World* world, const Vector2f& position)
 	fixture.shape = &chain;
 
 	b2BodyDef bodyDef;
-	bodyDef.position.Set(worldPos.x, worldPos.y);
+	bodyDef.position.Set(0, 0);
 	bodyDef.type = b2_staticBody;
 
 	m_body = world->CreateBody(&bodyDef);
@@ -193,8 +195,7 @@ void StaticEdgeChain::AddVertex(b2World* world)
 		IncrementEdgeChainVertexCount(1);
 
 	// Delete body and rebuild it
-	b2Vec2 pos = m_body->GetWorldCenter();
-	BuildBody(world, Vector2f(pos.x*SCALE, pos.y*SCALE));
+	BuildBody(world);
 
 	// Update SFML vertex array
 	m_vertexArray.resize(m_vertexCount);
@@ -219,8 +220,7 @@ void StaticEdgeChain::RemoveVertex(b2World* world)
 			->IncrementEdgeChainVertexCount(-1);
 
 		// Delete body and rebuild it
-		b2Vec2 pos = m_body->GetWorldCenter();
-		BuildBody(world, Vector2f(pos.x*SCALE, pos.y*SCALE));
+		BuildBody(world);
 
 		// Resize SFML vertex array
 		m_vertexArray.resize(m_vertexCount);

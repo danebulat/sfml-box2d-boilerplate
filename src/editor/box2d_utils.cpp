@@ -4,11 +4,11 @@ namespace demo_data
 {
 	// new edge chain
 	std::vector<sf::Vector2f> newChainCoords = {
-		sf::Vector2f(200.f, 300.f),
-		sf::Vector2f(250.f, 300.f),
-		sf::Vector2f(300.f, 300.f),
-		sf::Vector2f(350.f, 300.f),
-		sf::Vector2f(400.f, 300.f)
+		sf::Vector2f(-100.f, 0.f),
+		sf::Vector2f(-50.f,  0.f),
+		sf::Vector2f( 0.f,   0.f),
+		sf::Vector2f( 50.f,  0.f),
+		sf::Vector2f( 100.f, 0.f)
 	};
 
 	// edge chain central

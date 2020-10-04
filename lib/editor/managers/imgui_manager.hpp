@@ -20,7 +20,7 @@ private:
 	std::shared_ptr<Grid>			  p_grid;
 
 	/** General settings */
-	static int e;
+	static int  mode_index;
 	static bool render_mouse_coords;
 
 	/** Grid settings */
@@ -39,6 +39,10 @@ private:
 
 private:
 	static void InitEasingLabels(std::vector<std::string>& vec);
+
+	void UpdateGridWindow();
+	void UpdateCameraWindow();
+	void UpdateMainWindow();
 
 public:
 	ImGuiManager(sf::RenderWindow& window,
