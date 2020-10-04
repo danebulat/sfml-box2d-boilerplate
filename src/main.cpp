@@ -61,7 +61,7 @@ static int e = 1;
 static bool renderMouseCoords = true;
 
 static int   gridStyle = 0;
-static bool  showGridSettingsWindow = true;
+static bool  show_grid_settings = false;
 static float grid_unit_size = 2.5f;
 static float grid_color[4] = {1.f,0.f,0.f,0.f};
 static bool  show_grid = true;
@@ -76,6 +76,7 @@ static std::vector<std::string> easing_labels;
 
 // Set initial editor mode
 RMBMode EditorSettings::mode = RMBMode::PanCameraMode;
+sf::Vector2u EditorSettings::levelSize;
 
 int main(int argc, char** argv)
 {
@@ -109,7 +110,7 @@ int main(int argc, char** argv)
 	std::unique_ptr<EdgeChainManager> edgeChainManager(new EdgeChainManager(&world));
 
 	/* Create sprite manager */
-	std::unique_ptr<SpriteManager> spriteManager(new SpriteManager(&world, RESOLUTION));
+	std::unique_ptr<SpriteManager> spriteManager(new SpriteManager(&world));
 
 	/* Vector for custom polygon objects */
 	std::vector<CustomPolygon> customPolygons;
@@ -127,9 +128,9 @@ int main(int argc, char** argv)
 	/* The camera */
 	sf::View view(sf::FloatRect(0, 0, RESOLUTION.x, RESOLUTION.y));
 	sf::Vector2f cameraTarget(RESOLUTION.x/2, RESOLUTION.y/2);
-	sf::Vector2u levelSize((uint)RESOLUTION.x * 2.f, (uint)RESOLUTION.y * 2.f);
+	EditorSettings::levelSize = sf::Vector2u((uint)RESOLUTION.x * 2.f, (uint)RESOLUTION.y * 2.f);
 
-	std::unique_ptr<Camera> camera(new Camera(cameraTarget, levelSize, RESOLUTION, true));
+	std::unique_ptr<Camera> camera(new Camera(cameraTarget, EditorSettings::levelSize, RESOLUTION, true));
 	camera->SetDuration(.5f);
 	camera->SetInterpolation(InterpFunc::ExpoEaseOut);
 	enable_clamp = camera->ClampEnabled();
@@ -287,7 +288,7 @@ int main(int argc, char** argv)
 			// Grid Options (blue)
 			float width = ImGui::GetWindowContentRegionWidth()-6.f;
 			if (ImGui::StartColorButton(41, 4, "Grid Options", width/2, 30.f, false))
-				showGridSettingsWindow = !showGridSettingsWindow;
+				show_grid_settings = !show_grid_settings;
 			ImGui::StopColorButton();
 
 			// Camera Options (blue)
@@ -473,9 +474,9 @@ int main(int argc, char** argv)
 		/** Grid Settings Panel
 		 */
 
-		if (showGridSettingsWindow) // window toggle flag
+		if (show_grid_settings) // window toggle flag
 		{
-			if (!ImGui::Begin("Grid Settings", &showGridSettingsWindow)) {
+			if (!ImGui::Begin("Grid Settings", &show_grid_settings)) {
 				ImGui::End();
 			}
 			else

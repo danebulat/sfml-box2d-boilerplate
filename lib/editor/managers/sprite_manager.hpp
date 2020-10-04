@@ -18,7 +18,6 @@ class SpriteManager
 {
 private:
 	std::vector<DebugShape*>	m_debugShapes;
-	sf::Vector2f 				m_resolution;
 	b2World* 					m_world;
 	bool						m_destroyFlag;
 
@@ -28,7 +27,7 @@ private:
 public:
 	static unsigned int DynamicBodiesCount;
 
-	SpriteManager(b2World* world, const sf::Vector2f& resolution);
+	SpriteManager(b2World* world);
 	~SpriteManager();
 
 	SpriteManager(const SpriteManager&) = delete;

@@ -9,10 +9,10 @@ using sf::RenderWindow;
 
 unsigned int SpriteManager::DynamicBodiesCount = 0;
 
-SpriteManager::SpriteManager(b2World* world, const Vector2f& resolution)
+SpriteManager::SpriteManager(b2World* world)
 {
 	m_world = world;
-	m_resolution = resolution;
+	//m_resolution = resolution;
 	m_destroyFlag = false;
 	m_wireframeMode = false;
 	m_rmbPressed = false;
@@ -191,8 +191,12 @@ void SpriteManager::Update()
 		else
 			pos = shape->GetPosition();
 
-		if (pos.x < 0.f || pos.x > (m_resolution.x + offset) ||
-			pos.y < 0.f || pos.y > (m_resolution.y + offset))
+		sf::Vector2f levelSize;
+		levelSize.x = (float)EditorSettings::levelSize.x;
+		levelSize.y = (float)EditorSettings::levelSize.y;
+
+		if (pos.x < 0.f || pos.x > (levelSize.x + offset) ||
+			pos.y < 0.f || pos.y > (levelSize.y + offset))
 		{
 			shape->MarkForDelete(true);
 		}

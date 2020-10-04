@@ -19,7 +19,8 @@ enum class RMBMode
 
 struct EditorSettings
 {
-	static RMBMode mode;
+	static RMBMode 		 mode;
+	static sf::Vector2u  levelSize;
 };
 
 
