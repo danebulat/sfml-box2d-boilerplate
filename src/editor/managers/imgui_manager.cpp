@@ -275,7 +275,10 @@ void ImGuiManager::UpdateMainWindow()
 	/* Bodies Settings */
 	if (ImGui::CollapsingHeader("Bodies", ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		Vector2f      shapeStartPos(EditorSettings::RESOLUTION.x * .25f, EditorSettings::RESOLUTION.y * .25f);
+		Vector2f shapeStartPos;
+		shapeStartPos.x = p_camera->GetPosition().x - 200.f;
+		shapeStartPos.y = p_camera->GetPosition().y - 200.f;
+
 		float windowWidth = ImGui::GetWindowContentRegionWidth();
 		float btnwidth    = (windowWidth*.25f) - ((windowWidth*.225f)*.05f);
 

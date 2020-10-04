@@ -26,14 +26,17 @@ int main(int argc, char** argv)
 	EditorSettings::RESOLUTION.x = VideoMode::getDesktopMode().width * .9f;
     EditorSettings::RESOLUTION.y = VideoMode::getDesktopMode().height * .75f;
 
-	sf::RenderWindow window(sf::VideoMode(EditorSettings::RESOLUTION.x, EditorSettings::RESOLUTION.y, 32),
+	/* Resolution and level size */
+	sf::Vector2f res = EditorSettings::RESOLUTION;
+	sf::Vector2f levelSize = EditorSettings::RESOLUTION * 2.f;
+	EditorSettings::levelSize = sf::Vector2u((uint)levelSize.x, (uint)levelSize.y);
+
+	/* Render window */
+	sf::RenderWindow window(sf::VideoMode(res.x, res.y, 32),
 		"SFML - Box2D Boilerplate", sf::Style::Default);
 	window.setFramerateLimit(60);
 
-	// Initialise ImGui
-	ImGui::SFML::Init(window);
-
-	// Mouse data
+	/* Mouse data */
 	sf::Text mouseLabel;
 	mouseLabel.setFont(FontStore::GetInstance()->GetFont("DroidSansMono.ttf"));
 	mouseLabel.setFillColor(sf::Color::Black);
@@ -51,18 +54,17 @@ int main(int argc, char** argv)
 	std::shared_ptr<SpriteManager> spriteManager(new SpriteManager(&world));
 
 	/* The grid */
-	std::shared_ptr<Grid> grid(new Grid(sf::Vector2f(EditorSettings::RESOLUTION.x * 2.f, EditorSettings::RESOLUTION.y * 2.f)));
+	std::shared_ptr<Grid> grid(new Grid(levelSize));
 
 	/* The camera */
-	sf::View view(sf::FloatRect(0, 0, EditorSettings::RESOLUTION.x, EditorSettings::RESOLUTION.y));
-	sf::Vector2f cameraTarget(EditorSettings::RESOLUTION.x/2, EditorSettings::RESOLUTION.y/2);
-	EditorSettings::levelSize = sf::Vector2u((uint)EditorSettings::RESOLUTION.x * 2.f, (uint)EditorSettings::RESOLUTION.y * 2.f);
+	sf::View view(sf::FloatRect(0, 0, res.x, res.y));
+	sf::Vector2f cameraTarget(res.x/2, res.y/2);
 
-	std::shared_ptr<Camera> camera(new Camera(cameraTarget, EditorSettings::levelSize, EditorSettings::RESOLUTION, true));
+	std::shared_ptr<Camera> camera(new Camera(cameraTarget, EditorSettings::levelSize, res, true));
 	camera->SetDuration(.5f);
 	camera->SetInterpolation(InterpFunc::ExpoEaseOut);
 
-	/* ImGui manager */
+	/* ImGui manager (initialise ImGui) */
 	std::unique_ptr<ImGuiManager> imguiManager(
 		new ImGuiManager(window, edgeChainManager, spriteManager, camera, grid));
 
