@@ -32,6 +32,13 @@ public:
 
 	void DoTestPoint(const sf::Vector2f& point);
 	void ResetTestPoint();
+
+	// TMP
+	void ApplyForce();
+	void ApplyLinearImpulse();
+	void ApplyTorque();
+	void ApplyAngularImpulse();
+	// END TMP
 };
 
 #endif

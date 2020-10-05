@@ -70,6 +70,11 @@ int main(int argc, char** argv)
 
 	sf::Clock clock;
 
+	// TMP
+	DebugBox box(sf::Vector2f(200.f, 200.f), &world);
+	bool forceOn = false;
+	bool torqueOn = false;
+
 	while (window.isOpen())
 	{
 		sf::Time dt = clock.restart();
@@ -103,15 +108,19 @@ int main(int argc, char** argv)
 					spriteManager->PushShape(ShapeType::CustomPolygon, GetMousePosition(window));
 				}
 
-				// TMP - GRID
-				if (event.key.code == sf::Keyboard::Up)
-				{
-					grid->IncrementUnitSize(2.f);
+				if (event.key.code == sf::Keyboard::Up) {
+					forceOn = !forceOn;
 				}
-				if (event.key.code == sf::Keyboard::Down)
-				{
-					grid->IncrementUnitSize(-2.f);
+				if (event.key.code == sf::Keyboard::Down) {
+					box.ApplyLinearImpulse();
 				}
+				if (event.key.code == sf::Keyboard::Right) {
+					torqueOn = !torqueOn;
+				}
+				if (event.key.code == sf::Keyboard::Left) {
+					box.ApplyAngularImpulse();
+				}
+
 			}
 
 			// Mouse Button Pressed
@@ -173,6 +182,11 @@ int main(int argc, char** argv)
 		/*----------------------------------------------------------------------
          Update
          ----------------------------------------------------------------------*/
+		if (forceOn)
+			box.ApplyForce();
+		if (torqueOn)
+			box.ApplyTorque();
+		box.Update();
 
 		/* WEIRD CODE ****************************************************************/
 		// By simply calculating the increment of the current/previous mouse position
@@ -240,6 +254,8 @@ int main(int argc, char** argv)
 		/* Draw objects */
 		spriteManager->Draw(window);
 		edgeChainManager->Draw(window);
+
+		box.Draw(window);
 
 		if (imguiManager->RenderMouseCoords())
 			window.draw(mouseLabel);

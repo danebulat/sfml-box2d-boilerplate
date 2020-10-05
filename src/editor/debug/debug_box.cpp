@@ -61,7 +61,7 @@ void DebugBox::CreateBody()
 
 	b2FixtureDef fixtureDef;
 	fixtureDef.density = 1.f;
-	fixtureDef.friction = .7f;
+	fixtureDef.friction = 0.7f;
 	fixtureDef.shape = &shape;
 	m_body->CreateFixture(&fixtureDef);
 }
@@ -144,4 +144,49 @@ void DebugBox::DoTestPoint(const Vector2f& point)
 void DebugBox::ResetTestPoint()
 {
 	m_sprite.setFillColor(Color::White);
+}
+
+// TMP ----------------------------------------------------------------------
+void DebugBox::ApplyForce()
+{
+	// Point to apply force on body
+	b2Vec2 position = m_body->GetWorldCenter();
+
+	// Force in Newtons
+	b2Vec2 force(0.f, -50.f);
+
+	m_body->ApplyForce(force, position, true);
+
+	// ApplyForceToCenter() also available
+}
+
+void DebugBox::ApplyLinearImpulse()
+{
+	// Point to apply force on body
+	b2Vec2 position = m_body->GetWorldCenter();
+	position.x += 4.f / SCALE;
+	position.y += 4.f / SCALE; // NOTE: GetWorldPoint() to convert a local body point
+							   // to world coordinate
+	// Force in Newtons
+	b2Vec2 impulse(6.f, -6.f);
+
+	m_body->ApplyLinearImpulse(impulse, position, true);
+
+	// ApplyLinearImpulseToCenter() also available
+}
+
+void DebugBox::ApplyTorque()
+{
+	// Torque (angular force)
+	float torque = 10.f;
+
+	m_body->ApplyTorque(torque, true);
+}
+
+void DebugBox::ApplyAngularImpulse()
+{
+	// Impulse
+	float impulse = -10.f;
+
+	m_body->ApplyAngularImpulse(impulse, true);
 }

@@ -156,6 +156,8 @@ void ImGuiManager::UpdateGridWindow()
 				grid_color[1] = c.g / 255.f;
 				grid_color[2] = c.b / 255.f;
 				grid_color[3] = c.a / 255.f;
+				grid_style = 0;
+				grid_unit_size = 30.f;
 			}
 			ImGui::StopColorButton();
 			ImGui::Separator();
