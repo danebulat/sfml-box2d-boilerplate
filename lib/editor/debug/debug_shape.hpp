@@ -15,6 +15,7 @@ public:
 	static unsigned int DebugBoxCount;
 	static unsigned int DebugCircleCount;
 	static unsigned int CustomPolygonCount;
+	static unsigned int MultiShapeCount;
 
 	DebugShape(const sf::Vector2f& position, const std::string& tag);
 	virtual ~DebugShape();

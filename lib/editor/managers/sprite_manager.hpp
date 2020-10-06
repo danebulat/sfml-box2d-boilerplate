@@ -5,13 +5,15 @@
 #include "editor/debug/debug_box.hpp"
 #include "editor/debug/debug_circle.hpp"
 #include "editor/debug/custom_polygon.hpp"
+#include "editor/debug/multi_shape.hpp"
 #include "editor/box2d_utils.hpp"
 
 enum class ShapeType
 {
 	DebugBox = 1,
 	DebugCircle,
-	CustomPolygon
+	CustomPolygon,
+	MultiShape
 };
 
 class SpriteManager

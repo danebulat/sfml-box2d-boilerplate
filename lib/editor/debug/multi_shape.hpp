@@ -1,5 +1,5 @@
-#ifndef CUSTOM_POLYGON_HPP
-#define CUSTOM_POLYGON_HPP
+#ifndef MULTI_SHAPE_HPP
+#define MULTI_SHAPE_HPP
 
 #include <SFML/Graphics.hpp>
 #include <box2d/box2d.h>
@@ -7,21 +7,13 @@
 #include "editor/debug/debug_shape.hpp"
 #include "editor/constants.hpp"
 
-class CustomPolygon : public DebugShape
+class MultiShape : public DebugShape
 {
 private:
-	std::vector<sf::Vector2f> m_vertices;	// vertex data in world coords
-
-	sf::VertexArray 		  m_vertexArray;
-	sf::Color       		  m_color;
-
-	unsigned int 		      m_vertexCount;
 	bool					  m_wireframe;
 	b2Body* 				  m_body;
 	b2World* 				  m_world;
 
-	// TMP - multi-fixture shape data
-	void CreateMultipleFixtureBody();
 	std::vector<sf::Vector2f> m_shape1;
 	std::vector<sf::Vector2f> m_shape2;
 	sf::VertexArray			  m_va1;
@@ -29,13 +21,13 @@ private:
 	bool 					  m_multipleFixture;
 
 private:
+	void CreateMultipleFixtureBody();
 	void SetVertexColor(const sf::Color& color);
 
 public:
-	CustomPolygon(const sf::Vector2f& position,
-		const std::vector<sf::Vector2f>& vertices, b2World* world);
+	MultiShape(const sf::Vector2f& position, b2World* world);
 
-	virtual ~CustomPolygon();
+	virtual ~MultiShape();
 
 	void CreateBody();
 	void DeleteBody();

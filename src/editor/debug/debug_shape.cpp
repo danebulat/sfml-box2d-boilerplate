@@ -8,6 +8,7 @@ unsigned int DebugShape::ShapeBodyCount = 0;
 unsigned int DebugShape::DebugBoxCount = 0;
 unsigned int DebugShape::DebugCircleCount = 0;
 unsigned int DebugShape::CustomPolygonCount = 0;
+unsigned int DebugShape::MultiShapeCount = 0;
 
 DebugShape::DebugShape(const Vector2f& position,const string& tag)
 {

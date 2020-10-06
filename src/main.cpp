@@ -7,6 +7,9 @@
 #include <string>
 #include <algorithm>
 
+#include <ctime>
+#include <cstdlib>
+
 using namespace physics;
 
 sf::Vector2f prevMousePos;
@@ -21,6 +24,9 @@ sf::Vector2f EditorSettings::RESOLUTION;
 int main(int argc, char** argv)
 {
 	util::Platform platform;
+
+	/* Seed random number generator */
+	std::srand(time(0));
 
 	/** Prepare the window */
 	EditorSettings::RESOLUTION.x = VideoMode::getDesktopMode().width * .9f;
@@ -120,7 +126,6 @@ int main(int argc, char** argv)
 				if (event.key.code == sf::Keyboard::Left) {
 					box.ApplyAngularImpulse();
 				}
-
 			}
 
 			// Mouse Button Pressed

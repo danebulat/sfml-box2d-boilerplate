@@ -45,6 +45,11 @@ void SpriteManager::PushShape(const ShapeType type, const Vector2f& position)
 				demo_data::customPolygonCoords, m_world)));
 		++DynamicBodiesCount;
 		break;
+	case ShapeType::MultiShape:
+		m_debugShapes.push_back(
+			dynamic_cast<MultiShape*>(new MultiShape(position, m_world)));
+		++DynamicBodiesCount;
+		break;
 	default:
 		break;
 	}
@@ -63,6 +68,9 @@ void SpriteManager::HandleInput(const Event& event, RenderWindow& window)
 			for (auto& shape : m_debugShapes)
 			{
 				if (CustomPolygon* polygon = dynamic_cast<CustomPolygon*>(shape))
+					polygon->SetWireframe(m_wireframeMode);
+
+				else if (MultiShape* polygon = dynamic_cast<MultiShape*>(shape))
 					polygon->SetWireframe(m_wireframeMode);
 			}
 		}
@@ -117,6 +125,10 @@ void SpriteManager::DoTestPoint(RenderWindow& window)
 		{
 			polygon->DoTestPoint(GetMousePosition(window));
 		}
+		else if (MultiShape* polygon = dynamic_cast<MultiShape*>(shape))
+		{
+			polygon->DoTestPoint(GetMousePosition(window));
+		}
 	}
 }
 
@@ -138,6 +150,10 @@ void SpriteManager::ResetTestPoint()
 		{
 			polygon->ResetTestPoint();
 		}
+		else if (MultiShape* polygon = dynamic_cast<MultiShape*>(shape))
+		{
+			polygon->ResetTestPoint();
+		}
 	}
 }
 
@@ -151,6 +167,9 @@ void SpriteManager::ToggleWireframe()
 	for (auto& shape : m_debugShapes)
 	{
 		if (CustomPolygon* polygon = dynamic_cast<CustomPolygon*>(shape))
+			polygon->SetWireframe(m_wireframeMode);
+
+		if (MultiShape* polygon = dynamic_cast<MultiShape*>(shape))
 			polygon->SetWireframe(m_wireframeMode);
 	}
 }
@@ -180,6 +199,10 @@ void SpriteManager::Update()
 		{
 			polygon->Update();
 		}
+		else if (MultiShape* polygon = dynamic_cast<MultiShape*>(shape))
+		{
+			polygon->Update();
+		}
 
 		// Mark shapes for removal
 		float offset = 50.f;
@@ -188,6 +211,9 @@ void SpriteManager::Update()
 		// Custom polygon requires b2Body to get its world position
 		if (CustomPolygon* polygon = dynamic_cast<CustomPolygon*>(shape))
 			pos = polygon->GetBodyPosition();
+		else if (MultiShape* polygon = dynamic_cast<MultiShape*>(shape))
+			pos = polygon->GetBodyPosition();
+
 		else
 			pos = shape->GetPosition();
 
@@ -228,6 +254,11 @@ void SpriteManager::Update()
 						SafeDelete(polygon);
 						return true;
 					}
+					else if (MultiShape* polygon = dynamic_cast<MultiShape*>(shape))
+					{
+						SafeDelete(polygon);
+						return true;
+					}
 					else {
 						SafeDelete(shape);
 						return true;
@@ -255,6 +286,10 @@ void SpriteManager::Draw(RenderWindow& window)
 		{
 			polygon->Draw(window);
 		}
+		else if (MultiShape* polygon = dynamic_cast<MultiShape*>(shape))
+		{
+			polygon->Draw(window);
+		}
 	}
 }
 
@@ -273,6 +308,10 @@ void SpriteManager::DestroyAllShapes()
 			SafeDelete(circle);
 		}
 		else if (CustomPolygon* polygon = dynamic_cast<CustomPolygon*>(shape))
+		{
+			SafeDelete(polygon);
+		}
+		else if (MultiShape* polygon = dynamic_cast<MultiShape*>(shape))
 		{
 			SafeDelete(polygon);
 		}

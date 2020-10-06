@@ -7,7 +7,9 @@ using std::vector;
 using std::size_t;
 using std::cout;
 
-CustomPolygon::CustomPolygon(const Vector2f& position, const vector<Vector2f>& vertices, b2World* world)
+
+CustomPolygon::CustomPolygon(const Vector2f& position,
+		const vector<Vector2f>& vertices, b2World* world)
 	: DebugShape(position, "custom_polygon")
 {
 	++CustomPolygonCount;
@@ -46,6 +48,7 @@ CustomPolygon::~CustomPolygon()
 
 	//cout << "--BodyCount (CustomPolygon)\n";
 }
+
 
 void CustomPolygon::CreateBody()
 {
@@ -92,6 +95,7 @@ void CustomPolygon::SetColor(const Color& color)
 void CustomPolygon::SetWireframe(bool wireframe)
 {
 	m_wireframe = wireframe;
+
 	if (m_wireframe)
 		m_vertexArray.setPrimitiveType(sf::LineStrip);
 	else
@@ -116,6 +120,7 @@ void CustomPolygon::Update()
 {
 	if (m_body->GetType() == b2_dynamicBody)
 	{
+
 		b2Fixture* fixture = m_body->GetFixtureList();
 
 		while (fixture != NULL)
@@ -168,7 +173,7 @@ void CustomPolygon::DoTestPoint(const Vector2f& point)
 	{
 		b2Fixture* fixture = m_body->GetFixtureList();
 
-		if (fixture != NULL)
+		while (fixture != NULL)
 		{
 			b2Vec2 scaledPoint(point.x/SCALE, point.y/SCALE);
 
@@ -180,6 +185,8 @@ void CustomPolygon::DoTestPoint(const Vector2f& point)
 			{
 				SetVertexColor(Color::Magenta);
 			}
+
+			fixture = fixture->GetNext();
 		}
 	}
 }
