@@ -40,6 +40,8 @@ struct CircleSprite
 };
 
 /** DemoDistanceJoint Class
+ *
+ * TODO: Despawn when outside of level bounds
  */
 
 class DemoDistanceJoint
@@ -141,10 +143,11 @@ public:
 		if (m_joint != nullptr)
 		{
 			m_world->DestroyJoint(m_joint);
+			m_joint = nullptr;
 		}
 	}
 
-	void HandleInput(const sf::Event& event, const sf::RenderWindow& window)
+	void HandleInput(const sf::Event& event)
 	{
 		// Mouse Button Pressed
 		if (event.type == sf::Event::MouseButtonPressed)
@@ -152,7 +155,6 @@ public:
 			if (event.mouseButton.button == sf::Mouse::Left)
 			{
 				m_leftMouseDown = true;
-				std::cout << "> LMB pressed\n";
 			}
 		}
 
@@ -172,7 +174,6 @@ public:
 			if (event.mouseButton.button == sf::Mouse::Left)
 			{
 				m_leftMouseDown = false;
-				std::cout << "> LMB released\n";
 			}
 		}
 	}

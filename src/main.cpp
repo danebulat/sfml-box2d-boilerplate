@@ -12,6 +12,7 @@
 
 /* Demos */
 #include "editor/debug/demo_distance_joint.hpp"
+#include "editor/debug/demo_revolute_joint.hpp"
 
 using namespace physics;
 
@@ -84,8 +85,9 @@ int main(int argc, char** argv)
 	bool forceOn = false;
 	bool torqueOn = false;
 
-	/* Distance Joint Demo */
+	/* Joint Demos */
 	DemoDistanceJoint demo_distanceJoint(&world);
+	DemoRevoluteJoint demo_revoluteJoint(&world);
 
 	while (window.isOpen())
 	{
@@ -186,7 +188,7 @@ int main(int argc, char** argv)
 			spriteManager->HandleInput(event, window);
 
 			// Handle demo inputs
-			demo_distanceJoint.HandleInput(event, window);
+			demo_distanceJoint.HandleInput(event);
 
 		}// end window.poll(event)
 
@@ -257,6 +259,7 @@ int main(int argc, char** argv)
 
 		/* Update demos */
 		demo_distanceJoint.Update(window);
+		demo_revoluteJoint.Update();
 
 		/*----------------------------------------------------------------------
          Draw
@@ -274,6 +277,7 @@ int main(int argc, char** argv)
 
 		/* Update demos */
 		demo_distanceJoint.Draw(window);
+		demo_revoluteJoint.Draw(window);
 
 		if (imguiManager->RenderMouseCoords())
 			window.draw(mouseLabel);
