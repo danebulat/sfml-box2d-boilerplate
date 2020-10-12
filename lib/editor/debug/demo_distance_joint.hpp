@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include "box2d/box2d.h"
 #include "editor/constants.hpp"
+#include "editor/mouse_utils.hpp"
 
 /** CircleSprite Struct
  */
@@ -24,6 +25,18 @@ struct CircleSprite
 		m_position = position;
 		m_sprite.setPosition(m_position);
 	}
+
+	bool intersects(const sf::Vector2f& point)
+	{
+		auto bb = m_sprite.getGlobalBounds();
+
+		if ((point.x > bb.left) && (point.x < bb.left + bb.width) &&
+			(point.y > bb.top)  && (point.y < bb.top + bb.height))
+		{
+			return true;
+		}
+		return false;
+	}
 };
 
 /** DemoDistanceJoint Class
@@ -39,6 +52,12 @@ private:
 	b2Joint*			m_joint;
 
 	sf::VertexArray		m_line;
+
+	bool 				m_leftMouseDown;
+	bool 				m_mouseMoved;
+	bool 				m_hoveringOnCircle;
+	sf::Vector2f 		m_currMousePos;
+	sf::Vector2f		m_prevMousePos;
 
 private:
 	void InitJoint()
@@ -99,6 +118,10 @@ private:
 public:
 	DemoDistanceJoint(b2World* world)
 	{
+		m_leftMouseDown = false;
+		m_mouseMoved = false;
+		m_hoveringOnCircle = false;
+
 		m_world = world;
 		m_joint = nullptr;
 
@@ -121,16 +144,97 @@ public:
 		}
 	}
 
-	void Update()
+	void HandleInput(const sf::Event& event, const sf::RenderWindow& window)
 	{
-		b2Vec2 apos = m_joint->GetBodyA()->GetWorldCenter();
-		b2Vec2 bpos = m_joint->GetBodyB()->GetWorldCenter();
+		// Mouse Button Pressed
+		if (event.type == sf::Event::MouseButtonPressed)
+		{
+			if (event.mouseButton.button == sf::Mouse::Left)
+			{
+				m_leftMouseDown = true;
+				std::cout << "> LMB pressed\n";
+			}
+		}
 
-		m_circleA.SetPosition(sf::Vector2f(apos.x*SCALE, apos.y*SCALE));
-		m_circleB.SetPosition(sf::Vector2f(bpos.x*SCALE, bpos.y*SCALE));
+		// Mouse move
+		if (event.type == sf::Event::MouseMoved)
+		{
+			m_mouseMoved = true;
+		}
+		else
+		{
+			m_mouseMoved = false;
+		}
 
-		m_line[0].position = sf::Vector2f(apos.x*SCALE, apos.y*SCALE);
-		m_line[1].position = sf::Vector2f(bpos.x*SCALE, bpos.y*SCALE);
+		// Mouse Button Released
+		if (event.type == sf::Event::MouseButtonReleased)
+		{
+			if (event.mouseButton.button == sf::Mouse::Left)
+			{
+				m_leftMouseDown = false;
+				std::cout << "> LMB released\n";
+			}
+		}
+	}
+
+	void Update(sf::RenderWindow& window)
+	{
+		auto mousePos = GetMousePosition(window);
+
+		b2Body* bodyA = m_joint->GetBodyA();
+		b2Body* bodyB = m_joint->GetBodyB();
+
+		if (m_hoveringOnCircle && m_leftMouseDown)
+		{
+			// Get move increment
+			sf::Vector2f moveIncrement = GetIncrement(m_prevMousePos, mousePos);
+
+			// Update sprite and position
+			m_circleA.SetPosition(m_circleA.m_position + moveIncrement);
+			m_line[0].position = m_circleA.m_position;
+
+			// Update Box2D world
+			b2Vec2 posA(m_circleA.m_position.x/SCALE, m_circleA.m_position.y/SCALE);
+			bodyA->SetTransform(posA, bodyA->GetAngle());
+
+			// Sync circleB sprite with Box2D body
+			b2Vec2 bpos = bodyB->GetWorldCenter();
+			m_circleB.SetPosition(sf::Vector2f(bpos.x*SCALE, bpos.y*SCALE));
+			m_circleB.m_sprite.setRotation(bodyB->GetAngle() * 180/b2_pi);
+			m_line[1].position = sf::Vector2f(bpos.x*SCALE, bpos.y*SCALE);
+
+			// Stop forces acting on bodies
+			m_joint->GetBodyA()->SetLinearVelocity(b2Vec2(0,0));
+			m_joint->GetBodyA()->SetAngularVelocity(0);
+			m_joint->GetBodyB()->SetLinearVelocity(b2Vec2(0,0));
+			m_joint->GetBodyB()->SetAngularVelocity(0);
+		}
+		else
+		{
+			b2Vec2 apos = m_joint->GetBodyA()->GetWorldCenter();
+			m_circleA.SetPosition(sf::Vector2f(apos.x*SCALE, apos.y*SCALE));
+			m_circleA.m_sprite.setRotation(bodyA->GetAngle() * 180/b2_pi);
+			m_line[0].position = sf::Vector2f(apos.x*SCALE, apos.y*SCALE);
+
+			b2Vec2 bpos = m_joint->GetBodyB()->GetWorldCenter();
+			m_circleB.SetPosition(sf::Vector2f(bpos.x*SCALE, bpos.y*SCALE));
+			m_circleB.m_sprite.setRotation(bodyB->GetAngle() * 180/b2_pi);
+			m_line[1].position = sf::Vector2f(bpos.x*SCALE, bpos.y*SCALE);
+		}
+
+		if (m_mouseMoved)
+		{
+			if (m_circleA.intersects(mousePos))
+			{
+				m_hoveringOnCircle = true;
+			}
+			else
+			{
+				m_hoveringOnCircle = false;
+			}
+		}
+
+		m_prevMousePos = mousePos;
 	}
 
 	void Draw(sf::RenderWindow& window)

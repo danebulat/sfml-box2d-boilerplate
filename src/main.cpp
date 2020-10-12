@@ -185,6 +185,9 @@ int main(int argc, char** argv)
 			edgeChainManager->HandleInput(event, window);
 			spriteManager->HandleInput(event, window);
 
+			// Handle demo inputs
+			demo_distanceJoint.HandleInput(event, window);
+
 		}// end window.poll(event)
 
 		/* Update ImGui */
@@ -253,7 +256,7 @@ int main(int argc, char** argv)
 		spriteManager->Update();
 
 		/* Update demos */
-		demo_distanceJoint.Update();
+		demo_distanceJoint.Update(window);
 
 		/*----------------------------------------------------------------------
          Draw
