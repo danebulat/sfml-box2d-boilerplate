@@ -10,28 +10,10 @@
 #include <ctime>
 #include <cstdlib>
 
+/* Demos */
+#include "editor/debug/demo_distance_joint.hpp"
+
 using namespace physics;
-
-struct CircleSprite
-{
-	sf::CircleShape m_sprite;
-	sf::Vector2f	m_position;
-
-	CircleSprite()
-	{
-		m_sprite.setFillColor(sf::Color::White);
-		m_sprite.setOutlineColor(sf::Color::Black);
-		m_sprite.setOutlineThickness(2.f);
-		m_sprite.setRadius(CIRCLE_RADIUS);
-		m_sprite.setOrigin(CIRCLE_RADIUS/2, CIRCLE_RADIUS/2);
-	}
-
-	void SetPosition(const sf::Vector2f& position)
-	{
-		m_position = position;
-		m_sprite.setPosition(m_position);
-	}
-};
 
 sf::Vector2f prevMousePos;
 bool rmbPressed = false;
@@ -102,26 +84,8 @@ int main(int argc, char** argv)
 	bool forceOn = false;
 	bool torqueOn = false;
 
-	/* TMP - Distance Joint */
-	b2Body* bodyA = nullptr;
-	b2Body* bodyB = nullptr;
-	b2Joint* joint = nullptr;
-	CircleSprite circleSprite1;
-	CircleSprite circleSprite2;
-	joint = InitDistanceJoint(&world);
-
-	if (joint != nullptr)
-	{
-		std::cout << "joint created\n";
-
-		bodyA = joint->GetBodyA();
-		bodyB = joint->GetBodyB();
-
-		if (bodyA != nullptr && bodyB != nullptr)
-		{
-			std::cout << "bodyA and bodyB initialised\n";
-		}
-	}
+	/* Distance Joint Demo */
+	DemoDistanceJoint demo_distanceJoint(&world);
 
 	while (window.isOpen())
 	{
@@ -284,26 +248,12 @@ int main(int argc, char** argv)
 		/** Update Box2D */
 		world.Step(1/60.f, 8, 3);
 
-		if (bodyA != nullptr && bodyB != nullptr)
-		{
-			b2Vec2 apos = joint->GetBodyA()->GetWorldCenter();
-			b2Vec2 bpos = joint->GetBodyB()->GetWorldCenter();
-
-			std::cout << "bodyA: (" << apos.x*SCALE << "," << apos.y*SCALE << ") ";
-			std::cout << "bodyB: (" << bpos.x*SCALE << "," << bpos.y*SCALE << ")\n";
-
-			circleSprite1.m_position.x = apos.x * SCALE;
-			circleSprite1.m_position.y = apos.y * SCALE;
-			circleSprite1.SetPosition(sf::Vector2f(apos.x*SCALE, apos.y*SCALE));
-
-			circleSprite2.m_position.x = bpos.x * SCALE;
-			circleSprite2.m_position.y = bpos.y * SCALE;
-			circleSprite2.SetPosition(sf::Vector2f(bpos.x*SCALE, bpos.y*SCALE));
-		}
-
 		/* Update managers */
 		edgeChainManager->Update(window);
 		spriteManager->Update();
+
+		/* Update demos */
+		demo_distanceJoint.Update();
 
 		/*----------------------------------------------------------------------
          Draw
@@ -319,10 +269,8 @@ int main(int argc, char** argv)
 		spriteManager->Draw(window);
 		edgeChainManager->Draw(window);
 
-		/* TMP */
-		//box.Draw(window);
-		window.draw(circleSprite1.m_sprite);
-		window.draw(circleSprite2.m_sprite);
+		/* Update demos */
+		demo_distanceJoint.Draw(window);
 
 		if (imguiManager->RenderMouseCoords())
 			window.draw(mouseLabel);
