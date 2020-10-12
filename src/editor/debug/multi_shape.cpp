@@ -26,7 +26,7 @@ MultiShape::~MultiShape()
 		m_body = nullptr;
 	}
 
-	--CustomPolygonCount;
+	--MultiShapeCount;
 
 	//cout << "--BodyCount (CustomPolygon)\n";
 }

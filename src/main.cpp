@@ -12,6 +12,27 @@
 
 using namespace physics;
 
+struct CircleSprite
+{
+	sf::CircleShape m_sprite;
+	sf::Vector2f	m_position;
+
+	CircleSprite()
+	{
+		m_sprite.setFillColor(sf::Color::White);
+		m_sprite.setOutlineColor(sf::Color::Black);
+		m_sprite.setOutlineThickness(2.f);
+		m_sprite.setRadius(CIRCLE_RADIUS);
+		m_sprite.setOrigin(CIRCLE_RADIUS/2, CIRCLE_RADIUS/2);
+	}
+
+	void SetPosition(const sf::Vector2f& position)
+	{
+		m_position = position;
+		m_sprite.setPosition(m_position);
+	}
+};
+
 sf::Vector2f prevMousePos;
 bool rmbPressed = false;
 bool panCamera = false;
@@ -76,10 +97,31 @@ int main(int argc, char** argv)
 
 	sf::Clock clock;
 
-	// TMP
-	DebugBox box(sf::Vector2f(200.f, 200.f), &world);
+	/* TMP */
+	//DebugBox box(sf::Vector2f(200.f, 200.f), &world);
 	bool forceOn = false;
 	bool torqueOn = false;
+
+	/* TMP - Distance Joint */
+	b2Body* bodyA = nullptr;
+	b2Body* bodyB = nullptr;
+	b2Joint* joint = nullptr;
+	CircleSprite circleSprite1;
+	CircleSprite circleSprite2;
+	joint = InitDistanceJoint(&world);
+
+	if (joint != nullptr)
+	{
+		std::cout << "joint created\n";
+
+		bodyA = joint->GetBodyA();
+		bodyB = joint->GetBodyB();
+
+		if (bodyA != nullptr && bodyB != nullptr)
+		{
+			std::cout << "bodyA and bodyB initialised\n";
+		}
+	}
 
 	while (window.isOpen())
 	{
@@ -118,13 +160,13 @@ int main(int argc, char** argv)
 					forceOn = !forceOn;
 				}
 				if (event.key.code == sf::Keyboard::Down) {
-					box.ApplyLinearImpulse();
+					//box.ApplyLinearImpulse();
 				}
 				if (event.key.code == sf::Keyboard::Right) {
 					torqueOn = !torqueOn;
 				}
 				if (event.key.code == sf::Keyboard::Left) {
-					box.ApplyAngularImpulse();
+					//box.ApplyAngularImpulse();
 				}
 			}
 
@@ -187,11 +229,11 @@ int main(int argc, char** argv)
 		/*----------------------------------------------------------------------
          Update
          ----------------------------------------------------------------------*/
-		if (forceOn)
-			box.ApplyForce();
-		if (torqueOn)
-			box.ApplyTorque();
-		box.Update();
+		// if (forceOn)
+		// 	box.ApplyForce();
+		// if (torqueOn)
+		// 	box.ApplyTorque();
+		// box.Update();
 
 		/* WEIRD CODE ****************************************************************/
 		// By simply calculating the increment of the current/previous mouse position
@@ -242,6 +284,23 @@ int main(int argc, char** argv)
 		/** Update Box2D */
 		world.Step(1/60.f, 8, 3);
 
+		if (bodyA != nullptr && bodyB != nullptr)
+		{
+			b2Vec2 apos = joint->GetBodyA()->GetWorldCenter();
+			b2Vec2 bpos = joint->GetBodyB()->GetWorldCenter();
+
+			std::cout << "bodyA: (" << apos.x*SCALE << "," << apos.y*SCALE << ") ";
+			std::cout << "bodyB: (" << bpos.x*SCALE << "," << bpos.y*SCALE << ")\n";
+
+			circleSprite1.m_position.x = apos.x * SCALE;
+			circleSprite1.m_position.y = apos.y * SCALE;
+			circleSprite1.SetPosition(sf::Vector2f(apos.x*SCALE, apos.y*SCALE));
+
+			circleSprite2.m_position.x = bpos.x * SCALE;
+			circleSprite2.m_position.y = bpos.y * SCALE;
+			circleSprite2.SetPosition(sf::Vector2f(bpos.x*SCALE, bpos.y*SCALE));
+		}
+
 		/* Update managers */
 		edgeChainManager->Update(window);
 		spriteManager->Update();
@@ -260,7 +319,10 @@ int main(int argc, char** argv)
 		spriteManager->Draw(window);
 		edgeChainManager->Draw(window);
 
-		box.Draw(window);
+		/* TMP */
+		//box.Draw(window);
+		window.draw(circleSprite1.m_sprite);
+		window.draw(circleSprite2.m_sprite);
 
 		if (imguiManager->RenderMouseCoords())
 			window.draw(mouseLabel);

@@ -142,6 +142,12 @@ void RemoveDynamicBodies(b2World* world, unsigned int& counter,
  */
 void RemoveOffScreenDynamicBodies(b2World* world, unsigned int& counter);
 
+
+/**
+ * Distance Joint Example
+ */
+b2Joint* InitDistanceJoint(b2World* world);
+
 } // namespace physics
 
 #endif

@@ -379,5 +379,62 @@ void TraverseWorldBodies(b2World* world)
 	}
 }
 
-}; // namespace physics
+/**
+ Distance Joint Example
+ */
 
+b2Joint* InitDistanceJoint(b2World* world)
+{
+	b2Joint* joint = nullptr;
+
+	// Body Definition
+	b2BodyDef bodyDef;
+	bodyDef.position = b2Vec2(100.f/SCALE, 100.f/SCALE);
+	bodyDef.type = b2_dynamicBody;
+	bodyDef.angularDamping = 0.1f;
+
+	// Shape Definition
+	b2CircleShape shape;
+	shape.m_radius = CIRCLE_RADIUS/SCALE;
+
+	// Fixture Definition
+	b2FixtureDef fixtureDef;
+	fixtureDef.density = 1.0f;
+	fixtureDef.friction = 0.7f;
+	fixtureDef.shape = &shape;
+
+	// BodyA (circle1)
+	b2Body* bodyA = world->CreateBody(&bodyDef);
+	bodyA->CreateFixture(&fixtureDef);
+
+	// BodyB (circle2)
+	bodyDef.position = b2Vec2(150.f/SCALE, 100.f/SCALE);
+	b2Body* bodyB = world->CreateBody(&bodyDef);
+	bodyB->CreateFixture(&fixtureDef);
+
+	// Distance Joint
+	b2DistanceJointDef jointDef;
+	jointDef.localAnchorA.Set(0.f, 0.f);
+	jointDef.localAnchorB.Set(0.f, 0.f);
+	jointDef.collideConnected = true;
+	jointDef.length = 100.f/SCALE;
+	jointDef.minLength = 100.f/SCALE;
+	jointDef.maxLength = 100.f/SCALE;
+	jointDef.bodyA = bodyA;
+	jointDef.bodyB = bodyB;
+
+	// This code didn't work:
+	// b2Vec2 worldAnchorA(200.f/SCALE, 100.f/SCALE);
+	// b2Vec2 worldAnchorB(300.f/SCALE, 100.f/SCALE);
+	//jointDef.Initialize(bodyA, bodyB, worldAnchorA, worldAnchorB);
+
+	float frequencyHz = 4.0f;
+	float dampingRatio = 0.5f;
+	b2LinearStiffness(jointDef.stiffness, jointDef.damping,
+		frequencyHz, dampingRatio, jointDef.bodyA, jointDef.bodyB);
+
+	joint = world->CreateJoint(&jointDef);
+	return joint;
+}
+
+}; // namespace physics
