@@ -1,43 +1,11 @@
+#ifndef DEMO_DISTANCE_JOINT_HPP
+#define DEMO_DISTANCE_JOINT_HPP
+
 #include <SFML/Graphics.hpp>
 #include "box2d/box2d.h"
 #include "editor/constants.hpp"
 #include "editor/mouse_utils.hpp"
-
-/** CircleSprite Struct
- */
-
-struct CircleSprite
-{
-	sf::CircleShape m_sprite;
-	sf::Vector2f	m_position;
-
-	CircleSprite()
-	{
-		m_sprite.setFillColor(sf::Color::White);
-		m_sprite.setOutlineColor(sf::Color::Black);
-		m_sprite.setOutlineThickness(2.f);
-		m_sprite.setRadius(CIRCLE_RADIUS);
-		m_sprite.setOrigin(CIRCLE_RADIUS, CIRCLE_RADIUS);
-	}
-
-	void SetPosition(const sf::Vector2f& position)
-	{
-		m_position = position;
-		m_sprite.setPosition(m_position);
-	}
-
-	bool intersects(const sf::Vector2f& point)
-	{
-		auto bb = m_sprite.getGlobalBounds();
-
-		if ((point.x > bb.left) && (point.x < bb.left + bb.width) &&
-			(point.y > bb.top)  && (point.y < bb.top + bb.height))
-		{
-			return true;
-		}
-		return false;
-	}
-};
+#include "editor/debug/demo_structs.hpp"
 
 /** DemoDistanceJoint Class
  *
@@ -245,3 +213,5 @@ public:
 		window.draw(m_line);
 	}
 };
+
+#endif

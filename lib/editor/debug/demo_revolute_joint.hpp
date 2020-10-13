@@ -1,30 +1,10 @@
+#ifndef DEMO_REVOLUTE_JOINT_HPP
+#define DEMO_REVOLUTE_JOINT_HPP
+
 #include <SFML/Graphics.hpp>
 #include "box2d/box2d.h"
 #include "editor/constants.hpp"
-
-/** BoxSprite Struct
- */
-
-struct BoxSprite
-{
-	sf::RectangleShape	m_sprite;
-	sf::Vector2f 		m_position;
-
-	BoxSprite()
-	{
-		m_sprite.setFillColor(sf::Color::White);
-		m_sprite.setOutlineColor(sf::Color::Black);
-		m_sprite.setOutlineThickness(2.f);
-		m_sprite.setSize(sf::Vector2f(20.f, 20.f));
-		m_sprite.setOrigin(10.f, 10.f);
-	}
-
-	void SetPosition(const sf::Vector2f& position)
-	{
-		m_position = position;
-		m_sprite.setPosition(m_position);
-	}
-};
+#include "editor/debug/demo_structs.hpp"
 
 /** DemoRevoluteJoint Class
  */
@@ -118,3 +98,5 @@ public:
 		window.draw(m_boxB.m_sprite);
 	}
 };
+
+#endif
