@@ -25,6 +25,23 @@ struct BoxSprite
 		m_position = position;
 		m_sprite.setPosition(m_position);
 	}
+
+	void SetSize(const sf::Vector2f& size)
+	{
+		m_sprite.setSize(size);
+	}
+
+	bool intersects(const sf::Vector2f& point)
+	{
+		auto bb = m_sprite.getGlobalBounds();
+
+		if ((point.x > bb.left) && (point.x < bb.left + bb.width) &&
+			(point.y > bb.top)  && (point.y < bb.top + bb.height))
+		{
+			return true;
+		}
+		return false;
+	}
 };
 
 /** CircleSprite Struct

@@ -13,6 +13,8 @@
 /* Demos */
 #include "editor/debug/demo_distance_joint.hpp"
 #include "editor/debug/demo_revolute_joint.hpp"
+#include "editor/debug/demo_prismatic_joint.hpp"
+#include "editor/debug/demo_pulley_joint.hpp"
 
 using namespace physics;
 
@@ -87,7 +89,9 @@ int main(int argc, char** argv)
 
 	/* Joint Demos */
 	DemoDistanceJoint demo_distanceJoint(&world);
-	DemoRevoluteJoint demo_revoluteJoint(&world);
+	//DemoRevoluteJoint demo_revoluteJoint(&world);
+	//DemoPrismaticJoint demo_prismaticJoint(&world);
+	DemoPulleyJoint demo_pulleyJoint(&world);
 
 	while (window.isOpen())
 	{
@@ -189,6 +193,7 @@ int main(int argc, char** argv)
 
 			// Handle demo inputs
 			demo_distanceJoint.HandleInput(event);
+			//demo_prismaticJoint.HandleInput(event);
 
 		}// end window.poll(event)
 
@@ -259,7 +264,9 @@ int main(int argc, char** argv)
 
 		/* Update demos */
 		demo_distanceJoint.Update(window);
-		demo_revoluteJoint.Update();
+		//demo_revoluteJoint.Update();
+		//demo_prismaticJoint.Update(window);
+		demo_pulleyJoint.Update();
 
 		/*----------------------------------------------------------------------
          Draw
@@ -277,7 +284,9 @@ int main(int argc, char** argv)
 
 		/* Update demos */
 		demo_distanceJoint.Draw(window);
-		demo_revoluteJoint.Draw(window);
+		//demo_revoluteJoint.Draw(window);
+		//demo_prismaticJoint.Draw(window);
+		demo_pulleyJoint.Draw(window);
 
 		if (imguiManager->RenderMouseCoords())
 			window.draw(mouseLabel);
