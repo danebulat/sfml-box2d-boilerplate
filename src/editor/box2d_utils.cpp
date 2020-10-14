@@ -379,4 +379,94 @@ void TraverseWorldBodies(b2World* world)
 	}
 }
 
+/** Traverse contacts
+ *
+ * Function that demonstrates how to traverse all the contacts in the
+ * world, and the contacts in each body.
+ */
+void TraverseContacts(b2World* world)
+{
+	/*
+	CAUTION: Accessing contacts from the world and bodies may miss some
+	transient contacts that occur in the middle of a time step.
+	Use b2ContactListener to get the most accurate results.
+	*/
+
+	// Traversing contacts using the world:
+	for (b2Contact* c = world->GetContactList(); c; c = c->GetNext())
+	{
+		// Process c
+
+		// Getting fixtures and bodies from a contact
+		b2Fixture* fixtureA = c->GetFixtureA();
+		b2Fixture* fixtureB = c->GetFixtureB();
+
+		b2Body* bodyA = fixtureA->GetBody();
+		b2Body* bodyB = fixtureB->GetBody();
+
+		// Can access associated actor if pointer set as body's user data:
+		// MyActor* actorA = (MyActor*)bodyA->GetUserData();
+
+		if (bodyA->GetUserData().pointer != 0)
+			;
+		if (bodyB->GetUserData().pointer != 0)
+			;
+	}
+
+	// Traversing contacts on each body in the world:
+	for (b2Body* b = world->GetBodyList(); b; b = b->GetNext())
+	{
+		// Contacts on a body are stored in a graph using a
+		// contact edge structure
+		for (b2ContactEdge* ce = b->GetContactList(); ce; ce = ce->next)
+		{
+			b2Contact* c = ce->contact;
+
+			if (c->IsEnabled())
+				;
+
+			// process c
+		}
+	}
+}
+
+/** Example b2ContactListener Pre-solve event
+*/
+
+void PreSolve(b2Contact* contact, const b2Manifold* oldManifold)
+{
+	// Get contact point world coordinates
+    b2WorldManifold worldManifold;
+    contact->GetWorldManifold(&worldManifold);
+
+	// Get states of old and current contact points
+    b2PointState state1[2], state2[2];
+    b2GetPointStates(state1, state2, oldManifold, contact->GetManifold());
+
+	// b2_addState - point was added in the update
+	// https://box2d.org/documentation/b2__collision_8h.html#a0a894e3715ce8c61b7958dd6e083663d
+    if (state2[0] == b2_addState)
+    {
+        const b2Body* bodyA = contact->GetFixtureA()->GetBody();
+        const b2Body* bodyB = contact->GetFixtureB()->GetBody();
+
+		// Get first contact point
+        b2Vec2 point = worldManifold.points[0];
+
+		// Get velocity vectors from both contact bodies
+        b2Vec2 vA = bodyA->GetLinearVelocityFromWorldPoint(point);
+        b2Vec2 vB = bodyB->GetLinearVelocityFromWorldPoint(point);
+
+		// Calculate approach velocity
+        float approachVelocity = b2Dot(vB - vA, worldManifold.normal);
+
+		// Dot product > 1 means vectors point in same direction
+		// https://www.mathsisfun.com/algebra/vectors-dot-product.html
+        if (approachVelocity > 1.0f)
+        {
+            /* MyPlayCollisionSound(); */
+        }
+    }
+}
+
 }; // namespace physics

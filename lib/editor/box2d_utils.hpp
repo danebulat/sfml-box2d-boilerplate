@@ -142,6 +142,13 @@ void RemoveDynamicBodies(b2World* world, unsigned int& counter,
  */
 void RemoveOffScreenDynamicBodies(b2World* world, unsigned int& counter);
 
+/** Traverse bodies
+ *
+ * Debugging function that counts the amount of bodies, dynamic bodies
+ * and fixtures in the passed Box2D world.
+ */
+void TraverseWorldBodies(b2World* world);
+
 } // namespace physics
 
 #endif
