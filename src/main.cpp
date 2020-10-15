@@ -59,6 +59,10 @@ int main(int argc, char** argv)
 	b2Vec2 gravity(0.f, 9.8f);
 	b2World world(gravity);
 
+	/* Instantiate b2ContactListener */
+	MyContactListener contactListener;
+	world.SetContactListener(&contactListener);
+
 	/* Create edge chain manager */
 	std::shared_ptr<EdgeChainManager> edgeChainManager(new EdgeChainManager(&world));
 
