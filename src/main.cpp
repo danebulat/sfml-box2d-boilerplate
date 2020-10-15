@@ -16,6 +16,9 @@
 #include "editor/debug/demo_prismatic_joint.hpp"
 #include "editor/debug/demo_pulley_joint.hpp"
 
+/* Callbacks */
+#include "editor/callbacks/my_contact_listener.hpp"
+
 using namespace physics;
 
 sf::Vector2f prevMousePos;
@@ -57,17 +60,17 @@ int main(int argc, char** argv)
 
 	/** Prepare the world */
 	b2Vec2 gravity(0.f, 9.8f);
-	b2World world(gravity);
+	std::unique_ptr<b2World> world(new b2World(gravity));
 
 	/* Instantiate b2ContactListener */
 	MyContactListener contactListener;
-	world.SetContactListener(&contactListener);
+	world->SetContactListener(&contactListener);
 
 	/* Create edge chain manager */
-	std::shared_ptr<EdgeChainManager> edgeChainManager(new EdgeChainManager(&world));
+	std::shared_ptr<EdgeChainManager> edgeChainManager(new EdgeChainManager(world.get()));
 
 	/* Create sprite manager */
-	std::shared_ptr<SpriteManager> spriteManager(new SpriteManager(&world));
+	std::shared_ptr<SpriteManager> spriteManager(new SpriteManager(world.get()));
 
 	/* The grid */
 	std::shared_ptr<Grid> grid(new Grid(res, levelSize));
@@ -92,10 +95,10 @@ int main(int argc, char** argv)
 	bool torqueOn = false;
 
 	/* Joint Demos */
-	DemoDistanceJoint demo_distanceJoint(&world);
+	DemoDistanceJoint demo_distanceJoint(world.get());
 	//DemoRevoluteJoint demo_revoluteJoint(&world);
 	//DemoPrismaticJoint demo_prismaticJoint(&world);
-	DemoPulleyJoint demo_pulleyJoint(&world);
+	DemoPulleyJoint demo_pulleyJoint(world.get());
 
 	while (window.isOpen())
 	{
@@ -260,7 +263,7 @@ int main(int argc, char** argv)
 		view.setCenter(camera->GetPosition());
 
 		/** Update Box2D */
-		world.Step(1/60.f, 8, 3);
+		world->Step(1/60.f, 8, 3);
 
 		/* Update managers */
 		edgeChainManager->Update(window);
