@@ -18,6 +18,7 @@
 
 /* Callbacks */
 #include "editor/callbacks/my_contact_listener.hpp"
+#include "editor/callbacks/trigger_zone.hpp"
 
 using namespace physics;
 
@@ -108,7 +109,7 @@ int main(int argc, char** argv)
 	DemoDistanceJoint demo_distanceJoint(world.get());
 	//DemoRevoluteJoint demo_revoluteJoint(&world);
 	//DemoPrismaticJoint demo_prismaticJoint(&world);
-	DemoPulleyJoint demo_pulleyJoint(world.get());
+	//DemoPulleyJoint demo_pulleyJoint(world.get());
 
 	while (window.isOpen())
 	{
@@ -218,6 +219,9 @@ int main(int argc, char** argv)
 			demo_distanceJoint.HandleInput(event);
 			//demo_prismaticJoint.HandleInput(event);
 
+			// Handle triggers
+			trigger.HandleInput(event);
+
 		}// end window.poll(event)
 
 		/* Update ImGui */
@@ -295,7 +299,10 @@ int main(int argc, char** argv)
 		demo_distanceJoint.Update(window);
 		//demo_revoluteJoint.Update();
 		//demo_prismaticJoint.Update(window);
-		demo_pulleyJoint.Update();
+		//demo_pulleyJoint.Update();
+
+		/* Update trigger zones */
+		trigger.Update(window);
 
 		/*----------------------------------------------------------------------
          Draw
@@ -318,7 +325,7 @@ int main(int argc, char** argv)
 		demo_distanceJoint.Draw(window);
 		//demo_revoluteJoint.Draw(window);
 		//demo_prismaticJoint.Draw(window);
-		demo_pulleyJoint.Draw(window);
+		//demo_pulleyJoint.Draw(window);
 
 		if (imguiManager->RenderMouseCoords())
 			window.draw(mouseLabel);
