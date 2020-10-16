@@ -65,6 +65,9 @@ int main(int argc, char** argv)
 	/* Instantiate b2ContactListener */
 	MyContactListener contactListener;
 	world->SetContactListener(&contactListener);
+	/* Instantiate b2ContactFilter */
+	MyContactFilter filter;
+	world->SetContactFilter(&filter);
 
 	/* Create edge chain manager */
 	std::shared_ptr<EdgeChainManager> edgeChainManager(new EdgeChainManager(world.get()));

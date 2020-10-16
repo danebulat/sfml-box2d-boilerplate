@@ -4,7 +4,7 @@
 #include "box2d/box2d.h"
 
 /** b2ContactListener Example
-*/
+ */
 class MyContactListener : public b2ContactListener
 {
 	/**
@@ -124,6 +124,34 @@ public:
 		}
 
 		contact->SetEnabled(false);
+	}
+};
+
+
+/** b2ContactFilter Example
+ */
+class MyContactFilter : public b2ContactFilter
+{
+public:
+	/** Default implementation of ShouldCollide uses b2FilterData.
+	 *
+	 * Instantiate contact filter at runtime and register to world with
+	 * b2World::SetContactFilter.
+	 */
+	bool ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) override
+	{
+		std::cout << "MyContactFilter::ShouldCollide\n";
+
+		const b2Filter& filterA = fixtureA->GetFilterData();
+		const b2Filter& filterB = fixtureB->GetFilterData();
+
+		if (filterA.groupIndex == filterB.groupIndex && filterA.groupIndex != 0)
+			return filterA.groupIndex > 0;
+
+		bool collideA = (filterA.maskBits & filterB.categoryBits) != 0;
+		bool collideB = (filterB.categoryBits & filterA.maskBits) != 0;
+		bool collide = collideA && collideB;
+		return collide;
 	}
 };
 
