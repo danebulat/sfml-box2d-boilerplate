@@ -66,11 +66,15 @@ int main(int argc, char** argv)
 	MyContactListener contactListener;
 	world->SetContactListener(&contactListener);
 	/* Instantiate b2ContactFilter */
-	MyContactFilter filter;
-	world->SetContactFilter(&filter);
+	//MyContactFilter filter;
+	//world->SetContactFilter(&filter);
 	/* Instantiate b2DestructionListener */
 	MyDestructionListener destructionListener;
 	world->SetDestructionListener(&destructionListener);
+
+	/* TriggerZome (b2QueryCallback) */
+	TriggerZone trigger(sf::Vector2f(100.f, 100.f), sf::Vector2f(100.f,100.f));
+	bool doQuery = false;
 
 	/* Create edge chain manager */
 	std::shared_ptr<EdgeChainManager> edgeChainManager(new EdgeChainManager(world.get()));
@@ -154,13 +158,8 @@ int main(int argc, char** argv)
 
 				if (event.key.code == sf::Keyboard::Q)
 				{
-					/* Instantiate b2QueryCallback */
-					// std::cout << "> instantiating MyQueryCallback\n";
-					// MyQueryCallback callback;
-					// b2AABB aabb;
-					// aabb.lowerBound.Set(350.f/SCALE, 150.f/SCALE);
-					// aabb.lowerBound.Set(502.f/SCALE, 314.f/SCALE);
-					// world->QueryAABB(&callback, aabb);
+					/* Register b2QueryCallback */
+					doQuery = true;
 				}
 			}
 
@@ -286,6 +285,12 @@ int main(int argc, char** argv)
 		edgeChainManager->Update(window);
 		spriteManager->Update();
 
+		if (doQuery)
+		{
+			doQuery = false;
+			trigger.Query(world.get());
+		}
+
 		/* Update demos */
 		demo_distanceJoint.Update(window);
 		//demo_revoluteJoint.Update();
@@ -301,6 +306,9 @@ int main(int argc, char** argv)
 		grid->Draw(window);
 
 		window.setView(view);
+
+		/* Render triggers */
+		trigger.Draw(window);
 
 		/* Draw objects */
 		spriteManager->Draw(window);

@@ -161,32 +161,6 @@ public:
 	}
 };
 
-/** AABB Query
- *
- * Sometimes you want to determine all shapes in a region - you can provide
- * an AABB in world coordinates and an implementation of b2QueryCallback.
- *
- * The world calls your class with each fixture whose AABB overlaps the
- * query AABB.
- */
-
-class MyQueryCallback : public b2QueryCallback
-{
-public:
-	/** ReportFixture
-	 *
-	 * Return true to continue the query; otherwise false.
-	 * Call with world->Query(&callback, aabb)
-	 */
-	bool ReportFixture(b2Fixture* fixture)
-	{
-		std::cout << "MyQueryCallback::ReportFixture - Entered AABB\n";
-		b2Body* body = fixture->GetBody();
-		body->SetAwake(true);
-		return true;
-	}
-};
-
 /** MyRayCastCallback
  *
  * You can perform a ray cast by implementing a callback class and providing
@@ -261,6 +235,79 @@ public:
 		/* Remove all references to fixture */
 		fixture = nullptr;
 		std::cout << "MyDestructionListener::SayGoodbye(fixture)\n";
+	}
+};
+
+#include <SFML/Graphics.hpp>
+#include "editor/constants.hpp"
+
+/** AABB Query
+ *
+ * Sometimes you want to determine all shapes in a region - you can provide
+ * an AABB in world coordinates and an implementation of b2QueryCallback.
+ *
+ * The world calls your class with each fixture whose AABB overlaps the
+ * query AABB.
+ */
+
+class MyQueryCallback : public b2QueryCallback
+{
+public:
+	/** ReportFixture
+	 *
+	 * Return true to continue the query; otherwise false.
+	 * Call with world->Query(&callback, aabb)
+	 */
+	bool ReportFixture(b2Fixture* fixture) override
+	{
+		std::cout << "MyQueryCallback::ReportFixture - Entered AABB\n";
+		b2Body* body = fixture->GetBody();
+		body->SetAwake(true);
+		return true;
+	}
+};
+
+class TriggerZone
+{
+private:
+	sf::RectangleShape	m_sprite;
+	sf::Color			m_color;
+	sf::Vector2f		m_position;
+	sf::Vector2f		m_size;
+
+	b2Vec2				m_lower;
+	b2Vec2				m_upper;
+	MyQueryCallback		m_callback;
+
+public:
+	TriggerZone(const sf::Vector2f& position, const sf::Vector2f& size)
+	{
+		m_position = position;
+		m_size = size;
+		m_color = sf::Color(0.f, 0.f, 255.f, 64.f);
+
+		m_sprite.setSize(size);
+		m_sprite.setPosition(position);
+		m_sprite.setFillColor(m_color);
+
+		m_lower.Set(m_position.x/SCALE, m_position.y/SCALE);
+		m_upper.Set((m_position.x + m_size.x)/SCALE,
+					(m_position.y + m_size.y)/SCALE);
+	}
+
+	void Query(b2World* world)
+	{
+		b2AABB aabb;
+		aabb.lowerBound = m_lower;
+		aabb.upperBound = m_upper;
+
+		// Query b2World
+		world->QueryAABB(&m_callback, aabb);
+	}
+
+	void Draw(sf::RenderWindow& window)
+	{
+		window.draw(m_sprite);
 	}
 };
 

@@ -119,6 +119,11 @@ string* DebugBox::GetUserData()
 	return nullptr;
 }
 
+sf::Vector2f DebugBox::GetPosition() const
+{
+	return m_position;
+}
+
 void DebugBox::DoTestPoint(const Vector2f& point)
 {
 	if (m_body->GetType() == b2_dynamicBody)
