@@ -22,5 +22,4 @@ struct EditorSettings
 	static sf::Vector2f  RESOLUTION;
 };
 
-
 #endif

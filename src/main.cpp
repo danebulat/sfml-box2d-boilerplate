@@ -20,6 +20,8 @@
 #include "editor/callbacks/my_contact_listener.hpp"
 #include "editor/callbacks/trigger_zone.hpp"
 
+Draggable* Draggable::s_ObjectBeingDragged = nullptr;
+
 using namespace physics;
 
 sf::Vector2f prevMousePos;
@@ -272,6 +274,16 @@ int main(int argc, char** argv)
 
 		prevMousePos = mousePos;
 		/* END WEIRD CODE ************************************************************/
+
+		/* Update dragging object cache */
+		Draggable* dragCache = Draggable::GetObjectBeingDragged();
+
+		if (TriggerZone* zone = dynamic_cast<TriggerZone*>(dragCache))
+			zone->UpdateDragCache();
+		else if (DemoDistanceJoint* demo = dynamic_cast<DemoDistanceJoint*>(dragCache))
+			demo->UpdateDragCache();
+		else if (StaticEdgeChain* chain = dynamic_cast<StaticEdgeChain*>(dragCache))
+			chain->UpdateDragCache();
 
 		/* Center view on camera position */
 		if (camera->IsAnimating())

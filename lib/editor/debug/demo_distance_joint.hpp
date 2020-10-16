@@ -6,13 +6,14 @@
 #include "editor/constants.hpp"
 #include "editor/mouse_utils.hpp"
 #include "editor/debug/demo_structs.hpp"
+#include "editor/draggable.hpp"
 
 /** DemoDistanceJoint Class
  *
  * TODO: Despawn when outside of level bounds
  */
 
-class DemoDistanceJoint
+class DemoDistanceJoint : public Draggable
 {
 private:
 	CircleSprite		m_circleA;
@@ -37,6 +38,7 @@ private:
 		bodyDef.position = b2Vec2(200.f/SCALE, 100.f/SCALE);
 		bodyDef.type = b2_dynamicBody;
 		bodyDef.angularDamping = .1f;
+		bodyDef.allowSleep = false;
 
 		// Shape Definition
 		b2CircleShape shape;
@@ -153,8 +155,11 @@ public:
 		b2Body* bodyA = m_joint->GetBodyA();
 		b2Body* bodyB = m_joint->GetBodyB();
 
-		if (m_hoveringOnCircle && m_leftMouseDown)
+		if (BeingDraggedByMouse() && (s_ObjectBeingDragged == this || s_ObjectBeingDragged == nullptr))
 		{
+			// Cache object pointer as the object getting dragged
+			s_ObjectBeingDragged = this;
+
 			// Get move increment
 			sf::Vector2f moveIncrement = GetIncrement(m_prevMousePos, mousePos);
 
@@ -206,11 +211,27 @@ public:
 		m_prevMousePos = mousePos;
 	}
 
+	bool BeingDraggedByMouse()
+	{
+		return (m_hoveringOnCircle && m_leftMouseDown);
+	}
+
 	void Draw(sf::RenderWindow& window)
 	{
 		window.draw(m_circleA.m_sprite);
 		window.draw(m_circleB.m_sprite);
 		window.draw(m_line);
+	}
+
+	/** Implement Draggable Interface
+	 */
+
+	virtual void UpdateDragCache() override
+	{
+		if (!BeingDraggedByMouse())
+		{
+			s_ObjectBeingDragged = nullptr;
+		}
 	}
 };
 

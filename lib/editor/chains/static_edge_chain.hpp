@@ -9,9 +9,10 @@
 #include "editor/chains/move_handle.hpp"
 #include "editor/chains/vertex_handle.hpp"
 #include "editor/managers/chain_manager_controller.hpp"
+#include "editor/draggable.hpp"
 
 /* Static edge chain */
-class StaticEdgeChain
+class StaticEdgeChain : public Draggable
 {
 private:
 	std::string 			  		m_tag;
@@ -63,7 +64,7 @@ public:
 	StaticEdgeChain(ChainManagerController* manager);
 	StaticEdgeChain(std::vector<sf::Vector2f>& vertices, const sf::Vector2f& worldPos, const std::string& tag,
 		b2World* world, ChainManagerController* manager);
-	~StaticEdgeChain();
+	virtual ~StaticEdgeChain();
 
 	void Init(std::vector<sf::Vector2f>& vertices, b2World* world,
 		const sf::Vector2f& worldPos);
@@ -95,6 +96,11 @@ public:
 	void Update(sf::RenderWindow& window, b2World* world);
 	void Draw(sf::RenderWindow& window);
 	void HandleInput(const sf::Event& event, sf::RenderWindow& window);
+
+	/** Implement Draggable Interface
+	 */
+
+	virtual void UpdateDragCache() override;
 };
 
 #endif

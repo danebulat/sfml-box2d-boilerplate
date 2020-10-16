@@ -5,6 +5,7 @@
 #include "box2d/box2d.h"
 #include "editor/constants.hpp"
 #include "editor/mouse_utils.hpp"
+#include "editor/draggable.hpp"
 
 /** AABB Query
  *
@@ -39,7 +40,7 @@ public:
  * class is associated with the visual rectangle.
 */
 
-class TriggerZone
+class TriggerZone : public Draggable
 {
 private:
 	sf::RectangleShape	m_sprite;
@@ -140,10 +141,23 @@ public:
 	{
 		auto mousePos = GetMousePosition(window);
 
-		// Handle dragging the zone with the mouse
-		if (m_hoveringOnZone && m_leftMouseDown)
+		// Set hover color
+		if (m_hoveringOnZone)
 		{
-			// TODO: Set hover color
+			m_color.a = 48.f;
+			m_sprite.setFillColor(m_color);
+		}
+		else
+		{
+			m_color.a = 64.f;
+			m_sprite.setFillColor(m_color);
+		}
+
+		// Handle dragging the zone with the mouse
+		if (BeingDraggedByMouse() && (s_ObjectBeingDragged == this || s_ObjectBeingDragged == nullptr))
+		{
+			// Cache object pointer as the object getting dragged
+			s_ObjectBeingDragged = this;
 
 			// Get move increment
 			sf::Vector2f moveIncrement = GetIncrement(m_prevMousePos, mousePos);
@@ -174,9 +188,25 @@ public:
 		m_prevMousePos = mousePos;
 	}
 
+	bool BeingDraggedByMouse()
+	{
+		return (m_hoveringOnZone && m_leftMouseDown);
+	}
+
 	void Draw(sf::RenderWindow& window)
 	{
 		window.draw(m_sprite);
+	}
+
+	/** Implement Draggable Interface
+	 */
+
+	virtual void UpdateDragCache() override
+	{
+		if (!BeingDraggedByMouse())
+		{
+			s_ObjectBeingDragged = nullptr;
+		}
 	}
 };
 

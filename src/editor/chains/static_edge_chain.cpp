@@ -374,8 +374,12 @@ void StaticEdgeChain::Update(RenderWindow& window, b2World* world)
 		// ----------------------------------------------------------------------
 
 		// Handle previous frame (move handle)
-		if ((m_hoveringOnMoveHandle && m_leftMouseDown) && !(m_hoveringOnHandle && m_leftMouseDown))
+		if ((m_hoveringOnMoveHandle && m_leftMouseDown) && !(m_hoveringOnHandle && m_leftMouseDown)
+			&& (s_ObjectBeingDragged == this || s_ObjectBeingDragged == nullptr))
 		{
+			// Cache object pointer as the object getting dragged
+			s_ObjectBeingDragged = this;
+
 			// Get move increment (pixel coordinates)
 			Vector2f moveIncrement = GetIncrement(m_prevMousePosition, mousePos);
 			m_moveHandle->Update(moveIncrement);
@@ -439,8 +443,12 @@ void StaticEdgeChain::Update(RenderWindow& window, b2World* world)
 		// ----------------------------------------------------------------------
 
 		// Handle previous frame before updating hovering flag
-		if (m_hoveringOnHandle && m_leftMouseDown)
+		if (m_hoveringOnHandle && m_leftMouseDown
+		    && (s_ObjectBeingDragged == this || s_ObjectBeingDragged == nullptr))
 		{
+			// Cache object pointer as the object getting dragged
+			s_ObjectBeingDragged = this;
+
 			// The index of the vertex being clicked on
 			unsigned int index = m_selectedHandle->GetVertexIndex();
 
@@ -549,4 +557,16 @@ void StaticEdgeChain::Draw(RenderWindow& window)
 
 	// Draw move handle
 	m_moveHandle->Draw(window, m_editable);
+}
+
+/** Implement Draggable Interface
+ */
+
+void StaticEdgeChain::UpdateDragCache()
+{
+	if (!((m_hoveringOnMoveHandle && m_leftMouseDown) &&
+			!(m_hoveringOnHandle && m_leftMouseDown)))
+	{
+		s_ObjectBeingDragged = nullptr;
+	}
 }
