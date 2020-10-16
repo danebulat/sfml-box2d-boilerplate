@@ -68,6 +68,9 @@ int main(int argc, char** argv)
 	/* Instantiate b2ContactFilter */
 	MyContactFilter filter;
 	world->SetContactFilter(&filter);
+	/* Instantiate b2DestructionListener */
+	MyDestructionListener destructionListener;
+	world->SetDestructionListener(&destructionListener);
 
 	/* Create edge chain manager */
 	std::shared_ptr<EdgeChainManager> edgeChainManager(new EdgeChainManager(world.get()));
@@ -147,6 +150,17 @@ int main(int argc, char** argv)
 				}
 				if (event.key.code == sf::Keyboard::Left) {
 					//box.ApplyAngularImpulse();
+				}
+
+				if (event.key.code == sf::Keyboard::Q)
+				{
+					/* Instantiate b2QueryCallback */
+					// std::cout << "> instantiating MyQueryCallback\n";
+					// MyQueryCallback callback;
+					// b2AABB aabb;
+					// aabb.lowerBound.Set(350.f/SCALE, 150.f/SCALE);
+					// aabb.lowerBound.Set(502.f/SCALE, 314.f/SCALE);
+					// world->QueryAABB(&callback, aabb);
 				}
 			}
 

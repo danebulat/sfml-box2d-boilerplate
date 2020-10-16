@@ -127,9 +127,15 @@ public:
 	}
 };
 
-
 /** b2ContactFilter Example
+ *
+ * Achieve custom contact filtering by implementing a b2ContactFilter class.
+ * Returns true if shapes should collide.
+ *
+ * - Requires an implementation of the ShouldCollide() function that receives two
+ *   b2Shape pointers.
  */
+
 class MyContactFilter : public b2ContactFilter
 {
 public:
@@ -152,6 +158,109 @@ public:
 		bool collideB = (filterB.categoryBits & filterA.maskBits) != 0;
 		bool collide = collideA && collideB;
 		return collide;
+	}
+};
+
+/** AABB Query
+ *
+ * Sometimes you want to determine all shapes in a region - you can provide
+ * an AABB in world coordinates and an implementation of b2QueryCallback.
+ *
+ * The world calls your class with each fixture whose AABB overlaps the
+ * query AABB.
+ */
+
+class MyQueryCallback : public b2QueryCallback
+{
+public:
+	/** ReportFixture
+	 *
+	 * Return true to continue the query; otherwise false.
+	 * Call with world->Query(&callback, aabb)
+	 */
+	bool ReportFixture(b2Fixture* fixture)
+	{
+		std::cout << "MyQueryCallback::ReportFixture - Entered AABB\n";
+		b2Body* body = fixture->GetBody();
+		body->SetAwake(true);
+		return true;
+	}
+};
+
+/** MyRayCastCallback
+ *
+ * You can perform a ray cast by implementing a callback class and providing
+ * the start and end points.
+ * Invoke the ray cast with b2World::RayCast(callback, point1, point2)
+ *
+ * - The world class calls your class with each fixture hit by the ray.
+ *
+ * - The callback is provided the fixture, point of intersection, the unit normal
+ *   vector, and fractional distance along the ray.
+ *
+ * - You control the continuation of the ray cast by returning a fraction:
+ *       Return 0  : Ray cast should be terminated
+ * 		 Return 1  : Ray cast continues as if no collision occured
+ * 		 Return -1 : Filter the fixture
+ * 		 Return fraction of 1 : Ray clipped to current intersection point
+ */
+
+class MyRayCastCallback : public b2RayCastCallback
+{
+private:
+	b2Fixture* 	m_fixture;
+	b2Vec2		m_point;
+	b2Vec2 		m_normal;
+	float 		m_fraction;
+
+public:
+	MyRayCastCallback()
+	{
+		m_fixture = nullptr;
+	}
+
+	float ReportFixture(b2Fixture* fixture,
+						const b2Vec2& point,
+						const b2Vec2& normal,
+						float fraction) override
+	{
+		m_fixture = fixture;
+		m_point = point;
+		m_normal = normal;
+		m_fraction = fraction;
+		return fraction;
+	}
+};
+
+/** MyDestructionListener
+ *
+ * If you destroy a body, all associated shapes and joints are automatically
+ * destroyed (implicit destruction). You must nullify any pointers you have to
+ * those shapes and joints.
+ *
+ * Box2D provides a listener class b2DestructionListener to help nullify joint
+ * and fixture pointers - Implement and provide to b2World object with
+ * b2World::SetDestructionListener().
+ *
+ * - World will notify you when a joint is going to be implicitly destroyed.
+ * - Gives the application a chance to nullify orphansed pointers.
+ */
+
+class MyDestructionListener : public b2DestructionListener
+{
+public:
+	void SayGoodbye(b2Joint* joint) override
+	{
+		/* Remove all references to joint */
+		joint = nullptr;
+		std::cout << "MyDestructionListener::SayGoodbye(joint)\n";
+	}
+
+	void SayGoodbye(b2Fixture* fixture) override
+	{
+		/* Remove all references to fixture */
+		fixture = nullptr;
+		std::cout << "MyDestructionListener::SayGoodbye(fixture)\n";
 	}
 };
 
