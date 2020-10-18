@@ -1,6 +1,10 @@
 #include "editor/grid.hpp"
+#include "editor/mouse_utils.hpp"
+#include <string>
 
+using std::string;
 using sf::Color;
+using sf::Event;
 using sf::RenderWindow;
 using sf::Vector2f;
 
@@ -46,6 +50,22 @@ void Grid::InitLabels()
 	m_yLabel.setRotation(-90.f);
 	m_yLabel.setPosition(2.5f, m_resolution.y - 25.f);
 	m_yLabel.setString("y-axis");
+
+	/* Mouse label */
+	m_mouseLabel.setFont(FontStore::GetInstance()->GetFont("Menlo-Regular.ttf"));
+	m_mouseLabel.setFillColor(sf::Color::Black);
+	m_mouseLabel.setString("(X,Y)");
+	m_mouseLabel.setCharacterSize(12);
+}
+
+void Grid::HandleInput(const Event& event, RenderWindow& window)
+{
+	// Mouse move
+	if (event.type == Event::MouseMoved)
+	{
+		// Defined in mouse_utils.cpp
+		SetMouseLabel(m_mouseLabel, window);
+	}
 }
 
 void Grid::Update()
@@ -63,6 +83,11 @@ void Grid::Draw(RenderWindow& window)
 		window.draw(m_xLabel);
 		window.draw(m_yLabel);
 	}
+}
+
+void Grid::DrawMouseLabel(RenderWindow& window)
+{
+	window.draw(m_mouseLabel);
 }
 
 // --------------------------------------------------------------------------------

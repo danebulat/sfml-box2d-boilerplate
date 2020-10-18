@@ -27,11 +27,6 @@
 
 using namespace physics;
 
-/* Data members for camera panning */
-sf::Vector2f prevMousePos;
-bool rmbPressed = false;
-bool panCamera = false;
-
 // Set initial editor mode
 RMBMode EditorSettings::mode = RMBMode::PanCameraMode;
 sf::Vector2u EditorSettings::levelSize;
@@ -57,13 +52,6 @@ int main(int argc, char** argv)
 	sf::RenderWindow window(sf::VideoMode(res.x, res.y, 32),
 		"SFML - Box2D Boilerplate", sf::Style::Default);
 	window.setFramerateLimit(60);
-
-	/* Mouse data */
-	sf::Text mouseLabel;
-	mouseLabel.setFont(FontStore::GetInstance()->GetFont("DroidSansMono.ttf"));
-	mouseLabel.setFillColor(sf::Color::Black);
-	mouseLabel.setString("(X,Y)");
-	mouseLabel.setCharacterSize(12);
 
 	/** Prepare the world */
 	b2Vec2 gravity(0.f, 9.8f);
@@ -168,12 +156,6 @@ int main(int argc, char** argv)
 				}
 			}
 
-			// Mouse move
-			if (event.type == sf::Event::MouseMoved)
-			{
-				SetMouseLabel(mouseLabel, window);
-			}
-
 			// Left and right button release
 			if (event.type == sf::Event::MouseButtonReleased)
 			{
@@ -195,6 +177,9 @@ int main(int argc, char** argv)
 					edgeChainManager->CheckChainClicked(window);
 				}
 			}
+
+			// Handle grid inputs
+			grid->HandleInput(event, window);
 
 			// Handle manager inputs
 			cameraManager->HandleInput(event);
@@ -265,7 +250,7 @@ int main(int argc, char** argv)
 		//demo_pulleyJoint.Draw(window);
 
 		if (imguiManager->RenderMouseCoords())
-			window.draw(mouseLabel);
+			grid->DrawMouseLabel(window);
 
 		// Render ImGui windows
 		imguiManager->Render(window);

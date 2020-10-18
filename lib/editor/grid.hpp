@@ -30,6 +30,9 @@ private:
 	static constexpr float MIN_UNIT_SIZE = 10.f;
 	static constexpr float MAX_UNIT_SIZE = 250.f;
 
+	/* Mouse label */
+	sf::Text 			m_mouseLabel;
+
 private:
 	void BuildGrid();
 	void BuildStandardGrid();
@@ -42,8 +45,10 @@ public:
 
 	void Reset();
 
+	void HandleInput(const sf::Event& event, sf::RenderWindow& window);
 	void Update();
 	void Draw(sf::RenderWindow& window);
+	void DrawMouseLabel(sf::RenderWindow& window);
 
 	void  SetUnitSize(float size);
 	float GetUnitSize() const;
