@@ -1,13 +1,14 @@
+#include "Platform/Platform.hpp"
 #include <SFML/Graphics.hpp>
 #include "box2d/box2d.h"
 
-#include "Platform/Platform.hpp"
-#include "editor/mouse_utils.hpp"
 #include <string>
 #include <algorithm>
-
 #include <ctime>
 #include <cstdlib>
+
+/* Utils */
+#include "editor/mouse_utils.hpp"
 
 /* Demos */
 #include "editor/debug/demo_distance_joint.hpp"
@@ -20,11 +21,13 @@
 #include "editor/callbacks/trigger_zone.hpp"
 
 /* Managers */
+#include "editor/managers/camera_manager.hpp"
 #include "editor/managers/imgui_manager.hpp"
 #include "editor/managers/drag_cache_manager.hpp"
 
 using namespace physics;
 
+/* Data members for camera panning */
 sf::Vector2f prevMousePos;
 bool rmbPressed = false;
 bool panCamera = false;
@@ -69,9 +72,11 @@ int main(int argc, char** argv)
 	/* Instantiate b2ContactListener */
 	MyContactListener contactListener;
 	world->SetContactListener(&contactListener);
+
 	/* Instantiate b2ContactFilter */
 	//MyContactFilter filter;
 	//world->SetContactFilter(&filter);
+
 	/* Instantiate b2DestructionListener */
 	MyDestructionListener destructionListener;
 	world->SetDestructionListener(&destructionListener);
@@ -89,17 +94,13 @@ int main(int argc, char** argv)
 	/* The grid */
 	std::shared_ptr<Grid> grid(new Grid(res, levelSize));
 
-	/* The camera */
-	sf::View view(sf::FloatRect(0, 0, res.x, res.y));
-	sf::Vector2f cameraTarget(res.x/2, res.y/2);
-
-	std::shared_ptr<Camera> camera(new Camera(cameraTarget, EditorSettings::levelSize, res, true));
-	camera->SetDuration(.5f);
-	camera->SetInterpolation(InterpFunc::ExpoEaseOut);
+	/* Camera manager */
+	std::shared_ptr<CameraManager> cameraManager(new CameraManager());
 
 	/* ImGui manager (initialise ImGui) */
 	std::unique_ptr<ImGuiManager> imguiManager(
-		new ImGuiManager(window, edgeChainManager, spriteManager, camera, grid));
+		new ImGuiManager(window, edgeChainManager, spriteManager,
+			cameraManager->GetCamera(), grid));
 
 	sf::Clock clock;
 
@@ -167,26 +168,10 @@ int main(int argc, char** argv)
 				}
 			}
 
-			// Mouse Button Pressed
-			if (event.type == sf::Event::MouseButtonPressed)
-			{
-				if (event.mouseButton.button == sf::Mouse::Right)
-				{
-					if (EditorSettings::mode == RMBMode::PanCameraMode)
-						rmbPressed = true;
-				}
-			}
-
 			// Mouse move
 			if (event.type == sf::Event::MouseMoved)
 			{
 				SetMouseLabel(mouseLabel, window);
-
-				// Handle camera pan
-				if (EditorSettings::mode == RMBMode::PanCameraMode && rmbPressed)
-				{
-					panCamera = true;
-				}
 			}
 
 			// Left and right button release
@@ -199,9 +184,6 @@ int main(int argc, char** argv)
 				}
 				else if (event.mouseButton.button == sf::Mouse::Right)
 				{
-					rmbPressed = false;
-					panCamera = false;
-
 					// Spawn a box
 					if (EditorSettings::mode == RMBMode::BoxSpawnMode)
 					{
@@ -215,6 +197,7 @@ int main(int argc, char** argv)
 			}
 
 			// Handle manager inputs
+			cameraManager->HandleInput(event);
 			edgeChainManager->HandleInput(event, window);
 			spriteManager->HandleInput(event, window);
 
@@ -230,63 +213,11 @@ int main(int argc, char** argv)
 		/* Update ImGui */
 		imguiManager->Update(window, dt);
 
-		/*----------------------------------------------------------------------
-         Update
-         ----------------------------------------------------------------------*/
-		// if (forceOn)
-		// 	box.ApplyForce();
-		// if (torqueOn)
-		// 	box.ApplyTorque();
-		// box.Update();
-
-		/* WEIRD CODE ****************************************************************/
-		// By simply calculating the increment of the current/previous mouse position
-		// each frame results in strange behavior due to the way the view is centered
-		// every frame.
-		// The following solution updates the current mouse position WITH THE INCREMENT
-		// value BEFORE copying it over to the previous frame mouse position.
-		sf::Vector2f mousePos = GetMousePosition(window);
-
-		if (panCamera)
-		{
-			float incX = abs(mousePos.x - prevMousePos.x);
-			float incY = abs(mousePos.y - prevMousePos.y);
-
-			if (mousePos.x < prevMousePos.x) {
-				cameraTarget.x += incX;
-				mousePos.x += incX;
-			}
-			else {
-				// move negative x
-				cameraTarget.x -= incX;
-				mousePos.x -= incX;
-			}
-
-			if (mousePos.y < prevMousePos.y) {
-				cameraTarget.y += incY;
-				mousePos.y += incY;
-			}
-			else {
-				// move negative y
-				cameraTarget.y -= incY;
-				mousePos.y -= incY;
-			}
-		}
-
-		prevMousePos = mousePos;
-		/* END WEIRD CODE ************************************************************/
+		/* Update camera */
+		cameraManager->Update(window, dt);
 
 		/* Update dragging object cache */
 		DragCacheManager::UpdateCache();
-
-		/* Center view on camera position */
-		if (camera->IsAnimating())
-			cameraTarget = camera->GetPosition();
-
-		/** Update camera */
-		camera->Update(dt.asSeconds(), cameraTarget);
-
-		view.setCenter(camera->GetPosition());
 
 		/** Update Box2D */
 		world->Step(1/60.f, 8, 3);
@@ -318,7 +249,7 @@ int main(int argc, char** argv)
 		/* Draw grid */
 		grid->Draw(window);
 
-		window.setView(view);
+		window.setView(cameraManager->GetCameraView());
 
 		/* Render triggers */
 		trigger.Draw(window);
