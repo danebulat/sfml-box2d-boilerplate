@@ -154,7 +154,7 @@ public:
 		}
 
 		// Handle dragging the zone with the mouse
-		if (BeingDraggedByMouse() && (s_ObjectBeingDragged == this || s_ObjectBeingDragged == nullptr))
+		if (BeingDraggedByMouse() && Draggable::CanDrag(this))
 		{
 			// Cache object pointer as the object getting dragged
 			s_ObjectBeingDragged = this;

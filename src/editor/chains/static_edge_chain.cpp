@@ -375,7 +375,7 @@ void StaticEdgeChain::Update(RenderWindow& window, b2World* world)
 
 		// Handle previous frame (move handle)
 		if ((m_hoveringOnMoveHandle && m_leftMouseDown) && !(m_hoveringOnHandle && m_leftMouseDown)
-			&& (s_ObjectBeingDragged == this || s_ObjectBeingDragged == nullptr))
+			&& Draggable::CanDrag(this))
 		{
 			// Cache object pointer as the object getting dragged
 			s_ObjectBeingDragged = this;
@@ -443,8 +443,7 @@ void StaticEdgeChain::Update(RenderWindow& window, b2World* world)
 		// ----------------------------------------------------------------------
 
 		// Handle previous frame before updating hovering flag
-		if (m_hoveringOnHandle && m_leftMouseDown
-		    && (s_ObjectBeingDragged == this || s_ObjectBeingDragged == nullptr))
+		if (m_hoveringOnHandle && m_leftMouseDown && Draggable::CanDrag(this))
 		{
 			// Cache object pointer as the object getting dragged
 			s_ObjectBeingDragged = this;

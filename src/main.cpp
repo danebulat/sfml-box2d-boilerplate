@@ -2,7 +2,6 @@
 #include "box2d/box2d.h"
 
 #include "Platform/Platform.hpp"
-#include "editor/managers/imgui_manager.hpp"
 #include "editor/mouse_utils.hpp"
 #include <string>
 #include <algorithm>
@@ -20,6 +19,11 @@
 #include "editor/callbacks/my_contact_listener.hpp"
 #include "editor/callbacks/trigger_zone.hpp"
 
+/* Managers */
+#include "editor/managers/imgui_manager.hpp"
+#include "editor/managers/drag_cache_manager.hpp"
+
+// TODO: Put in draggable.cpp
 Draggable* Draggable::s_ObjectBeingDragged = nullptr;
 
 using namespace physics;
@@ -276,14 +280,7 @@ int main(int argc, char** argv)
 		/* END WEIRD CODE ************************************************************/
 
 		/* Update dragging object cache */
-		Draggable* dragCache = Draggable::GetObjectBeingDragged();
-
-		if (TriggerZone* zone = dynamic_cast<TriggerZone*>(dragCache))
-			zone->UpdateDragCache();
-		else if (DemoDistanceJoint* demo = dynamic_cast<DemoDistanceJoint*>(dragCache))
-			demo->UpdateDragCache();
-		else if (StaticEdgeChain* chain = dynamic_cast<StaticEdgeChain*>(dragCache))
-			chain->UpdateDragCache();
+		DragCacheManager::UpdateCache();
 
 		/* Center view on camera position */
 		if (camera->IsAnimating())

@@ -100,7 +100,7 @@ public:
 			// Calculate approach velocity
 			float approachVelocity = b2Dot(vB - vA, worldManifold.normal);
 
-			std::cout << "> approachVelocity: " << approachVelocity << "\n";
+			//std::cout << "> approachVelocity: " << approachVelocity << "\n";
 
 			// Dot product > 1 means vectors point in same direction
 			// https://www.mathsisfun.com/algebra/vectors-dot-product.html

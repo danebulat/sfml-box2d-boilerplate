@@ -155,7 +155,7 @@ public:
 		b2Body* bodyA = m_joint->GetBodyA();
 		b2Body* bodyB = m_joint->GetBodyB();
 
-		if (BeingDraggedByMouse() && (s_ObjectBeingDragged == this || s_ObjectBeingDragged == nullptr))
+		if (BeingDraggedByMouse() && Draggable::CanDrag(this))
 		{
 			// Cache object pointer as the object getting dragged
 			s_ObjectBeingDragged = this;
