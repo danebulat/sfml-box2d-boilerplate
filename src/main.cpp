@@ -23,9 +23,6 @@
 #include "editor/managers/imgui_manager.hpp"
 #include "editor/managers/drag_cache_manager.hpp"
 
-// TODO: Put in draggable.cpp
-Draggable* Draggable::s_ObjectBeingDragged = nullptr;
-
 using namespace physics;
 
 sf::Vector2f prevMousePos;

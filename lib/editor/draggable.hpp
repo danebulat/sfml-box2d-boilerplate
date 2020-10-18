@@ -18,16 +18,10 @@ public:
 	virtual void UpdateDragCache() = 0;
 
 	/* Returns true if passed object can currently be dragged */
-	static bool CanDrag(Draggable* object)
-	{
-		return (object == s_ObjectBeingDragged || s_ObjectBeingDragged == nullptr);
-	}
+	static bool CanDrag(Draggable* object);
 
-	/* Returns cache pointer to Draggable object */
-	static Draggable* GetObjectBeingDragged()
-	{
-		return s_ObjectBeingDragged;
-	}
+	/* Returns an object pointer stored in the cache */
+	static Draggable* GetObjectBeingDragged();
 };
 
 #endif
