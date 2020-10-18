@@ -16,6 +16,9 @@ public:
 	DragCacheManager()
 	{}
 
+	DragCacheManager(const DragCacheManager&) = delete;
+	DragCacheManager& operator= (const DragCacheManager&) = delete;
+
 	static void UpdateCache()
 	{
 		Draggable* dragCache = Draggable::GetObjectBeingDragged();

@@ -51,6 +51,9 @@ public:
 		std::shared_ptr<Camera> camera,
 		std::shared_ptr<Grid> grid);
 
+	ImGuiManager(const ImGuiManager&) = delete;
+	ImGuiManager& operator= (const ImGuiManager&) = delete;
+
 	void ProcessEvent(sf::Event& event);
 	void Update(sf::RenderWindow& window, sf::Time& dt);
 	void Render(sf::RenderWindow& window);
