@@ -12,7 +12,6 @@
 
 /* Demos */
 #include "editor/debug/demo_revolute_joint.hpp"
-#include "editor/debug/demo_prismatic_joint.hpp"
 #include "editor/debug/demo_pulley_joint.hpp"
 
 /* Callbacks */
@@ -98,7 +97,6 @@ int main(int argc, char** argv)
 
 	/* Joint Demos */
 	//DemoRevoluteJoint demo_revoluteJoint(&world);
-	//DemoPrismaticJoint demo_prismaticJoint(&world);
 	//DemoPulleyJoint demo_pulleyJoint(world.get());
 
 	while (window.isOpen())
@@ -185,7 +183,7 @@ int main(int argc, char** argv)
 			spriteManager->HandleInput(event, window);
 
 			// Handle demo inputs
-			//demo_prismaticJoint.HandleInput(event);
+			// TMP
 
 			// Handle triggers
 			trigger.HandleInput(event);
@@ -216,7 +214,6 @@ int main(int argc, char** argv)
 
 		/* Update demos */
 		//demo_revoluteJoint.Update();
-		//demo_prismaticJoint.Update(window);
 		//demo_pulleyJoint.Update();
 
 		/* Update trigger zones */
@@ -241,7 +238,6 @@ int main(int argc, char** argv)
 
 		/* Update demos */
 		//demo_revoluteJoint.Draw(window);
-		//demo_prismaticJoint.Draw(window);
 		//demo_pulleyJoint.Draw(window);
 
 		if (imguiManager->RenderMouseCoords())
