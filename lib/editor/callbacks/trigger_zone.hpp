@@ -48,7 +48,7 @@ public:
 	{
 		/* Initialise sprite size and color */
 		m_sprite.setSize(sf::Vector2f(LENGTH, LENGTH));
-		m_sprite.setFillColor(sf::Color(0.f, 0.f, 255.f, 128.f));
+		m_sprite.setFillColor(sf::Color(0.f, 0.f, 255.f, 96.f));
 
 		/* Initialise sprite position */
 		m_position.x = (zoneBounds.left + zoneBounds.width) - LENGTH;
@@ -121,6 +121,8 @@ private:
 
 	/* Corner handle to resize zone */
 	std::unique_ptr<CornerHandle> m_cornerHandle;
+
+	static constexpr float MIN_LENGTH = 35.f;
 
 public:
 	TriggerZone(const sf::Vector2f& position, const sf::Vector2f& size);

@@ -126,17 +126,28 @@ void TriggerZone::Update(sf::RenderWindow& window)
 
 		// Get move increment
 		sf::Vector2f moveIncrement = GetIncrement(m_prevMousePos, mousePos);
+		sf::Vector2f handleMoveIncrement(0.f, 0.f);
 
-		// TODO: Resize lower and upper bounds
-		m_size += moveIncrement;
+		// Update zone if it's size is valid
+		if ((m_size.x + moveIncrement.x) > MIN_LENGTH) {
+			m_size.x += moveIncrement.x;
+			handleMoveIncrement.x = moveIncrement.x;
+		}
+
+		if ((m_size.y + moveIncrement.y) > MIN_LENGTH) {
+			m_size.y += moveIncrement.y;
+			handleMoveIncrement.y = moveIncrement.y;
+		}
+
+		// Resize lower and upper bounds
 		m_lower.Set(m_position.x/SCALE, m_position.y/SCALE);
 		m_upper.Set((m_position.x + m_size.x)/SCALE, (m_position.y + m_size.y)/SCALE);
 
 		// Resize sprite
-		m_sprite.setSize(m_sprite.getSize() + moveIncrement);
+		m_sprite.setSize(m_size);
 
 		// Move corner handle
-		m_cornerHandle->IncrementPosition(moveIncrement);
+		m_cornerHandle->IncrementPosition(handleMoveIncrement);
 	}
 
 	// Handle dragging the zone with the mouse
