@@ -11,7 +11,6 @@
 #include "editor/mouse_utils.hpp"
 
 /* Demos */
-#include "editor/debug/demo_revolute_joint.hpp"
 #include "editor/debug/demo_pulley_joint.hpp"
 
 /* Callbacks */
@@ -96,8 +95,7 @@ int main(int argc, char** argv)
 	bool torqueOn = false;
 
 	/* Joint Demos */
-	//DemoRevoluteJoint demo_revoluteJoint(&world);
-	//DemoPulleyJoint demo_pulleyJoint(world.get());
+	DemoPulleyJoint demo_pulleyJoint(world.get());
 
 	while (window.isOpen())
 	{
@@ -182,9 +180,6 @@ int main(int argc, char** argv)
 			edgeChainManager->HandleInput(event, window);
 			spriteManager->HandleInput(event, window);
 
-			// Handle demo inputs
-			// TMP
-
 			// Handle triggers
 			trigger.HandleInput(event);
 
@@ -213,8 +208,7 @@ int main(int argc, char** argv)
 		}
 
 		/* Update demos */
-		//demo_revoluteJoint.Update();
-		//demo_pulleyJoint.Update();
+		demo_pulleyJoint.Update();
 
 		/* Update trigger zones */
 		trigger.Update(window);
@@ -237,8 +231,7 @@ int main(int argc, char** argv)
 		edgeChainManager->Draw(window);
 
 		/* Update demos */
-		//demo_revoluteJoint.Draw(window);
-		//demo_pulleyJoint.Draw(window);
+		demo_pulleyJoint.Draw(window);
 
 		if (imguiManager->RenderMouseCoords())
 			grid->DrawMouseLabel(window);
