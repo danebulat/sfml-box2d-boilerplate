@@ -6,6 +6,7 @@
 #include "editor/constants.hpp"
 #include "editor/mouse_utils.hpp"
 #include "editor/draggable.hpp"
+#include "editor/callbacks/corner_handle.hpp"
 
 /** AABB Query
  *
@@ -26,69 +27,6 @@ public:
 	 * Call with world->Query(&callback, aabb)
 	 */
 	bool ReportFixture(b2Fixture* fixture) override;
-};
-
-/** CornerHandle
- *
- * A handle displayed on the bottom-right hand corner of a trigger zone.
- * The handle is dragged to resize the trigger zone.
-*/
-
-class CornerHandle
-{
-private:
-	sf::RectangleShape	m_sprite;
-	sf::Vector2f		m_position;
-
-	/* Static data */
-	static constexpr float LENGTH = 17.5f;
-
-public:
-	CornerHandle(const sf::FloatRect& zoneBounds)
-	{
-		/* Initialise sprite size and color */
-		m_sprite.setSize(sf::Vector2f(LENGTH, LENGTH));
-		m_sprite.setFillColor(sf::Color(0.f, 0.f, 255.f, 96.f));
-
-		/* Initialise sprite position */
-		m_position.x = (zoneBounds.left + zoneBounds.width) - LENGTH;
-		m_position.y = (zoneBounds.top + zoneBounds.height) - LENGTH;
-		m_sprite.setPosition(m_position);
-	}
-
-	virtual ~CornerHandle()
-	{}
-
-	void Update(const sf::FloatRect& zoneBounds)
-	{
-		m_position.x = (zoneBounds.left + zoneBounds.width) - LENGTH;
-		m_position.y = (zoneBounds.top + zoneBounds.height) - LENGTH;
-		m_sprite.setPosition(m_position);
-	}
-
-	void Draw(sf::RenderWindow& window)
-	{
-		window.draw(m_sprite);
-	}
-
-	bool MouseHoveringOnHandle(const sf::Vector2f& mousePos)
-	{
-		sf::FloatRect r(m_position.x, m_position.y, LENGTH, LENGTH);
-
-		if ((mousePos.x > r.left && mousePos.x < r.left + r.width) &&
-			(mousePos.y > r.top && mousePos.y < r.top + r.height))
-		{
-			return true;
-		}
-
-		return false;
-	}
-
-	void IncrementPosition(const sf::Vector2f& increment)
-	{
-		m_position += increment;
-		m_sprite.setPosition(m_position);
-	}
 };
 
 /** TriggerZone
