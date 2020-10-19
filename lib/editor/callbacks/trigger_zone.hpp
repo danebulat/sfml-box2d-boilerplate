@@ -25,12 +25,69 @@ public:
 	 * Return true to continue the query, otherwise return false.
 	 * Call with world->Query(&callback, aabb)
 	 */
-	bool ReportFixture(b2Fixture* fixture) override
+	bool ReportFixture(b2Fixture* fixture) override;
+};
+
+/** CornerHandle
+ *
+ * A handle displayed on the bottom-right hand corner of a trigger zone.
+ * The handle is dragged to resize the trigger zone.
+*/
+
+class CornerHandle
+{
+private:
+	sf::RectangleShape	m_sprite;
+	sf::Vector2f		m_position;
+
+	/* Static data */
+	static constexpr float LENGTH = 17.5f;
+
+public:
+	CornerHandle(const sf::FloatRect& zoneBounds)
 	{
-		std::cout << "MyQueryCallback::ReportFixture - Entered AABB\n";
-		b2Body* body = fixture->GetBody();
-		body->SetAwake(true);
-		return true;
+		/* Initialise sprite size and color */
+		m_sprite.setSize(sf::Vector2f(LENGTH, LENGTH));
+		m_sprite.setFillColor(sf::Color(0.f, 0.f, 255.f, 128.f));
+
+		/* Initialise sprite position */
+		m_position.x = (zoneBounds.left + zoneBounds.width) - LENGTH;
+		m_position.y = (zoneBounds.top + zoneBounds.height) - LENGTH;
+		m_sprite.setPosition(m_position);
+	}
+
+	virtual ~CornerHandle()
+	{}
+
+	void Update(const sf::FloatRect& zoneBounds)
+	{
+		m_position.x = (zoneBounds.left + zoneBounds.width) - LENGTH;
+		m_position.y = (zoneBounds.top + zoneBounds.height) - LENGTH;
+		m_sprite.setPosition(m_position);
+	}
+
+	void Draw(sf::RenderWindow& window)
+	{
+		window.draw(m_sprite);
+	}
+
+	bool MouseHoveringOnHandle(const sf::Vector2f& mousePos)
+	{
+		sf::FloatRect r(m_position.x, m_position.y, LENGTH, LENGTH);
+
+		if ((mousePos.x > r.left && mousePos.x < r.left + r.width) &&
+			(mousePos.y > r.top && mousePos.y < r.top + r.height))
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	void IncrementPosition(const sf::Vector2f& increment)
+	{
+		m_position += increment;
+		m_sprite.setPosition(m_position);
 	}
 };
 
@@ -58,155 +115,36 @@ private:
 	bool    		m_leftMouseDown;
 	bool 			m_mouseMoved;
 	bool			m_hoveringOnZone;
+	bool			m_hoveringOnCornerHandle;
 	sf::Vector2f	m_currMousePos;
 	sf::Vector2f	m_prevMousePos;
 
+	/* Corner handle to resize zone */
+	std::unique_ptr<CornerHandle> m_cornerHandle;
+
 public:
-	TriggerZone(const sf::Vector2f& position, const sf::Vector2f& size)
-	{
-		/* Initialise mouse-dragging data members */
-		m_leftMouseDown = false;
-		m_mouseMoved = false;
-		m_hoveringOnZone = false;
+	TriggerZone(const sf::Vector2f& position, const sf::Vector2f& size);
+	virtual ~TriggerZone();
 
-		/* Initialise zone data members */
-		m_position = position;
-		m_size = size;
-		m_color = sf::Color(0.f, 0.f, 255.f, 64.f);
+	bool MouseHoveringOnZone(const sf::Vector2f& mousePos);
+	bool ZoneBeingDraggedByMouse();
 
-		m_sprite.setSize(size);
-		m_sprite.setPosition(position);
-		m_sprite.setFillColor(m_color);
+	void Query(b2World* world);
 
-		m_lower.Set(m_position.x/SCALE, m_position.y/SCALE);
-		m_upper.Set((m_position.x + m_size.x)/SCALE,
-					(m_position.y + m_size.y)/SCALE);
-	}
-
-	bool MouseHoveringOnZone(const sf::Vector2f& mousePos)
-	{
-		sf::FloatRect r(m_position.x, m_position.y, m_size.x, m_size.y);
-
-		if ((mousePos.x > r.left && mousePos.x < r.left + r.width) &&
-			(mousePos.y > r.top && mousePos.y < r.top + r.height))
-		{
-			return true;
-		}
-
-		return false;
-	}
-
-	void Query(b2World* world)
-	{
-		b2AABB aabb;
-		aabb.lowerBound = m_lower;
-		aabb.upperBound = m_upper;
-
-		// Query b2World
-		world->QueryAABB(&m_callback, aabb);
-	}
-
-	void HandleInput(const sf::Event& event)
-	{
-		// Mouse Button Pressed
-		if (event.type == sf::Event::MouseButtonPressed)
-		{
-			if (event.mouseButton.button == sf::Mouse::Left)
-			{
-				m_leftMouseDown = true;
-			}
-		}
-
-		// Mouse move
-		if (event.type == sf::Event::MouseMoved)
-		{
-			m_mouseMoved = true;
-		}
-		else
-		{
-			m_mouseMoved = false;
-		}
-
-		// Mouse Button Released
-		if (event.type == sf::Event::MouseButtonReleased)
-		{
-			if (event.mouseButton.button == sf::Mouse::Left)
-			{
-				m_leftMouseDown = false;
-			}
-		}
-	}
-
-	void Update(sf::RenderWindow& window)
-	{
-		auto mousePos = GetMousePosition(window);
-
-		// Set hover color
-		if (m_hoveringOnZone)
-		{
-			m_color.a = 48.f;
-			m_sprite.setFillColor(m_color);
-		}
-		else
-		{
-			m_color.a = 64.f;
-			m_sprite.setFillColor(m_color);
-		}
-
-		// Handle dragging the zone with the mouse
-		if (BeingDraggedByMouse() && Draggable::CanDrag(this))
-		{
-			// Cache object pointer as the object getting dragged
-			s_ObjectBeingDragged = this;
-
-			// Get move increment
-			sf::Vector2f moveIncrement = GetIncrement(m_prevMousePos, mousePos);
-
-			// Update AABB data
-			m_position += moveIncrement;
-
-			m_lower.Set(m_position.x/SCALE, m_position.y/SCALE);
-			m_upper.Set((m_position.x + m_size.x)/SCALE, (m_position.y + m_size.y)/SCALE);
-
-			// Update sprite position
-			m_sprite.setPosition(m_position);
-		}
-
-		// Detect if mouse is hovering over the trigger zone
-		if (m_mouseMoved)
-		{
-			if (MouseHoveringOnZone(mousePos))
-			{
-				m_hoveringOnZone = true;
-			}
-			else
-			{
-				m_hoveringOnZone = false;
-			}
-		}
-
-		m_prevMousePos = mousePos;
-	}
-
-	bool BeingDraggedByMouse()
-	{
-		return (m_hoveringOnZone && m_leftMouseDown);
-	}
-
-	void Draw(sf::RenderWindow& window)
-	{
-		window.draw(m_sprite);
-	}
+	void HandleInput(const sf::Event& event);
+	void Update(sf::RenderWindow& window);
+	void Draw(sf::RenderWindow& window);
 
 	/** Implement Draggable Interface
 	 */
 
-	virtual void UpdateDragCache() override
+	virtual void UpdateDragCache() override;
+
+private:
+	/* Private accessors for CornerHandle class */
+	sf::FloatRect GetFloatRect() const
 	{
-		if (!BeingDraggedByMouse())
-		{
-			s_ObjectBeingDragged = nullptr;
-		}
+		return m_sprite.getGlobalBounds();
 	}
 };
 
