@@ -11,7 +11,6 @@
 #include "editor/mouse_utils.hpp"
 
 /* Demos */
-#include "editor/debug/demo_distance_joint.hpp"
 #include "editor/debug/demo_revolute_joint.hpp"
 #include "editor/debug/demo_prismatic_joint.hpp"
 #include "editor/debug/demo_pulley_joint.hpp"
@@ -98,7 +97,6 @@ int main(int argc, char** argv)
 	bool torqueOn = false;
 
 	/* Joint Demos */
-	DemoDistanceJoint demo_distanceJoint(world.get());
 	//DemoRevoluteJoint demo_revoluteJoint(&world);
 	//DemoPrismaticJoint demo_prismaticJoint(&world);
 	//DemoPulleyJoint demo_pulleyJoint(world.get());
@@ -187,7 +185,6 @@ int main(int argc, char** argv)
 			spriteManager->HandleInput(event, window);
 
 			// Handle demo inputs
-			demo_distanceJoint.HandleInput(event);
 			//demo_prismaticJoint.HandleInput(event);
 
 			// Handle triggers
@@ -218,7 +215,6 @@ int main(int argc, char** argv)
 		}
 
 		/* Update demos */
-		demo_distanceJoint.Update(window);
 		//demo_revoluteJoint.Update();
 		//demo_prismaticJoint.Update(window);
 		//demo_pulleyJoint.Update();
@@ -244,7 +240,6 @@ int main(int argc, char** argv)
 		edgeChainManager->Draw(window);
 
 		/* Update demos */
-		demo_distanceJoint.Draw(window);
 		//demo_revoluteJoint.Draw(window);
 		//demo_prismaticJoint.Draw(window);
 		//demo_pulleyJoint.Draw(window);
