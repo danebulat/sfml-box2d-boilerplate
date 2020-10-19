@@ -2,16 +2,8 @@
 #include <SFML/Graphics.hpp>
 #include "box2d/box2d.h"
 
-#include <string>
-#include <algorithm>
-#include <ctime>
-#include <cstdlib>
-
 /* Utils */
 #include "editor/mouse_utils.hpp"
-
-/* Demos */
-#include "editor/debug/demo_pulley_joint.hpp"
 
 /* Callbacks */
 #include "editor/callbacks/my_contact_listener.hpp"
@@ -21,6 +13,11 @@
 #include "editor/managers/camera_manager.hpp"
 #include "editor/managers/imgui_manager.hpp"
 #include "editor/managers/drag_cache_manager.hpp"
+
+#include <string>
+#include <algorithm>
+#include <ctime>
+#include <cstdlib>
 
 using namespace physics;
 
@@ -93,9 +90,6 @@ int main(int argc, char** argv)
 	//DebugBox box(sf::Vector2f(200.f, 200.f), &world);
 	bool forceOn = false;
 	bool torqueOn = false;
-
-	/* Joint Demos */
-	DemoPulleyJoint demo_pulleyJoint(world.get());
 
 	while (window.isOpen())
 	{
@@ -207,9 +201,6 @@ int main(int argc, char** argv)
 			trigger.Query(world.get());
 		}
 
-		/* Update demos */
-		demo_pulleyJoint.Update();
-
 		/* Update trigger zones */
 		trigger.Update(window);
 
@@ -229,9 +220,6 @@ int main(int argc, char** argv)
 		/* Draw objects */
 		spriteManager->Draw(window);
 		edgeChainManager->Draw(window);
-
-		/* Update demos */
-		demo_pulleyJoint.Draw(window);
 
 		if (imguiManager->RenderMouseCoords())
 			grid->DrawMouseLabel(window);
